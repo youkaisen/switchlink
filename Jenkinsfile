@@ -68,7 +68,7 @@ pipeline {
 				 CUR_BRANCH="${env.BRANCH_NAME}"
 			            }
 			     }
-			        checkout([$class: 'GitSCM', branches: [[name: 'main']], 
+			        checkout([$class: 'GitSCM', branches: [[name: "*/${CUR_BRANCH}"]], 
 		                doGenerateSubmoduleConfigurations: false, 
 		                extensions: [
 		                    [$class: 'RelativeTargetDirectory', relativeTargetDir: "p4-ovs"],
