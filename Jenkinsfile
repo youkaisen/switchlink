@@ -20,7 +20,7 @@ pipeline {
             }
 	 stage ('Build P4 SDE') {
              stages {
-                stage("clone p4-sde repo") {
+                stage("Clone P4 SDE repo") {
 		    steps {
 			 checkout([$class: 'GitSCM', branches: [[name: 'main']], 
 		                    extensions: [
@@ -31,7 +31,7 @@ pipeline {
 		                url: 'https://github.com/intel-innersource/networking.ethernet.acceleration.vswitch.p4-sde.p4-driver.git']]]) 
 	                  }
 	              }
-	            stage("P4-SDE submodule update") {
+	            stage("P4 SDE submodule update") {
                     	steps {
                             sh '''
                                 #### workarround, as p4-sde submodule update failing due to teamforge permission issues ###
@@ -41,7 +41,7 @@ pipeline {
                          	'''
                         	}
 	                }
-                stage("Build DPDK code") {
+                stage("Build P4 SDE for DPDK Target") {
                     steps {
                         sh '''
 	      	            cd $WORKSPACE
@@ -59,7 +59,7 @@ pipeline {
                 }       
             }
         }
-        stage("clone P4-OVS repo") {
+        stage("Clone P4 OVS repo") {
 		steps {
 		     script {
 			   if (env.CHANGE_BRANCH) {
