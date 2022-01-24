@@ -25,10 +25,41 @@
 #define GNMI_CONFIG_QUEUE_COUNT 0x04
 #define GNMI_CONFIG_SOCKET_PATH 0x08
 #define GNMI_CONFIG_HOST_NAME 0x10
+#define GNMI_CONFIG_PIPELINE_NAME 0x20
+#define GNMI_CONFIG_MEMPOOL_NAME 0x40
+#define GNMI_CONFIG_MTU_VALUE 0x80
+#define GNMI_CONFIG_PCI_BDF_VALUE 0x0100
 
-#define GNMI_CONFIG_TDI (GNMI_CONFIG_PORT_TYPE | GNMI_CONFIG_DEVICE_TYPE | \
-                         GNMI_CONFIG_QUEUE_COUNT | GNMI_CONFIG_SOCKET_PATH | \
-                         GNMI_CONFIG_HOST_NAME)
+#define GNMI_CONFIG_PORT_DONE 0x10000000
+
+#define GNMI_CONFIG_VHOST (GNMI_CONFIG_PORT_TYPE | GNMI_CONFIG_DEVICE_TYPE | \
+                           GNMI_CONFIG_QUEUE_COUNT | GNMI_CONFIG_SOCKET_PATH | \
+                           GNMI_CONFIG_HOST_NAME)
+
+#define GNMI_CONFIG_LINK (GNMI_CONFIG_PORT_TYPE | GNMI_CONFIG_PCI_BDF_VALUE)
+
+#define GNMI_CONFIG_TAP (GNMI_CONFIG_PORT_TYPE)
+
+// VHOST ports shouldn't be configured with PCI BDF value.
+#define GNMI_CONFIG_UNSUPPORTED_MASK_VHOST (GNMI_CONFIG_PCI_BDF_VALUE)
+
+// Independant LINK ports shouldn't have the below params.
+#define GNMI_CONFIG_UNSUPPORTED_MASK_LINK (GNMI_CONFIG_DEVICE_TYPE | GNMI_CONFIG_QUEUE_COUNT | \
+                                           GNMI_CONFIG_SOCKET_PATH | GNMI_CONFIG_HOST_NAME)
+
+// Independant TAP ports shouldn't have the below params.
+#define GNMI_CONFIG_UNSUPPORTED_MASK_TAP (GNMI_CONFIG_DEVICE_TYPE | GNMI_CONFIG_QUEUE_COUNT | \
+                                          GNMI_CONFIG_SOCKET_PATH | GNMI_CONFIG_HOST_NAME | \
+                                          GNMI_CONFIG_PCI_BDF_VALUE)
+
+/* SDK_PORT_CONTROL_BASE is used as CONTOL BASE offset to define
+ * reserved port range for the control ports.
+ */
+#define SDK_PORT_CONTROL_BASE 256
+
+#define DEFAULT_PIPELINE "pipe"
+#define DEFAULT_MEMPOOL  "MEMPOOL0"
+#define DEFAULT_MTU      1500
 
 namespace stratum {
 namespace hal {
@@ -131,6 +162,10 @@ class BfChassisManager {
     int32 queues;
     std::string socket_path;
     std::string host_name;
+    std::string pipeline_name;
+    std::string mempool_name;
+    std::string control_port;
+    std::string pci_bdf;
 
     PortConfig() : admin_state(ADMIN_STATE_UNKNOWN),
                    port_type(PORT_TYPE_NONE),
