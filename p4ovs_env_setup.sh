@@ -35,7 +35,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib64
 
 #Dependencies needed for building netlink library
-if [[ $OS =~ "Fedora" ]]; then
+if [ $OS = "Fedora" ]; then
     export PKG_CONFIG_PATH=${SDE_INSTALL}/lib64/pkgconfig
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib64
 else

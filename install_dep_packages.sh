@@ -64,9 +64,9 @@ echo "Number of Parallel threads used: $NUM_THREADS ..."
 echo ""
 
 # Dependencies needed for building netlink library
-if [ "$OS" == "Fedora" ]; then
+if [ "$OS" = "Fedora" ]; then
     sudo dnf install -y pkgconfig libnl3-devel
-elif [ "$OS" == "Ubuntu" ]; then
+elif [ "$OS" = "Ubuntu" ]; then
     sudo apt-get install -y pkg-config libnl-route-3-dev
 else
     sudo yum install -y pkgconfig libnl3-devel
@@ -149,7 +149,7 @@ git clone https://github.com/google/grpc.git "$SRC_DIR"/"$MODULE"
 cd "$SRC_DIR"/"$MODULE"
 git checkout tags/v1.17.2
 git submodule update --init --recursive
-if [[ $OS =~ "Fedora" ]];
+if [ $OS = "Fedora" ];
 then
    git apply "$WS_DIR"/external/PATCH-01-GRPC
 fi
