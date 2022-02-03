@@ -41,13 +41,9 @@ mkdir -p "$SRC_DIR"
 if [ -z "$2" ];
 then
     CMAKE_PREFIX=""
-    CONFIG_PREFIX=""
-    MAKE_PREFIX=""
 else
     INSTALL_DIR=$2/P4OVS_DEPS_INSTALL
     CMAKE_PREFIX="-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR"
-    MAKE_PREFIX="prefix=$INSTALL_DIR"
-    CONFIG_PREFIX="--prefix=$INSTALL_DIR"
     echo "Removing  and Creating INSTALL scratch directory, $INSTALL_DIR"
     if [ -d "$INSTALL_DIR" ]; then rm -rf "$INSTALL_DIR"; fi
     mkdir -p "$INSTALL_DIR"
@@ -132,11 +128,11 @@ sudo ldconfig
 MODULE="protobuf"
 echo "####  Cloning, Building and Installing the '$MODULE' module ####"
 mkdir -p "${SRC_DIR}"/"$MODULE"
-git clone https://github.com/google/protobuf.git "$SRC_DIR"/"$MODULE"
+git clone --depth=1 -b v3.18.1 https://github.com/google/protobuf.git "$SRC_DIR"/"$MODULE"
 cd "$SRC_DIR"/"$MODULE"
-git checkout tags/v3.6.1
-./autogen.sh
-./configure "$CONFIG_PREFIX"
+mkdir -p $SRC_DIR/$MODULE/build
+cd $SRC_DIR/$MODULE/build
+cmake -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON "$CMAKE_PREFIX" ../cmake
 make "$NUM_THREADS"
 sudo make "$NUM_THREADS" install
 sudo ldconfig
@@ -145,16 +141,18 @@ sudo ldconfig
 MODULE="grpc"
 echo "####  Cloning, Building and Installing the '$MODULE' module ####"
 mkdir -p "${SRC_DIR}"/"$MODULE"
-git clone https://github.com/google/grpc.git "$SRC_DIR"/"$MODULE"
+git clone --depth=1 -b v1.42.0 https://github.com/google/grpc.git "$SRC_DIR"/"$MODULE"
 cd "$SRC_DIR"/"$MODULE"
-git checkout tags/v1.17.2
 git submodule update --init --recursive
-if [ $OS = "Fedora" ];
-then
-   git apply "$WS_DIR"/external/PATCH-01-GRPC
-fi
-make "$NUM_THREADS" $MAKE_PREFIX
-sudo make "$NUM_THREADS" $MAKE_PREFIX install
+mkdir build
+cd build
+cmake \
+   -DgRPC_BUILD_TESTS=OFF \
+   -DBUILD_SHARED_LIBS=ON \
+   -DgRPC_INSTALL=ON \
+   -DCMAKE_POSITION_INDEPENDENT_CODE=ON "$CMAKE_PREFIX" ..
+make "$NUM_THREADS"
+sudo make "$NUM_THREADS" install
 sudo ldconfig
 
 #nlohmann source code Repo checkout, Build and Install
