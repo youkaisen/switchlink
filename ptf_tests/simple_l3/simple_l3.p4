@@ -69,12 +69,12 @@ struct empty_metadata_t {
 
     /***********************  P A R S E R  **************************/
 parser Ingress_Parser(
-	packet_in pkt,
+    packet_in pkt,
     out my_ingress_headers_t hdr,
     inout my_ingress_metadata_t meta,
     in psa_ingress_parser_input_metadata_t ig_intr_md,
-	in empty_metadata_t resub_meta, 
-	in empty_metadata_t recirc_meta)
+    in empty_metadata_t resub_meta, 
+    in empty_metadata_t recirc_meta)
 {
      state start {
         transition parse_ethernet;
@@ -110,7 +110,7 @@ control ingress(
     inout my_ingress_headers_t hdr,
     inout my_ingress_metadata_t meta,
     in psa_ingress_input_metadata_t ig_intr_md,
-	inout psa_ingress_output_metadata_t ostd
+    inout psa_ingress_output_metadata_t ostd
 )
 {
     action send(PortId_t port) {
@@ -120,8 +120,8 @@ control ingress(
     action drop() {
         ostd.drop = true;
     }
-	
-	table ipv4_host {
+    
+    table ipv4_host {
         key = { hdr.ipv4.dst_addr : exact; }
         actions = {
             send;drop;
@@ -135,16 +135,16 @@ control ingress(
 
 
     apply {
-				ipv4_host.apply();
+                ipv4_host.apply();
     }
 }
 
     /*********************  D E P A R S E R  ************************/
 
 control Ingress_Deparser(packet_out pkt,
-	out empty_metadata_t clone_i2e_meta, 
-	out empty_metadata_t resubmit_meta, 
-	out empty_metadata_t normal_meta,
+    out empty_metadata_t clone_i2e_meta, 
+    out empty_metadata_t resubmit_meta, 
+    out empty_metadata_t normal_meta,
     inout my_ingress_headers_t hdr,
     in    my_ingress_metadata_t meta,
     in psa_ingress_output_metadata_t istd)
@@ -172,13 +172,13 @@ struct my_egress_metadata_t {
     /***********************  P A R S E R  **************************/
 
 parser Egress_Parser(
-	packet_in pkt,
+    packet_in pkt,
     out my_egress_headers_t hdr,
     inout my_ingress_metadata_t meta,
     in psa_egress_parser_input_metadata_t istd, 
-	in empty_metadata_t normal_meta, 
-	in empty_metadata_t clone_i2e_meta, 
-	in empty_metadata_t clone_e2e_meta)
+    in empty_metadata_t normal_meta, 
+    in empty_metadata_t clone_i2e_meta, 
+    in empty_metadata_t clone_e2e_meta)
 {
     state start {
         transition accept;
@@ -191,7 +191,7 @@ control egress(
     inout my_egress_headers_t hdr,
     inout my_ingress_metadata_t meta,
     in psa_egress_input_metadata_t istd, 
-	inout psa_egress_output_metadata_t ostd)
+    inout psa_egress_output_metadata_t ostd)
 {
     apply {
     }
@@ -200,12 +200,12 @@ control egress(
     /*********************  D E P A R S E R  ************************/
 
 control Egress_Deparser(packet_out pkt,
-	out empty_metadata_t clone_e2e_meta, 
-	out empty_metadata_t recirculate_meta,
+    out empty_metadata_t clone_e2e_meta, 
+    out empty_metadata_t recirculate_meta,
     inout my_egress_headers_t hdr,
     in my_ingress_metadata_t meta,
     in psa_egress_output_metadata_t istd, 
-	in psa_egress_deparser_input_metadata_t edstd)
+    in psa_egress_deparser_input_metadata_t edstd)
 {
     apply {
         pkt.emit(hdr);

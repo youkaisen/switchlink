@@ -104,7 +104,7 @@ qemu-kvm -smp 4 -m 1024M \
 
 sleep 15
 sudo brctl addif virbr0 vm1-net6551
-sudo ifconfig vm1-net6551 up
+sudo ip link set dev vm1-net6551 up
 
 04) login to the VM using telnet localhost 6551 and run dhclient to get the 
 IP address for the management port
@@ -113,7 +113,7 @@ IP address for the management port
 
 6) assign ip address to other 2 vhost ports that are numerated as netdevs on VM
 
-              - ifconfig <interface_name> <ip_address>/24 up
+              - ip addr add dev <interface_name> <ip_address>/24
 
 7) run the test using following command
 

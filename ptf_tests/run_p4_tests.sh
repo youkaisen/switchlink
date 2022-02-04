@@ -56,14 +56,14 @@ fi
 
 echo "Using workspace ${WORKSPACE}"
 opts=`getopt -o p:t:f:s:c:m:h --long reboot: --long config-file: \
-       	--long arch: --long target: --long num-pipes: --long drv-test-info:\
-       	--long failfast --long seed: --long no-veth --long thrift-server: \
-	--long setup --long cleanup --long traffic-gen: \
-	--long socket-recv-size: --long no-status-srv --long status-port:\
-       	--long ip: --long test-params: --long port-mode: --long with-p4c:\
-       	--long gen-xml-output --long db-prefix: --long p4info: --long p4bin: \
-	--long default-negative-timeout: --long default-timeout:\
-       	--long profile -- "$@"`
+           --long arch: --long target: --long num-pipes: --long drv-test-info:\
+           --long failfast --long seed: --long no-veth --long thrift-server: \
+    --long setup --long cleanup --long traffic-gen: \
+    --long socket-recv-size: --long no-status-srv --long status-port:\
+           --long ip: --long test-params: --long port-mode: --long with-p4c:\
+           --long gen-xml-output --long db-prefix: --long p4info: --long p4bin: \
+    --long default-negative-timeout: --long default-timeout:\
+           --long profile -- "$@"`
 
 if [ $? != 0 ]; then
     exit 1
