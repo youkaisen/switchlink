@@ -479,6 +479,7 @@ bridge_init(const char *remote)
     ovsdb_idl_omit_alert(idl, &ovsrec_interface_col_link_resets);
     ovsdb_idl_omit_alert(idl, &ovsrec_interface_col_mac_in_use);
     ovsdb_idl_omit_alert(idl, &ovsrec_interface_col_ifindex);
+    ovsdb_idl_omit_alert(idl, &ovsrec_interface_col_target_dp_index);
     ovsdb_idl_omit_alert(idl, &ovsrec_interface_col_mtu);
     ovsdb_idl_omit_alert(idl, &ovsrec_interface_col_ofport);
     ovsdb_idl_omit_alert(idl, &ovsrec_interface_col_statistics);
@@ -2027,16 +2028,6 @@ iface_set_netdev_config(const struct ovsrec_interface *iface_cfg,
     return netdev_set_config(netdev, &iface_cfg->options, errp);
 }
 
-#ifdef P4OVS
-static void port_attrs_prepare(struct port_properties_t *port_props,
-                   const struct ovsrec_interface *iface_cfg)
-{
-    ovs_strzcpy(port_props->port_name, (char *)(iface_cfg->name), PORT_NAME_LEN);
-    ovs_strzcpy(port_props->mac_in_use, (char *)(iface_cfg->mac_in_use), MAC_STRING_LEN);
-    return;
-}
-#endif
-
 /* Opens a network device for 'if_cfg' and configures it.  Adds the network
  * device to br->ofproto and stores the OpenFlow port number in '*ofp_portp'.
  *
@@ -2118,7 +2109,7 @@ iface_create(struct bridge *br, const struct ovsrec_interface *iface_cfg,
     int error;
 #ifdef P4OVS
     uint64_t device_id = 0;
-    struct port_properties_t port_props;
+    int64_t port_id = 0;
 #endif
 
     /* Do the bits that can fail up front. */
@@ -2155,17 +2146,18 @@ iface_create(struct bridge *br, const struct ovsrec_interface *iface_cfg,
     iface_refresh_netdev_status(iface);
 
 #ifdef P4OVS
-    /* Make sure attributes structure is initialized to empty values */
-    memset((void*)&port_props, 0, sizeof(port_properties_t));
-
-    port_attrs_prepare(&port_props, iface_cfg);
     device_id = get_device_id_from_bridge_name(br->name);
 
     /* Add Port config to target through P4 SDE, iff Port is not internal */
     if (!(iface_is_internal(iface_cfg, br->cfg))) {
-        VLOG_INFO("bridge %s: device-id:%"PRIu64" added with interface " \
-              "index:%"PRIu64, br->name, device_id, *iface_cfg->ifindex);
-        bf_p4_add_port(device_id, *iface_cfg->ifindex, &port_props);
+        /* TODO: This API once implemented from P4SDE side, need to uncomment
+         * the below line to fetch the proper port_id.
+         */
+        //bf_pal_get_port_id_from_name(device_id, iface_cfg->name, &port_id);
+        ovsrec_interface_set_target_dp_index(iface_cfg, &port_id, 1);
+        VLOG_INFO("bridge %s: device-id:%"PRIu64" added with interface:%s " \
+              "and target_dp_index:%"PRIu64, br->name, device_id, \
+              iface_cfg->name, *iface_cfg->target_dp_index);
     }
 #endif
 
