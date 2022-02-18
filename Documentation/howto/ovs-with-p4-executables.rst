@@ -164,6 +164,87 @@ services that are available for a p4runtime client.
     internally.
     ``TABLE``: Refers to table_name present in p4info.txt file.
 
+8. Add action profile member entry for an action selector table ::
+
+    $ ovs-p4ctl add-action-profile-member SWITCH ACTION_PROFILE FLOW
+    $ Example: ovs-p4ctl add-action-profile-member br0 ingress.as_sl3
+               "action=ingress.send(0),member_id=1"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``ACTION_PROFILE``: Refers to action profile name from the p4 file.
+    ``FLOW``: Refers to action of the table for which the mentioned
+    ACTION_PROFILE is referring to.
+    Format "action=action_name(value),member_id=<number>"
+
+9. Delete action profile member entry from an action selector table ::
+
+    $ ovs-p4ctl delete-action-profile-member SWITCH ACTION_PROFILE FLOW
+    $ Example: ovs-p4ctl delete-action-profile-member br0 ingress.as_sl3
+               "member_id=1"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``ACTION_PROFILE``: Refers to action profile name from the p4 file.
+    ``FLOW``: Refers to the member ID which was earlier configured via add
+    action profile member. Format "member_id=<number>"
+
+10. Get action profile member details for an action selector table ::
+
+    $ ovs-p4ctl get-action-profile-member SWITCH ACTION_PROFILE FLOW
+    $ Example: ovs-p4ctl get-action-profile-member br0 ingress.as_sl3 "member_id=1"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``ACTION_PROFILE``: Refers to action profile name from the p4 file.
+    ``FLOW``: Refers to the member ID which was earlier configured via add
+    action profile member. Format "member_id=<number>"
+
+11. Add action profile group entry for an action selector table ::
+
+    $ ovs-p4ctl add-action-profile-group SWITCH ACTION_PROFILE FLOW
+    $ Example: ovs-p4ctl add-action-profile-group br0 ingress.as_sl3 "group_id=1,reference_members=(1),max_size=128"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``ACTION_PROFILE``: Refers to action profile name from the p4 file.
+    ``FLOW``: Maps group with list of members.
+    Format "group_id=<group number>,reference_members=<member1,member2,..>,max_size=<maxsize of members this group can have>"
+
+12. Delete action profile group entry from an action selector table ::
+
+    $ ovs-p4ctl delete-action-profile-group SWITCH ACTION_PROFILE FLOW
+    $ Example: ovs-p4ctl delete-action-profile-group br0 ingress.as_sl3 "group_id=1"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``ACTION_PROFILE``: Refers to action profile name from the p4 file.
+    ``FLOW``: Refers to the group ID which was earlier configured via add
+    action profile group. Format ""group_id=<number>"
+
+13. Get action profile group details for an action selector table ::
+
+    $ ovs-p4ctl get-action-profile-group SWITCH ACTION_PROFILE FLOW
+    $ Example: ovs-p4ctl get-action-profile-group br0 ingress.as_sl3 "group_id=1"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``ACTION_PROFILE``: Refers to action profile name from the p4 file.
+    ``FLOW``: Refers to the group ID which was earlier configured via add
+    action profile group. Format "group_id=<number>"
+
 
 gnmi_cli executable
 -------------------
