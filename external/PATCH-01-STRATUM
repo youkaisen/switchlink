@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 diff --git a/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf b/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
-index e1f4338e..4f764145 100644
+index e1f4338e..63d41079 100644
 --- a/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
 +++ b/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
-@@ -1,31 +1,41 @@
+@@ -1,31 +1,52 @@
  {
 -    "instance": 0,
      "chip_list": [
@@ -53,6 +53,15 @@ index e1f4338e..4f764145 100644
 -            "id": "pgm-0",
 -            "table-config": ""
 +            "device-id": 0,
++            "mempools": [
++                {
++                    "name": "MEMPOOL0",
++                    "buffer_size": 2304,
++                    "pool_size": 1024,
++                    "cache_size": 256,
++                    "numa_node": 0
++                }
++            ],
 +            "eal-args": "dummy -n 4 -c 3",
 +            "p4_programs": [
 +                {
@@ -61,6 +70,8 @@ index e1f4338e..4f764145 100644
 +                    "p4_pipelines": [
 +                        {
 +                            "p4_pipeline_name": "pipe",
++                            "core_id": 1,
++                            "numa_node": 0,
 +                            "pipe_scope": [
 +                                0,
 +                                1,
@@ -610,7 +621,7 @@ index 9f4bb3a9..90803967 100644
 +  dev_tgt.pipe_id = 0;
    return dev_tgt;
  }
-
+ 
 diff --git a/stratum/hal/lib/barefoot/bf_sde_wrapper.h b/stratum/hal/lib/barefoot/bf_sde_wrapper.h
 index f8b9962d..5684fe30 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_wrapper.h
@@ -724,7 +735,7 @@ index f553054d..3f41e9e1 100644
  }
  
 diff --git a/stratum/hal/lib/common/common.proto b/stratum/hal/lib/common/common.proto
-index f7a72d70..e5512253 100644
+index f7a72d70..d83b142f 100644
 --- a/stratum/hal/lib/common/common.proto
 +++ b/stratum/hal/lib/common/common.proto
 @@ -63,6 +63,13 @@ enum TrafficClass {
