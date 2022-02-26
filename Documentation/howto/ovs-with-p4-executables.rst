@@ -265,7 +265,7 @@ For Each port, we can have config parameters and state parameters.
 We can execute SET command for config params and GET command for the
 previously configured CONFIG params.
 
-1) Set atrributes for a port::
+1) Set atrributes for a vhost port::
 
     $ gnmi-cli set PARAMS
     $ Example:
@@ -273,6 +273,10 @@ previously configured CONFIG params.
     gnmi-cli set "device:virtual-device,name:net_vhost0,port-type:LINK"
     gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,
                   device-type:VIRTIO_NET,queues:1,
+                  socket-path:/tmp/vhost-user-0,port-type:LINK"
+    gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,
+                  device-type:VIRTIO_NET,queues:1,
+                  pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:2000,
                   socket-path:/tmp/vhost-user-0,port-type:LINK"
 
   .. note::
@@ -283,15 +287,53 @@ previously configured CONFIG params.
     key:value pair, either can be passed in single CLI command or multiple
     CLI commands.
     name: can take values defined in chassis config file. Refer to file
-    dpdk_vhost_config.pb.txt for port names.
+    dpdk_port_config.pb.txt for port names.
     host: can be any string.
     queues: number of queues required by backend.
     socket-path: socket path required by backend.
     port-type: can take values defined in common.proto. Supported value is LINK.
     device-type: can take values defined in common.proto. Supported values is
     VIRTIO_NET.
+    pipeline-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `pipe`
+    mempool-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `MEMPOOL0`
+    mtu: this is a non-mandatory parameter, if not specifically configured
+    by the user it is considered as value `1500`
 
-2) Get atrributes for a port::
+2) Set atrributes for a vhost port and a control port::
+
+    $ gnmi-cli set PARAMS
+    $ Example:
+    gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,
+                  device-type:VIRTIO_NET,queues:1,
+                  pipeline-name:pipe,mempool-name:MEMPOOL0,control-port:TAP2,
+                  socket-path:/tmp/vhost-user-0,port-type:LINK"
+
+  .. note::
+
+    ``PARAMS``: These params are key:value pairs. Here virtual-device is a
+    sub-node which holds multiple ports like net_vhost0, net_vhost1,... and
+    each port accepts multiple config params. These config params are again a
+    key:value pair, either can be passed in single CLI command or multiple
+    CLI commands.
+    name: can take values defined in chassis config file. Refer to file
+    dpdk_port_config.pb.txt for port names.
+    host: can be any string.
+    queues: number of queues required by backend.
+    socket-path: socket path required by backend.
+    port-type: can take values defined in common.proto. Supported value is LINK.
+    device-type: can take values defined in common.proto. Supported values is
+    VIRTIO_NET.
+    pipeline-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `pipe`
+    mempool-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `MEMPOOL0`
+    mtu: this is a non-mandatory parameter, if not specifically configured
+    by the user it is considered as value `1500`
+    control-port: TAP port that need to be created for control packets.
+
+3) Get atrributes for a port::
 
     $ gnmi-cli get PARAMS
     $ Example:
@@ -313,7 +355,7 @@ previously configured CONFIG params.
 
   Example: export NO_PROXY=localhost,127.0.0.1
 
-3) VIRTIO-NET Device Hot plug for DPDK Target::
+4) VIRTIO-NET Device Hot plug for DPDK Target::
 
     This feature will allow the user to hotplug the vhost-user ports to the running VM.
     To hotplug the vhost-user port to qemu based VM, add monitor option when instantiating
@@ -348,7 +390,7 @@ previously configured CONFIG params.
     key:value pair, either can be passed in single CLI command or multiple
     CLI commands.
     name: can take values defined in chassis config file. Refer to file
-    dpdk_vhost_config.pb.txt for port names.
+    dpdk_port_config.pb.txt for port names.
     hotplug-add: Specify if the device needs to be hotplugged (1 - yes, 0 - no)
     qemu-socket-ip: Specify IP of the host where qemu monitor socket resides.
     qemu-socket-port: Specify qemu monitor socket port
@@ -356,4 +398,112 @@ previously configured CONFIG params.
     qemu-vm_netdev-id: Specify netdev ID for port hotplugged to qemu VM
     qemu-vm_chardev-id: Specify chardev ID for port hotplugged to qemu VM
     native-socket-path: Specify the native path for vhost-user socket on the host
+
+
+5) Set atrributes for link ports::
+
+    $ gnmi-cli set PARAMS
+    $ Example:
+    gnmi-cli set "device:physical-device,name:PORT1,pci-bdf:0000:00:05.0,
+                  port-type:link"
+    gnmi-cli set "device:physical-device,name:PORT0,pipeline-name:pipe,
+                  mempool-name:MEMPOOL0,mtu:1000,pci-bdf:0000:00:04.0,
+                  port-type:link"
+
+  .. note::
+
+    ``PARAMS``: These params are key:value pairs. Here physical-device is a
+    sub-node which holds multiple ports like PORT0, PORT1,... and
+    each port accepts multiple config params. These config params are again a
+    key:value pair, either can be passed in single CLI command or multiple
+    CLI commands.
+    name: can take values defined in chassis config file. Refer to file
+    dpdk_port_config.pb.txt for port names.
+    pci-bdf: Should specify PCI BDF value
+    port-type: can take values defined in common.proto. Supported value is LINK.
+    pipeline-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `pipe`
+    mempool-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `MEMPOOL0`
+    mtu: this is a non-mandatory parameter, if not specifically configured
+    by the user it is considered as value `1500`
+
+
+6) Set atrributes for link ports and a control port::
+
+    $ gnmi-cli set PARAMS
+    $ Example:
+    gnmi-cli set "device:physical-device,name:PORT2,pipeline-name:pipe,
+                  mempool-name:MEMPOOL0,control-port:TAP1,mtu:1000,
+                  pci-bdf:0000:00:06.0,port-type:link"
+
+  .. note::
+
+    ``PARAMS``: These params are key:value pairs. Here physical-device is a
+    sub-node which holds multiple ports like PORT0, PORT1,... and
+    each port accepts multiple config params. These config params are again a
+    key:value pair, either can be passed in single CLI command or multiple
+    CLI commands.
+    name: can take values defined in chassis config file. Refer to file
+    dpdk_port_config.pb.txt for port names.
+    pci-bdf: Should specify PCI BDF value
+    port-type: can take values defined in common.proto. Supported value is LINK.
+    pipeline-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `pipe`
+    mempool-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `MEMPOOL0`
+    mtu: this is a non-mandatory parameter, if not specifically configured
+    by the user it is considered as value `1500`
+    control-port: TAP port that need to be created for control packets.
+
+7) Set atrributes for link ports::
+
+    $ gnmi-cli set PARAMS
+    $ Example:
+    gnmi-cli set "device:virtual-device,name:TAP1,mtu:1500,port-type:TAP"
+    gnmi-cli set "device:virtual-device,name:TAP0,pipeline-name:pipe,
+                  mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+
+  .. note::
+
+    ``PARAMS``: These params are key:value pairs. Here virtual-device is a
+    sub-node which holds multiple ports like TAP0, TAP1,... and
+    each port accepts multiple config params. These config params are again a
+    key:value pair, either can be passed in single CLI command or multiple
+    CLI commands.
+    name: can take values defined in chassis config file. Refer to file
+    dpdk_port_config.pb.txt for port names.
+    port-type: can take values defined in common.proto. Supported value is
+    TAP.
+    mtu: this is a mandatory parameter, to be specified by user.
+    pipeline-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `pipe`
+    mempool-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `MEMPOOL0`
+
+8) Set atrributes for link ports and a control port::
+
+    $ gnmi-cli set PARAMS
+    $ Example:
+    gnmi-cli set "device:virtual-device,name:TAP2,mtu:1000,
+                  pipeline-name:pipe,mempool-name:MEMPOOL0,control-port:TAP31,
+                  port-type:TAP"
+
+  .. note::
+
+    ``PARAMS``: These params are key:value pairs. Here virtual-device is a
+    sub-node which holds multiple ports like TAP0, TAP1,... and
+    each port accepts multiple config params. These config params are again a
+    key:value pair, either can be passed in single CLI command or multiple
+    CLI commands.
+    name: can take values defined in chassis config file. Refer to file
+    dpdk_port_config.pb.txt for port names.
+    port-type: can take values defined in common.proto. Supported value is LINK.
+    pipeline-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `pipe`
+    mempool-name: this is a non-mandatory parameter, if not specifically
+    configured by the user it is considered as value `MEMPOOL0`
+    mtu: this is a non-mandatory parameter, if not specifically configured
+    by the user it is considered as value `1500`
+    control-port: TAP port that need to be created for control packets.
 
