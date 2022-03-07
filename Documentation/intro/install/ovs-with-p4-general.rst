@@ -54,12 +54,10 @@ User needs to execute command::
     INSTALL_FOLDER and installs dependent packages.
 
 Python utilitiy available in P4-OvS assumes to run on Python3. Need to install
-below python dependent packages::
+below python dependent packages via pip3::
 
     $ pip3 install ovspy
-    $ pip3 install -r Documentation/requirements.txt
     $ pip3 install Cython
-    $ cd p4runtime/py ; python setup.py build ; python setup.py install_lib
 
 Obtaining P4 Open vSwitch Sources
 ---------------------------------
@@ -80,6 +78,11 @@ P4-OvS intergates with multiple submodules as mentioned below::
 To update code from these submodules we need to execute command::
 
     $ git submodule update --init --recursive
+
+Install python dependent packages as mentioned in P4-OVS::
+
+    $ pip3 install -r Documentation/requirements.txt
+    $ cd p4runtime/py ; python setup.py build ; python setup.py install_lib
 
 Build and Install P4-OvS
 ------------------------
@@ -123,6 +126,7 @@ variables, create dependent configuration files and build P4-OvS manually.
         $ make install
 
 While running ovs-vswithd with P4, use --no-chir with --detach::
+
     $ Ex: ovs-vswitchd --pidfile --detach --no-chdir --mlockall \
           --log-file=/tmp/ovs-vswitchd.log
 
@@ -142,3 +146,14 @@ User needs to execute command::
     ``INSTALL_FOLDER``: This is an optional argument, refers to location where
     to install dependent packages. Creates directory P4OVS_DEPS_INSTALL under
     INSTALL_FOLDER and installs dependent packages.
+
+Limitations with DPDK target
+----------------------------
+When backend DPDK target is used, we have few limitations that are imposed by
+the target::
+
+    - Number of ports (vhost/link/TAP) created by the user for DPDK target
+      should always be power of 2.
+      Eg: 2, 4, ... 2^n
+    - Port addition or creation for the target is not allowed once PIPELINE
+      is loaded and enabled.
