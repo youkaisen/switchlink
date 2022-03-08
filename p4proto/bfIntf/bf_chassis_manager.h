@@ -40,11 +40,6 @@
 #define GNMI_CONFIG_UNSUPPORTED_MASK_TAP (GNMI_CONFIG_DEVICE_TYPE | GNMI_CONFIG_QUEUE_COUNT | \
                                           GNMI_CONFIG_SOCKET_PATH | GNMI_CONFIG_HOST_NAME)
 
-/* SDK_PORT_CONTROL_BASE is used as CONTOL BASE offset to define
- * reserved port range for the control ports.
- */
-#define SDK_PORT_CONTROL_BASE 256
-
 #define DEFAULT_PIPELINE "pipe"
 #define DEFAULT_MEMPOOL  "MEMPOOL0"
 #define DEFAULT_MTU      1500
@@ -152,7 +147,6 @@ class BfChassisManager {
     std::string host_name;
     std::string pipeline_name;
     std::string mempool_name;
-    std::string control_port;
 
     PortConfig() : admin_state(ADMIN_STATE_UNKNOWN),
                    port_type(PORT_TYPE_NONE),

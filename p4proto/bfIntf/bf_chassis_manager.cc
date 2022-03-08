@@ -188,11 +188,6 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       LOG(INFO) << "ValidateAndAdd::kMempoolName= " << config_params.mempool();
       break;
 
-    case SetRequest::Request::Port::ValueCase::kControlPort:
-      config.control_port = config_params.control();
-      LOG(INFO) << "ValidateAndAdd::kControlPort= " << config_params.control();
-      break;
-
     case SetRequest::Request::Port::ValueCase::kMtuValue:
       validate |= GNMI_CONFIG_MTU_VALUE;
       config.mtu = config_params.mtu();
@@ -286,33 +281,6 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       unit, sdk_port_id, singleton_port.speed_bps(), bf_sde_wrapper_config,
 #endif
       config_params.fec_mode()));
-
-   // Check if Control Port Creation is opted in CLI.
-  if(config->control_port.length()) {
-    LOG(INFO) << "Autocreation of Control TAP port is being triggered";
-    bf_sde_wrapper_config = {SWBackendPortType::PORT_TYPE_TAP,
-                             config->device_type,
-                             config->queues,
-                             *config->mtu,
-                             config->socket_path,
-                             config->host_name,
-                             config->control_port,
-                             config->pipeline_name,
-                             config->mempool_name};
-
-    /* sdk_ctl_port_id is uniquely derived from the SDK_PORT_CONTROL_BASE range
-     * and 1:1 maps to parent-port's sdk_port_id.
-     */
-    uint32 sdk_ctl_port_id = SDK_PORT_CONTROL_BASE + sdk_port_id;
-    RETURN_IF_ERROR(bf_sde_interface_->AddPort(
-#ifdef P4TOFINO
-        unit, sdk_ctl_port_id, singleton_port.speed_bps(),
-#else
-        unit, sdk_ctl_port_id, singleton_port.speed_bps(), bf_sde_wrapper_config,
-#endif
-        config_params.fec_mode()));
-
-  }
 
   if(config->mtu) {
     LOG(INFO) << "MTU value - config->mtu= " << *config->mtu;

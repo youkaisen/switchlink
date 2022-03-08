@@ -1569,76 +1569,6 @@ void SetUpInterfacesInterfaceConfigMempoolname(const char *mempool_name,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/config/control-port
-//
-void SetUpInterfacesInterfaceConfigControlport(const char *control_port,
-                                               uint64 node_id,
-                                               uint64 port_id,
-                                               TreeNode* node,
-                                               YangParseTree* tree) {
-  auto poll_functor = [control_port](const GnmiEvent& event, const ::gnmi::Path& path,
-                              GnmiSubscribeStream* stream) {
-    // This leaf represents configuration data. Return what was known when it
-    // was configured!
-    return SendResponse(GetResponse(path, control_port), stream);
-  };
-  auto on_set_functor =
-      [node_id, port_id, node, tree](
-          const ::gnmi::Path& path, const ::google::protobuf::Message& val,
-          CopyOnWriteChassisConfig* config) -> ::util::Status {
-    const gnmi::TypedValue* typed_val =
-        dynamic_cast<const gnmi::TypedValue*>(&val);
-    if (typed_val == nullptr) {
-      return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
-    }
-
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kControlPort)) {
-        return MAKE_ERROR(ERR_INVALID_PARAM) << "control-port is either already set (or) the PORT is already configured";
-    }
-
-    auto ctl_port = typed_val->string_val();
-
-    // Set the value.
-    SetRequest req;
-    auto* request = req.add_requests()->mutable_port();
-    request->set_node_id(node_id);
-    request->set_port_id(port_id);
-    request->SetRequest::Request::Port::mutable_control_port()->ControlPortConfigured::set_control_port((const char*)ctl_port.c_str());
-
-
-    // Update the chassis config
-    ChassisConfig* new_config = config->writable();
-    for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
-      if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_control((const char*)ctl_port.c_str());
-
-        // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kControlPort));
-        break;
-      }
-    }
-
-    // Update the YANG parse tree.
-    auto poll_functor = [ctl_port](const GnmiEvent& event,
-                                   const ::gnmi::Path& path,
-                                   GnmiSubscribeStream* stream) {
-      // This leaf represents configuration data. Return what was known when
-      // it was configured!
-      return SendResponse(GetResponse(path, ctl_port), stream);
-    };
-    node->SetOnTimerHandler(poll_functor)->SetOnPollHandler(poll_functor);
-
-    return ::util::OkStatus();
-  };
-  node->SetOnTimerHandler(poll_functor)
-      ->SetOnPollHandler(poll_functor)
-      ->SetOnUpdateHandler(on_set_functor)
-      ->SetOnReplaceHandler(on_set_functor);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // /interfaces/virtual-interface[name=<name>]/config/mtu
 //
 void SetUpInterfacesInterfaceConfigMtuValue(uint64 mtu,
@@ -4183,10 +4113,6 @@ TreeNode* YangParseTreePaths::AddSubtreeInterface(
   node = tree->AddNode(GetPath("interfaces")(
       "virtual-interface", name)("config")("mempool-name")());
   SetUpInterfacesInterfaceConfigMempoolname("", node_id, port_id, node, tree);
-
-  node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("config")("control-port")());
-  SetUpInterfacesInterfaceConfigControlport("", node_id, port_id, node, tree);
 
   node = tree->AddNode(GetPath("interfaces")(
       "virtual-interface", name)("config")("mtu")());

@@ -709,7 +709,7 @@ index f553054d..3f41e9e1 100644
  }
  
 diff --git a/stratum/hal/lib/common/common.proto b/stratum/hal/lib/common/common.proto
-index f7a72d70..cc65cddc 100644
+index f7a72d70..1006dceb 100644
 --- a/stratum/hal/lib/common/common.proto
 +++ b/stratum/hal/lib/common/common.proto
 @@ -243,6 +243,24 @@ enum FecMode {
@@ -737,7 +737,7 @@ index f7a72d70..cc65cddc 100644
  // Config-related parameters for the ports (singleton and trunk ports).
  message PortConfigParams {
    // Per port hash config. Most of the hash configuration is given per node.
-@@ -276,6 +294,24 @@ message PortConfigParams {
+@@ -276,6 +294,22 @@ message PortConfigParams {
    MacAddress mac_address = 7;
    // The configured loopback state for this port.
    LoopbackState loopback_mode = 8;
@@ -757,12 +757,10 @@ index f7a72d70..cc65cddc 100644
 +  string pipeline = 15;
 +  // Mempool name to be used
 +  string mempool = 16;
-+  // Flag to trigger Auto creation of back-end control TAP ports and rules.
-+  string control = 17;
  }
  
  // Chassis uniquely identifies a switch with a single management interface,
-@@ -1115,6 +1151,51 @@ message LoopbackStatus {
+@@ -1115,6 +1149,46 @@ message LoopbackStatus {
    LoopbackState state = 1;  // required
  }
  
@@ -801,11 +799,6 @@ index f7a72d70..cc65cddc 100644
 +  string mempool_name = 1; // required
 +}
 +
-+// Specifies if Auto creation of back-end control TAP ports is needed.
-+message ControlPortConfigured {
-+  string control_port = 1; // required
-+}
-+
 +// Specifies the MTU value to be used
 +message MtuValue {
 +  int32 mtu_value = 1; // required
@@ -814,7 +807,7 @@ index f7a72d70..cc65cddc 100644
  // Wrapper around admin state of a HW component.
  message AdminStatus {
    AdminState state = 1;  // required
-@@ -1302,6 +1383,15 @@ message DataResponse {
+@@ -1302,6 +1376,14 @@ message DataResponse {
      LoopbackStatus loopback_status = 20;
      NodeInfo node_info = 21;
      SdnPortId sdn_port_id = 22;
@@ -825,12 +818,11 @@ index f7a72d70..cc65cddc 100644
 +    SWBackendDeviceStatus device_type = 27;
 +    PipelineNameConfigured pipeline_name = 28;
 +    MempoolNameConfigured mempool_name = 29;
-+    ControlPortConfigured control_port = 30;
-+    MtuValue mtu_value = 31;
++    MtuValue mtu_value = 30;
    }
  }
  
-@@ -1331,6 +1421,24 @@ message SetRequest {
+@@ -1331,6 +1413,22 @@ message SetRequest {
          ForwardingViability forwarding_viability = 10;
          // The intended loopback state of the port.
          LoopbackStatus loopback_status = 11;
@@ -848,10 +840,8 @@ index f7a72d70..cc65cddc 100644
 +        PipelineNameConfigured pipeline_name = 17;
 +        // The Mempool name to be used for port association.
 +        MempoolNameConfigured mempool_name = 18;
-+        // The control port to be used for creation of back-end TAP ports/rules
-+        ControlPortConfigured control_port = 19;
 +        // MTU value to be used for the Port
-+        MtuValue mtu_value = 20;
++        MtuValue mtu_value = 19;
        }
      }
      // Data required to set info for a specific node.
