@@ -242,7 +242,7 @@ class BfChassisManager {
                                   PortConfig* config);
 
   //helper to send qemu hotplug commands to qemu monitor socket
-  void SendQemuCmdsHelper(int sockfd, std::string cmd);
+  ::util::Status SendQemuCmdsHelper(int sockfd, std::string cmd);
 
   // helper to prepare qemu hotplug commands to qemu monitor socket
   std::string PrepQemuCmdsHelper(qemu_cmd_type cmd, std::string chardev_id,

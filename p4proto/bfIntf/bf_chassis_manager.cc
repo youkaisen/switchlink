@@ -204,12 +204,23 @@ BfChassisManager::ValidateHotplugConfig(uint64 node_id, uint32 port_id,
   return false;
 }
 
-void BfChassisManager::SendQemuCmdsHelper(int sockfd,
+::util::Status BfChassisManager::SendQemuCmdsHelper(int sockfd,
                                           std::string cmd) {
-    int sock_ret = write(sockfd, cmd.c_str(), strlen(cmd.c_str()));
-    usleep(10000);
-    //TODO: Implement error handling mechanism
-    return;
+    int sock_ret = 0, n = 0;
+    char recvBuff[256];
+
+    memset(recvBuff, '0',sizeof(recvBuff));
+    sock_ret = write(sockfd, cmd.c_str(), strlen(cmd.c_str()));
+
+    while ((n = read(sockfd, recvBuff,sizeof(recvBuff)-1)) > 0)
+    {
+        recvBuff[n] = '\0';
+        if (strstr(recvBuff, "Error") || strstr(recvBuff, "Duplicate")) {
+            return MAKE_ERROR(ERR_INTERNAL)
+               << "Error encountered. QEMU returned" << recvBuff;
+        }
+    }
+    return ::util::OkStatus();;
 }
 
 std::string BfChassisManager::PrepQemuCmdsHelper(qemu_cmd_type cmd_type, std::string chardev_id,
@@ -357,97 +368,118 @@ std::string BfChassisManager::PrepQemuCmdsHelper(qemu_cmd_type cmd_type, std::st
   }
 
   node_id_port_id_to_backend_[node_id][port_id] = validate;
-    if ((validate & GNMI_CONFIG_PORT_TYPE) == GNMI_CONFIG_PORT_TYPE) {
+  if (((validate & GNMI_CONFIG_PORT_TYPE) == GNMI_CONFIG_PORT_TYPE) &&
+      !((validate & GNMI_CONFIG_PORT_DONE) == GNMI_CONFIG_PORT_DONE)) {
+    if (((config.port_type == PORT_TYPE_VHOST) &&
+       ((validate & GNMI_CONFIG_VHOST) == GNMI_CONFIG_VHOST)) ||
+       ((config.port_type == PORT_TYPE_LINK) &&
+       ((validate & GNMI_CONFIG_LINK) == GNMI_CONFIG_LINK)) ||
+       ((config.port_type == PORT_TYPE_TAP) &&
+       ((validate & GNMI_CONFIG_TAP) == GNMI_CONFIG_TAP))) {
+      // Check if Mandatory parameters are configured
+      LOG(INFO) << "Required parameters are configured, configure port via TDI";
+      LOG(INFO) << "SDK_PORT ID while validating = " << sdk_port_id;
+      if (!(validate & GNMI_CONFIG_PIPELINE_NAME)) {
+        // configure the default Pipeline name, if its not given in GNMI CLI.
+        config.pipeline_name = DEFAULT_PIPELINE;
+        validate |= GNMI_CONFIG_PIPELINE_NAME;
+      }
+      if (!(validate & GNMI_CONFIG_MEMPOOL_NAME)) {
+        // configure the default Mempool  name, if its not given in GNMI CLI.
+        config.mempool_name = DEFAULT_MEMPOOL;
+        validate |= GNMI_CONFIG_MEMPOOL_NAME;
+      }
+      if (!(validate & GNMI_CONFIG_MTU_VALUE)) {
+        // configure the default MTU, if its not given in GNMI CLI.
+        config.mtu = DEFAULT_MTU;
+        validate |= GNMI_CONFIG_MTU_VALUE;
+      }
       if (((config.port_type == PORT_TYPE_VHOST) &&
-         ((validate & GNMI_CONFIG_VHOST) == GNMI_CONFIG_VHOST)) ||
+         (validate & GNMI_CONFIG_UNSUPPORTED_MASK_VHOST)) ||
          ((config.port_type == PORT_TYPE_LINK) &&
-         ((validate & GNMI_CONFIG_LINK) == GNMI_CONFIG_LINK)) ||
+         (validate & GNMI_CONFIG_UNSUPPORTED_MASK_LINK)) ||
          ((config.port_type == PORT_TYPE_TAP) &&
-         ((validate & GNMI_CONFIG_TAP) == GNMI_CONFIG_TAP))) {
-        // Check if Mandatory parameters are configured
-        LOG(INFO) << "Required parameters are configured, configure port via TDI";
-        LOG(INFO) << "SDK_PORT ID while validating = " << sdk_port_id;
-        if (!(validate & GNMI_CONFIG_PIPELINE_NAME)) {
-          // configure the default Pipeline name, if its not given in GNMI CLI.
-          config.pipeline_name = DEFAULT_PIPELINE;
-          validate |= GNMI_CONFIG_PIPELINE_NAME;
-        }
-        if (!(validate & GNMI_CONFIG_MEMPOOL_NAME)) {
-          // configure the default Mempool  name, if its not given in GNMI CLI.
-          config.mempool_name = DEFAULT_MEMPOOL;
-          validate |= GNMI_CONFIG_MEMPOOL_NAME;
-        }
-        if (!(validate & GNMI_CONFIG_MTU_VALUE)) {
-          // configure the default MTU, if its not given in GNMI CLI.
-          config.mtu = DEFAULT_MTU;
-          validate |= GNMI_CONFIG_MTU_VALUE;
-        }
-        if (((config.port_type == PORT_TYPE_VHOST) &&
-           (validate & GNMI_CONFIG_UNSUPPORTED_MASK_VHOST)) ||
-           ((config.port_type == PORT_TYPE_LINK) &&
-           (validate & GNMI_CONFIG_UNSUPPORTED_MASK_LINK)) ||
-           ((config.port_type == PORT_TYPE_TAP) &&
-           (validate & GNMI_CONFIG_UNSUPPORTED_MASK_TAP))) {
-          // Unsupported list of Params, clear the validate field.
-          validate = 0;
-          node_id_port_id_to_backend_[node_id][port_id] = validate;
-          return MAKE_ERROR(ERR_INVALID_PARAM)
-               << "Unsupported parameter list for given Port Type \n";
-        }
-        RETURN_IF_ERROR(AddPortHelper(node_id, unit, sdk_port_id, singleton_port, &config));
-        validate |= GNMI_CONFIG_PORT_DONE;
+         (validate & GNMI_CONFIG_UNSUPPORTED_MASK_TAP))) {
+        // Unsupported list of Params, clear the validate field.
+        validate = 0;
         node_id_port_id_to_backend_[node_id][port_id] = validate;
+        return MAKE_ERROR(ERR_INVALID_PARAM)
+             << "Unsupported parameter list for given Port Type \n";
       }
+      RETURN_IF_ERROR(AddPortHelper(node_id, unit, sdk_port_id, singleton_port, &config));
+      validate |= GNMI_CONFIG_PORT_DONE;
+      node_id_port_id_to_backend_[node_id][port_id] = validate;
+    }
+  }
+
+  if ((validate & GNMI_CONFIG_HOTPLUG_ADD) == GNMI_CONFIG_HOTPLUG_ADD) {
+    // Create socket port and connect it to qemu server socket
+    int sockfd = 0, sock_ret = 0;
+    struct sockaddr_in serv_addr;
+    std::string cmd;
+    std::string native_socket_path = config.native_socket_path.c_str();
+    std::string netdev_id = config.qemu_vm_netdev_id.c_str();
+    std::string chardev_id = config.qemu_vm_chardev_id.c_str();
+    uint64 mac_address = config.qemu_vm_mac_address;
+    struct timeval tv;
+    ::util::Status status;
+
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+    //TODO: Check if modifief MacAddressToYangString function can be reused here
+    std::string string_mac = (absl::StrFormat("%02x:%02x:%02x:%02x:%02x:%02x",
+                                              (mac_address >> 40) & 0xFF,
+                                              (mac_address >> 32) & 0xFF,
+                                              (mac_address >> 24) & 0xFF,
+                                              (mac_address >> 16) & 0xFF,
+                                              (mac_address >> 8) & 0xFF,
+                                               mac_address & 0xFF));
+
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+      RETURN_ERROR(ERR_INTERNAL)
+             << "Error : Failed to create socket to connect to Qemu monitor socket \n";
     }
 
-    if ((validate & GNMI_CONFIG_HOTPLUG_ADD) == GNMI_CONFIG_HOTPLUG_ADD) {
-      // Create socket port and connect it to qemu server socket
-      int sockfd = 0, sock_ret = 0;
-      struct sockaddr_in serv_addr;
-      std::string cmd;
-      std::string native_socket_path = config.native_socket_path.c_str();
-      std::string netdev_id = config.qemu_vm_netdev_id.c_str();
-      std::string chardev_id = config.qemu_vm_chardev_id.c_str();
-      uint64 mac_address = config.qemu_vm_mac_address;
-      //TODO: Check if modifief MacAddressToYangString function can be reused here
-      std::string string_mac = (absl::StrFormat("%02x:%02x:%02x:%02x:%02x:%02x",
-                                                (mac_address >> 40) & 0xFF,
-                                                (mac_address >> 32) & 0xFF,
-                                                (mac_address >> 24) & 0xFF,
-                                                (mac_address >> 16) & 0xFF,
-                                                (mac_address >> 8) & 0xFF,
-                                                 mac_address & 0xFF));
+    /* Specifying the timeout of 1 second, if qemu is not responding. Without this
+     * timeout socket will block if qemu doesn't respond
+     */
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+    memset(&serv_addr, '0', sizeof(serv_addr));
 
-      if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        RETURN_ERROR(ERR_INTERNAL)
-               << "Error : Failed to create socket to connect to Qemu monitor socket \n";
-      }
+    serv_addr.sin_addr.s_addr = inet_addr(config.qemu_socket_ip.c_str());
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(config.qemu_socket_port);
 
-      memset(&serv_addr, '0', sizeof(serv_addr));
-
-      serv_addr.sin_addr.s_addr = inet_addr(config.qemu_socket_ip.c_str());
-      serv_addr.sin_family = AF_INET;
-      serv_addr.sin_port = htons(config.qemu_socket_port);
-
-      if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        RETURN_ERROR(ERR_INTERNAL)
-               << "Error : Failed to connect to Qemu monitor socket \n";
-      }
-
-      if (config.qemu_hotplug_add == HOTPLUG_ADD) {
-        cmd = PrepQemuCmdsHelper(CHARDEV_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
-        SendQemuCmdsHelper(sockfd, cmd);
-
-        cmd = PrepQemuCmdsHelper(NETDEV_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
-        SendQemuCmdsHelper(sockfd, cmd);
-
-        cmd = PrepQemuCmdsHelper(DEVICE_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
-        SendQemuCmdsHelper(sockfd, cmd);
-      }
-
-      close(sockfd);
-      LOG(INFO) << "Closed qemu monitor socket";
+    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+      RETURN_ERROR(ERR_INTERNAL)
+             << "Error : Failed to connect to Qemu monitor socket \n";
     }
+
+    if (config.qemu_hotplug_add == HOTPLUG_ADD) {
+      cmd = PrepQemuCmdsHelper(CHARDEV_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
+      status = SendQemuCmdsHelper(sockfd, cmd);
+      if (!status.ok()) {
+        RETURN_ERROR(ERR_INTERNAL)
+             << "Error : Failed to hotplug the port due to QEMU error when adding character device \n";
+      }
+
+      cmd = PrepQemuCmdsHelper(NETDEV_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
+      status = SendQemuCmdsHelper(sockfd, cmd);
+      if (!status.ok()) {
+        RETURN_ERROR(ERR_INTERNAL)
+             << "Error : Failed to hotplug the port due to QEMU error when adding netdev device \n";
+      }
+
+      cmd = PrepQemuCmdsHelper(DEVICE_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
+      status = SendQemuCmdsHelper(sockfd, cmd);
+      if (!status.ok()) {
+        RETURN_ERROR(ERR_INTERNAL)
+             << "Error : Failed to hotplug the port due to QEMU error when adding device\n";
+      }
+    }
+    close(sockfd);
+    LOG(INFO) << "Closed qemu monitor socket";
+  }
   google::FlushLogFiles(google::INFO);
   return ::util::OkStatus();
 }
