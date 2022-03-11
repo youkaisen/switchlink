@@ -833,12 +833,18 @@ def parse_flow(flow):
     return match_keys, action_name, act_data
 
 def parse_flow_as(flow):
-    extract_mk = flow.split(",")
+    if ("group_id" in flow):
+        # Use group_id for tokenizing
+        extract_mk = flow.split(",group_id=")
+        key = "group_id"
+    elif ("member_id" in flow):
+        # Use member_id for tokenizing
+        extract_mk = flow.split(",member_id=")
+        key = "member_id"
+    else:
+        raise AssertionError("group_id or member_id is expected")
     mk = extract_mk[0]
-    extract_key = extract_mk[1]
-    extract_act = extract_key.split("=")
-    key = extract_act[0]
-    act = extract_act[1]
+    act = extract_mk[1]
     action_name = None
     act_data = None
     group_id = 0
