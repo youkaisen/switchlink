@@ -17,7 +17,7 @@ set -e
 if [ -z "$1" ]
 then
     echo "- Missing mandatory argument:"
-    echo " - Usage: ./build_p4ovs.sh <SDE_INSTALL_PATH> [P4OVS_DEPS_INSTALL_PATH]"
+    echo " - Usage: ./build-p4ovs.sh <SDE_INSTALL_PATH> [P4OVS_DEPS_INSTALL_PATH]"
     exit 1
 fi
 
@@ -41,7 +41,7 @@ fi
 ./boot.sh
 if [ ! -z "$DEPS_INSTALL_PATH" ]
 then
-    ./configure --prefix=$DEPS_INSTALL_PATH --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g'
+    ./configure --prefix=$DEPS_INSTALL_PATH --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g' --disable-ssl
 else
     ./configure --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g'
 fi

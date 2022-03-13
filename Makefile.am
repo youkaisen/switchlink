@@ -100,6 +100,7 @@ EXTRA_DIST = \
 	.travis.yml \
 	appveyor.yml \
 	boot.sh \
+	run_ovs.sh \
 	poc/builders/Vagrantfile \
 	poc/playbook-centos-builder.yml \
 	poc/playbook-fedora-builder.yml \

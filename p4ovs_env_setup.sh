@@ -32,9 +32,10 @@ echo "OS and Version details..."
 echo "$OS : $VER"
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib64
 
 #Dependencies needed for building netlink library
-if [[ $OS =~ "Fedora" ]]; then
+if [ $OS = "Fedora" ]; then
     export PKG_CONFIG_PATH=${SDE_INSTALL}/lib64/pkgconfig
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib64
 else
@@ -48,9 +49,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
 #...P4-OVS Dependencies Path...#
 if [ ! -z "$P4OVS_DEPS_INSTALL" ]
 then
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$P4OVS_DEPS_INSTALL/lib
-    export PATH=$PATH:$P4OVS_DEPS_INSTALL/bin:$P4OVS_DEPS_INSTALL/sbin
-    export LIBRARY_PATH=$P4OVS_DEPS_INSTALL/lib
+    export LD_LIBRARY_PATH=$P4OVS_DEPS_INSTALL/lib:$P4OVS_DEPS_INSTALL/lib64:$LD_LIBRARY_PATH
+    export PATH=$P4OVS_DEPS_INSTALL/bin:$P4OVS_DEPS_INSTALL/sbin:$PATH
+    export LIBRARY_PATH=$P4OVS_DEPS_INSTALL/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$P4OVS_DEPS_INSTALL/include
     export CPLUS_INCLUDE_PATH=$P4OVS_DEPS_INSTALL/include
 fi
