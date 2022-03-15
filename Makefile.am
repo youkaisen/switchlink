@@ -119,13 +119,14 @@ EXTRA_DIST = \
 	build-p4ovs.sh \
 	component.sh \
 	fix_sde_libs.sh \
-        OVS-WITH-P4-BUILD-README \
+	OVS-WITH-P4-BUILD-README \
 	external/PATCH-01-TOFINO \
-        ptf_tests/README \
-        ptf_tests/run_p4_tests.sh \
-        ptf_tests/run_ptf_tests.py \
-        ptf_tests/simple_l3/simple_l3.p4 \
-        ptf_tests/simple_l3/simple_l3.py \
+	external/PATCH-01-GRPC-BORINGSSL \
+	ptf_tests/README \
+	ptf_tests/run_p4_tests.sh \
+	ptf_tests/run_ptf_tests.py \
+	ptf_tests/simple_l3/simple_l3.p4 \
+	ptf_tests/simple_l3/simple_l3.py \
 	.mailmap
 bin_PROGRAMS =
 sbin_PROGRAMS =
