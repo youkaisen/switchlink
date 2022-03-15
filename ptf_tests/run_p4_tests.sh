@@ -1,74 +1,67 @@
 #!/bin/bash
 # Start running PTF tests associated with a P4 program
+# TODO: remove tofino/barefoot references
 set -x
 function print_help() {
-echo "USAGE: $(basename ""$0"") {-p <...> | -t <...>} [OPTIONS -- PTF_OPTIIONS]"
-echo "Options for running PTF tests:"
-echo "  -p <p4_program_name>"
-echo "    Run PTF tests associated with P4 program"
-echo "  -t TEST_DIR"
-echo "    TEST_DIR contains test cases executed by PTF."
-echo "  -s TEST_SUITE"
-echo "    Name of the test suite to execute passed to PTF"
-echo "  -c TEST_CASE"
-echo "    Name of the test case to execute passed to PTF"
-echo "  --arch <ARCHITECTURE>"
-echo "    Architecture (Tofino, Tofino2, Tofino3, etc.)"
-echo "  --target <TARGET>"
-echo "    Target (asic-model or hw)"
-echo "  --no-veth"
-echo "    Skip veth setup and special CPU port setup"
-echo "  --config-file"
-echo "    PTF config-file"
-echo "  --ip <target switch IP address>"
-echo "    Target switch's IP address, localhost by default"
-echo "  --thrift-server <thrift_server_address>"
-echo "    Depreciated, use --ip"
-echo "  --setup"
-echo "    Run test setup only"
-echo "  --cleanup"
-echo "    Run test cleanup only"
-echo "  --traffic-gen <traffic_generator>"
-echo "    Traffic Generator (ixia, scapy)"
-echo "  --socket-recv-size <socket bytes size>"
-echo "    socket buffer size for ptf scapy verification "
-echo "  --failfast"
-echo "    Fail and exit on first failure"
-echo "  --test-params <ptf_test_params>"
-echo "    PTF test params as a string, e.g. arch='Tofino';target='hw';"
-echo "  --with-p4c <compiler version>"
-echo "    P4C compiler version, e.g. v6"
-echo "  --gen-xml-output <gen_xml_output>"
-echo "    Specify this flag to generate xml output for tests"
-echo "  --p4info"
-echo "    Path to P4Info Protobuf text file for P4Runtime tests"
-echo "  --profile"
-echo "    Enable Python profiling"
-echo "  -h"
-echo "    Print this message"
-exit 0
+  echo "USAGE: $(basename ""$0"") {-p <...> | -t <...>} [OPTIONS -- PTF_OPTIONS]"
+  echo "Options for running PTF tests:"
+  echo "  -p <p4_program_name>"
+  echo "    Run PTF tests associated with P4 program"
+  echo "  -t TEST_DIR"
+  echo "    TEST_DIR contains test cases executed by PTF."
+  echo "  -s TEST_SUITE"
+  echo "    Name of the test suite to execute passed to PTF"
+  echo "  -c TEST_CASE"
+  echo "    Name of the test case to execute passed to PTF"
+  echo "  --arch <ARCHITECTURE>"
+  echo "    Architecture (Tofino, Tofino2, Tofino3, etc.)"
+  echo "  --target <TARGET>"
+  echo "    Target (asic-model or hw)"
+  echo "  --no-veth"
+  echo "    Skip veth setup and special CPU port setup"
+  echo "  --config-file"
+  echo "    PTF config-file"
+  echo "  --ip <target switch IP address>"
+  echo "    Target switch's IP address, localhost by default"
+  echo "  --thrift-server <thrift_server_address>"
+  echo "    Depreciated, use --ip"
+  echo "  --setup"
+  echo "    Run test setup only"
+  echo "  --cleanup"
+  echo "    Run test cleanup only"
+  echo "  --traffic-gen <traffic_generator>"
+  echo "    Traffic Generator (ixia, scapy)"
+  echo "  --socket-recv-size <socket bytes size>"
+  echo "    socket buffer size for ptf scapy verification "
+  echo "  --failfast"
+  echo "    Fail and exit on first failure"
+  echo "  --test-params <ptf_test_params>"
+  echo "    PTF test params as a string, e.g. arch='Tofino';target='hw';"
+  echo "  --with-p4c <compiler version>"
+  echo "    P4C compiler version, e.g. v6"
+  echo "  --gen-xml-output <gen_xml_output>"
+  echo "    Specify this flag to generate xml output for tests"
+  echo "  --p4info"
+  echo "    Path to P4Info Protobuf text file for P4Runtime tests"
+  echo "  --profile"
+  echo "    Enable Python profiling"
+  echo "  -h"
+  echo "    Print this message"
+  exit 0
 }
 
 trap 'exit' ERR
-    if [ -z $WORKSPACE ]; then
-    WORKSPACE=`pwd`
-fi
 
+if [ -z $WORKSPACE ]; then
+  WORKSPACE=`pwd`
+fi
 echo "Using workspace ${WORKSPACE}"
-opts=`getopt -o p:t:f:s:c:m:h --long reboot: --long config-file: \
-           --long arch: --long target: --long num-pipes: --long drv-test-info:\
-           --long failfast --long seed: --long no-veth --long thrift-server: \
-    --long setup --long cleanup --long traffic-gen: \
-    --long socket-recv-size: --long no-status-srv --long status-port:\
-           --long ip: --long test-params: --long port-mode: --long with-p4c:\
-           --long gen-xml-output --long db-prefix: --long p4info: --long p4bin: \
-    --long default-negative-timeout: --long default-timeout:\
-           --long profile -- "$@"`
+
+opts=`getopt -o p:t:f:s:c:m:h --long reboot: --long config-file: --long arch: --long target: --long num-pipes: --long drv-test-info: --long failfast --long seed: --long no-veth --long thrift-server: --long setup --long cleanup --long traffic-gen: --long socket-recv-size: --long no-status-srv --long status-port: --long ip: --long test-params: --long port-mode: --long with-p4c: --long gen-xml-output --long db-prefix: --long p4info: --long p4bin: --long default-negative-timeout: --long default-timeout: --long profile -- "$@"`
 
 if [ $? != 0 ]; then
-    exit 1
+  exit 1
 fi
-
 eval set -- "$opts"
 
 # P4 program name
@@ -105,15 +98,16 @@ while true; do
       --) shift; break;;
     esac
 done
+
 ARCH=`echo $ARCH | tr '[:upper:]' '[:lower:]'`
 case "$ARCH" in
   "tofino") CPUPORT=64;;
-   "tofino2") CPUPORT=2;;
-   "tofino3") CPUPORT=2;;
+  "tofino2") CPUPORT=2;;
+  "tofino3") CPUPORT=2;;
 esac
 
 if [ $HELP = true ] || ( [ -z $P4_NAME ] && [ -z $TEST_DIR ] ); then
-   print_help
+  print_help
 fi
 
 if [ $NO_VETH = true ]; then
@@ -121,15 +115,17 @@ if [ $NO_VETH = true ]; then
   CPUVETH=None
 fi
 
+
 [ -d "$TEST_DIR" ] || exit "Test directory $TEST_DIR directory does not exist"
- echo "Using TEST_DIR ${TEST_DIR}"
+
+echo "Using TEST_DIR ${TEST_DIR}"
 
 if [[ $PORTINFO != None ]]; then
   CPUPORT=None
   CPUVETH=None
 fi
 
-PYTHON_VER=`python --version 2>&1 | awk {'print $2'} | awk -F"." {'print $1""."$2'}`
+PYTHON_VER=`python --version 2>&1 | awk {'print $2'} | awk -F"." {'print $1"."$2'}`
 
 export PATH=$PATH
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
@@ -140,6 +136,7 @@ echo "Using LD_LIBRARY_PATH ${LD_LIBRARY_PATH}"
 echo "Using PYTHONPATH ${PYTHONPATH}"
 
 echo "Reboot type is $REBOOT_TYPE"
+
 # Setup veth interfaces
 if [ $NO_VETH = false ]; then
   echo "Setting up veth interfaces"
@@ -156,7 +153,6 @@ if [ -z "$P4INFO_PATH" ]; then
         fi
     fi
 fi
-
 if [ "$P4INFO_PATH" != "" ]; then
     if [ "$TEST_PARAMS" != "" ]; then
         TEST_PARAMS="$TEST_PARAMS;p4info='$P4INFO_PATH'"
@@ -164,7 +160,6 @@ if [ "$P4INFO_PATH" != "" ]; then
         TEST_PARAMS="p4info='$P4INFO_PATH'"
     fi
 fi
-
 if [ "$TARGET_IP" != "" ]; then
     if [ "$TEST_PARAMS" != "" ]; then
          TEST_PARAMS="$TEST_PARAMS;ip='$TARGET_IP'"
@@ -172,7 +167,6 @@ if [ "$TARGET_IP" != "" ]; then
          TEST_PARAMS="ip='$TARGET_IP'"
      fi
 fi
-
 if [ "$P4BIN_PATH" != "" ]; then
      if [ "$TEST_PARAMS" != "" ]; then
           TEST_PARAMS="$TEST_PARAMS;p4bin='$P4BIN_PATH'"
@@ -181,8 +175,8 @@ if [ "$P4BIN_PATH" != "" ]; then
       fi
 fi
 
-TEST_PARAMS_STR=""
 
+TEST_PARAMS_STR=""
 if [ "$TEST_PARAMS" != "" ]; then
     TEST_PARAMS_STR="--test-params $TEST_PARAMS"
 fi
@@ -199,4 +193,3 @@ sudo env -u http_proxy -u socks_proxy "PATH=$PATH" "PYTHONPATH=$PYTHONPATH"
     $PTF_BINARY \
     $PROFILE \
     $DRV_TEST_SEED $FAILFAST $SETUP $CLEANUP $TEST_PARAMS_STR $DB_PREFIX $@
-
