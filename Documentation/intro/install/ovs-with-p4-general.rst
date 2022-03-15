@@ -96,7 +96,7 @@ All the commands referred in below sections need to be executed from top-level
 directory within P4-OVS.
 
 Option 1: Build and Install using a script
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 P4-OvS repository has a script `build-p4ovs.sh` which will update environment
 variables, create dependent configuration files and build P4-OvS.
 Command to run build script::
@@ -112,7 +112,7 @@ Command to run build script::
     it is exepcted to pass the absolute path of P4OVS_DEPS_INSTALL directory.
 
 Option 2: Build and Install manually
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Instead of using the build-p4ovs.sh script, users can update environment
 variables, create dependent configuration files and build P4-OvS manually.
 

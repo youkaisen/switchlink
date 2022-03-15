@@ -5,7 +5,6 @@ import time
 import sys
 import logging
 import random
-import ptf.dataplane as dataplane
 from ptf.testutils import *
 from pdb import set_trace
 import scapy.main
@@ -14,12 +13,9 @@ from scapy.packet import *
 from scapy.fields import *
 from scapy.all import *
 from ptf.base_tests import BaseTest
-from ptf import config
 from ptf.testutils import *
 from ptf.packet import *
-from ptf.thriftutils import *
 import os
-import ptf.mask as mask
 import p4runtime_sh.shell as shell
 import warnings
 
@@ -46,9 +42,6 @@ class P4RuntimeUtils():
 
 class SimpleL3Test(BaseTest, P4RuntimeUtils):
     sh = shell
-    def setUp(self):
-        self.dataplane = ptf.dataplane_instance
-
     def runTest(self):
         try:
 #get the grpc server ip address, p4info file path and p4bin file
@@ -64,14 +57,12 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
                 device_id=1,
                 grpc_addr= grpc_server_ip + ':9559',
                 election_id=(4, 5), # (high, low)
-#                config=self.sh.FwdPipeConfig('/root/cfgs/simple_l3/p4Info.txt',
-                   #'/root/cfgs/simple_l3/simple_l3.pb.bin')
                 config=self.sh.FwdPipeConfig(p4info_file, p4bin_file)
             )
             print("grpc server contacted and set the forwarding pipeline")
 
             #add rule saying that any packet with destination ip 1.1.1.1 
-            #]should be sent to port with port id 0
+            #should be sent to port with port id 0
             print("adding rule for port 0")
             rule1 = self.addL3Rule(self.sh, 0, "1.1.1.1")
             #add rule saying that any packet with destination ip 2.2.2.2 
@@ -90,9 +81,9 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
 
             #tcpdump
             p1 = subprocess.Popen(['tcpdump', '-w', '/tmp/capture1.pcap', 
-                '--i', 'ens4'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                '--i', 'TAP0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(1)
-            sendp(pkt, iface='ens5')
+            sendp(pkt, iface='TAP1')
             time.sleep(2)
             p1.terminate()
             status = None
@@ -110,14 +101,14 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
 
             #tcpdump
             p2 = subprocess.Popen(['tcpdump', '-w', '/tmp/capture2.pcap',
-                '--i', 'ens5'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                '--i', 'TAP1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(1)
-            sendp(pkt, iface='ens4')
+            sendp(pkt, iface='TAP0')
             time.sleep(2)
             p2.terminate()
             status = None
             while status is None:
-            status = p2.poll()
+                status = p2.poll()
             time.sleep(2)
 
             #deleting rule2
@@ -134,9 +125,9 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
 
             #tcpdump
             p3 = subprocess.Popen(['tcpdump', '-w', '/tmp/capture3.pcap',
-                '--i', 'ens5'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                '--i', 'TAP1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(1)
-            sendp(pkt, iface='ens4')
+            sendp(pkt, iface='TAP0')
             time.sleep(2)
             p3.terminate()
             status = None
@@ -175,6 +166,6 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
             pass
 
     def tearDown(self):
-       self.dataplane.flush()
        self.sh.teardown()
+       pass
 
