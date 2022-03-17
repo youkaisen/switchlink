@@ -451,6 +451,7 @@ std::string BfChassisManager::PrepQemuCmdsHelper(qemu_cmd_type cmd_type, std::st
     serv_addr.sin_port = htons(config.qemu_socket_port);
 
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+      close(sockfd);
       RETURN_ERROR(ERR_INTERNAL)
              << "Error : Failed to connect to Qemu monitor socket \n";
     }
@@ -459,6 +460,7 @@ std::string BfChassisManager::PrepQemuCmdsHelper(qemu_cmd_type cmd_type, std::st
       cmd = PrepQemuCmdsHelper(CHARDEV_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
       status = SendQemuCmdsHelper(sockfd, cmd);
       if (!status.ok()) {
+        close(sockfd);
         RETURN_ERROR(ERR_INTERNAL)
              << "Error : Failed to hotplug the port due to QEMU error when adding character device \n";
       }
@@ -466,6 +468,7 @@ std::string BfChassisManager::PrepQemuCmdsHelper(qemu_cmd_type cmd_type, std::st
       cmd = PrepQemuCmdsHelper(NETDEV_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
       status = SendQemuCmdsHelper(sockfd, cmd);
       if (!status.ok()) {
+        close(sockfd);
         RETURN_ERROR(ERR_INTERNAL)
              << "Error : Failed to hotplug the port due to QEMU error when adding netdev device \n";
       }
@@ -473,6 +476,7 @@ std::string BfChassisManager::PrepQemuCmdsHelper(qemu_cmd_type cmd_type, std::st
       cmd = PrepQemuCmdsHelper(DEVICE_ADD, chardev_id, netdev_id, string_mac, native_socket_path);
       status = SendQemuCmdsHelper(sockfd, cmd);
       if (!status.ok()) {
+        close(sockfd);
         RETURN_ERROR(ERR_INTERNAL)
              << "Error : Failed to hotplug the port due to QEMU error when adding device\n";
       }

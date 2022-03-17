@@ -201,7 +201,11 @@ class BfChassisManager {
     PortConfig() : admin_state(ADMIN_STATE_UNKNOWN),
                    port_type(PORT_TYPE_NONE),
                    device_type(DEVICE_TYPE_NONE),
-                   queues(0) {}
+                   queues(0),
+                   qemu_socket_port(0),
+                   qemu_vm_mac_address(0),
+                   qemu_hotplug_add(NO_HOTPLUG),
+                   qemu_hotplug_del(NO_HOTPLUG) {}
   };
 
   // Maximum depth of port status change event channel.
