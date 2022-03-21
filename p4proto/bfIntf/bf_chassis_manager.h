@@ -31,15 +31,15 @@
 #define GNMI_CONFIG_PCI_BDF_VALUE 0x100
 #define GNMI_CONFIG_HOTPLUG_SOCKET_IP 0x200
 #define GNMI_CONFIG_HOTPLUG_SOCKET_PORT 0x400
-#define GNMI_CONFIG_HOTPLUG_ADD_VAL 0x800
+#define GNMI_CONFIG_HOTPLUG_VAL 0x800
 #define GNMI_CONFIG_HOTPLUG_VM_MAC 0x1000
 #define GNMI_CONFIG_HOTPLUG_VM_NETDEV_ID 0x2000
 #define GNMI_CONFIG_HOTPLUG_VM_CHARDEV_ID 0x4000
 #define GNMI_CONFIG_NATIVE_SOCKET_PATH 0x8000
-#define GNMI_CONFIG_HOTPLUG_DEL_VAL 0x10000
-
+#define GNMI_CONFIG_HOTPLUG_VM_DEVICE_ID 0x10000
 
 #define GNMI_CONFIG_PORT_DONE 0x10000000
+#define GNMI_CONFIG_HOTPLUG_DONE 0x20000000
 
 #define GNMI_CONFIG_VHOST (GNMI_CONFIG_PORT_TYPE | GNMI_CONFIG_DEVICE_TYPE | \
                            GNMI_CONFIG_QUEUE_COUNT | GNMI_CONFIG_SOCKET_PATH | \
@@ -62,9 +62,9 @@
                                           GNMI_CONFIG_PCI_BDF_VALUE)
 
 #define GNMI_CONFIG_HOTPLUG_ADD (GNMI_CONFIG_HOTPLUG_SOCKET_IP | GNMI_CONFIG_HOTPLUG_SOCKET_PORT | \
-                                 GNMI_CONFIG_HOTPLUG_ADD_VAL | GNMI_CONFIG_HOTPLUG_VM_MAC | \
+                                 GNMI_CONFIG_HOTPLUG_VAL | GNMI_CONFIG_HOTPLUG_VM_MAC | \
                                  GNMI_CONFIG_HOTPLUG_VM_NETDEV_ID | GNMI_CONFIG_HOTPLUG_VM_CHARDEV_ID | \
-                                 GNMI_CONFIG_NATIVE_SOCKET_PATH)
+                                 GNMI_CONFIG_NATIVE_SOCKET_PATH | GNMI_CONFIG_HOTPLUG_VM_DEVICE_ID)
 
 /* SDK_PORT_CONTROL_BASE is used as CONTOL BASE offset to define
  * reserved port range for the control ports.
@@ -78,8 +78,10 @@
 typedef enum qemu_cmd_type {
    CHARDEV_ADD,
    NETDEV_ADD,
-   DEVICE_ADD
-}qemu_cmd_type;
+   DEVICE_ADD,
+   NETDEV_DEL,
+   DEVICE_DEL
+} qemu_cmd_type;
 
 namespace stratum {
 namespace hal {
@@ -168,6 +170,21 @@ class BfChassisManager {
     std::unique_ptr<ChannelReader<T>> reader;
   };
 
+  struct HotplugConfig {
+    uint32 qemu_socket_port;
+    uint64 qemu_vm_mac_address;
+    std::string qemu_socket_ip;
+    std::string qemu_vm_netdev_id;
+    std::string qemu_vm_chardev_id;
+    std::string qemu_vm_device_id;
+    std::string native_socket_path;
+    SWBackendQemuHotplugStatus qemu_hotplug;
+
+    HotplugConfig() : qemu_socket_port(0),
+                      qemu_vm_mac_address(0),
+                      qemu_hotplug(NO_HOTPLUG) {}
+  };
+
   struct PortConfig {
     // ADMIN_STATE_UNKNOWN indicate that something went wrong during the port
     // configuration, and the port add wasn't event attempted or failed.
@@ -183,29 +200,18 @@ class BfChassisManager {
     SWBackendPortType port_type;
     SWBackendDeviceType device_type;
     int32 queues;
-    uint32 qemu_socket_port;
-    uint64 qemu_vm_mac_address;
     std::string socket_path;
     std::string host_name;
     std::string pipeline_name;
     std::string mempool_name;
     std::string control_port;
     std::string pci_bdf;
-    std::string qemu_socket_ip;
-    std::string qemu_vm_netdev_id;
-    std::string qemu_vm_chardev_id;
-    std::string native_socket_path;
-    SWBackendQemuHotplugStatus qemu_hotplug_add;
-    SWBackendQemuHotplugStatus qemu_hotplug_del;
+    HotplugConfig hotplug_config;
 
     PortConfig() : admin_state(ADMIN_STATE_UNKNOWN),
                    port_type(PORT_TYPE_NONE),
                    device_type(DEVICE_TYPE_NONE),
-                   queues(0),
-                   qemu_socket_port(0),
-                   qemu_vm_mac_address(0),
-                   qemu_hotplug_add(NO_HOTPLUG),
-                   qemu_hotplug_del(NO_HOTPLUG) {}
+                   queues(0) {}
   };
 
   // Maximum depth of port status change event channel.
@@ -249,9 +255,11 @@ class BfChassisManager {
   ::util::Status SendQemuCmdsHelper(int sockfd, std::string cmd);
 
   // helper to prepare qemu hotplug commands to qemu monitor socket
-  std::string PrepQemuCmdsHelper(qemu_cmd_type cmd, std::string chardev_id,
-                                 std::string netdev_id, std::string mac,
-                                 std::string socket_path);
+  std::string PrepQemuCmdsHelper(qemu_cmd_type cmd,
+                                 uint64 node_id, uint32 port_id);
+
+  // helper to create socket and connect to qemu monitor socket
+  int CreateHelperSocket(uint64 node_id, uint32 port_id);
 
   // Determines the mode of operation:
   // - OPERATION_MODE_STANDALONE: when Stratum stack runs independently and

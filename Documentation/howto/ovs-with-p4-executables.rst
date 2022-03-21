@@ -376,11 +376,14 @@ previously configured CONFIG params.
     gnmi-cli command:
 
       $ gnmi-cli set PARAMS
-      $ Example:
-      $ sudo gnmi-cli set "device:virtual-device,name:net_vhost0,hotplug-add:1,
-                           qemu-socket-ip:127.0.0.1,qemu-socket-port:6555,
-                           qemu-vm-mac:00:e8:ca:11:aa:01,qemu-vm-netdev-id:netdev0,
-                           qemu-vm-chardev-id:char1,native-socket-path:/tmp/intf/vhost-user-0"
+      $ Command to hotplug add the port. Example:
+      $ gnmi-cli set "device:virtual-device,name:net_vhost0,hotplug:add,
+                      qemu-socket-ip:127.0.0.1,qemu-socket-port:6555,
+                      qemu-vm-mac:00:e8:ca:11:aa:01,qemu-vm-netdev-id:netdev0,
+                      qemu-vm-chardev-id:char1,native-socket-path:/tmp/intf/vhost-user-0,
+                      qemu-vm-device-id:dev0"
+      $ Command to hotplug delete the port. Example:
+      $ gnmi-cli set "device:virtual-device,name:net_vhost0,hotplug:del"
 
 .. note::
 
@@ -391,14 +394,18 @@ previously configured CONFIG params.
     CLI commands.
     name: can take values defined in chassis config file. Refer to file
     dpdk_port_config.pb.txt for port names.
-    hotplug-add: Specify if the device needs to be hotplugged (1 - yes, 0 - no)
+    hotplug: Specify if the device needs to be hotplugged (add/ADD for hotplug
+    add, del/DEL for hotplug delete)
     qemu-socket-ip: Specify IP of the host where qemu monitor socket resides.
     qemu-socket-port: Specify qemu monitor socket port
     qemu-vm_mac: Specify MAC address for port hotplugged to qemu VM
     qemu-vm_netdev-id: Specify netdev ID for port hotplugged to qemu VM
     qemu-vm_chardev-id: Specify chardev ID for port hotplugged to qemu VM
     native-socket-path: Specify the native path for vhost-user socket on the host
+    qemu-vm-device-id: Specify device ID for port hotplugged to qemu VM
 
+   Port can be hotplug added once and hotplug deleted once. Re-adding or deleting 
+   the port is not supported
 
 5) Set atrributes for link ports::
 

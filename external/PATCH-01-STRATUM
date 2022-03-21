@@ -757,7 +757,7 @@ index a1bc08b8..b04753bf 100644
  #include "stratum/hal/lib/barefoot/bfrt_node.h"
  #include "stratum/hal/lib/common/phal_interface.h"
 diff --git a/stratum/hal/lib/common/common.proto b/stratum/hal/lib/common/common.proto
-index f7a72d70..d83b142f 100644
+index f7a72d70..4a554226 100644
 --- a/stratum/hal/lib/common/common.proto
 +++ b/stratum/hal/lib/common/common.proto
 @@ -63,6 +63,13 @@ enum TrafficClass {
@@ -827,18 +827,18 @@ index f7a72d70..d83b142f 100644
 +  string qemu_socket_ip = 19;
 +  // Socket port for qemu monitor socket
 +  int32 qemu_socket_port = 20;
-+  // Qemu Hotplug add status
-+  SWBackendQemuHotplugStatus qemu_hotplug_add = 21;
-+  // Qemu hotplug delete status
-+  SWBackendQemuHotplugStatus qemu_hotplug_del = 22;
++  // Qemu Hotplug status
++  SWBackendQemuHotplugStatus qemu_hotplug = 21;
 +  // The configured mac address for this port.
-+  uint64 qemu_vm_mac_address = 23;
++  uint64 qemu_vm_mac_address = 22;
 +  // VM netdev id for hotplug
-+  string qemu_vm_netdev_id = 24;
++  string qemu_vm_netdev_id = 23;
 +  // VM chardev id for hotplug
-+  string qemu_vm_chardev_id = 25;
++  string qemu_vm_chardev_id = 24;
 +  // Native socket path ( applicable for containers)
-+  string native_socket_path = 26;
++  string native_socket_path = 25;
++  // VM device id for hotplug
++  string qemu_vm_device_id = 26;
  }
  
  // Chassis uniquely identifies a switch with a single management interface,
@@ -905,14 +905,9 @@ index f7a72d70..d83b142f 100644
 +  int32 qemu_socket_port = 1; // required
 +}
 +
-+// Specifies hotplug add status
-+message QemuHotplugAddConfigured {
-+  SWBackendQemuHotplugStatus qemu_hotplug_add = 1; // required
-+}
-+
-+// Specifies hotplug delete status
-+message QemuHotplugDelConfigured {
-+  SWBackendQemuHotplugStatus qemu_hotplug_del = 1; // required
++// Specifies hotplug status
++message QemuHotplugConfigured {
++  SWBackendQemuHotplugStatus qemu_hotplug = 1; // required
 +}
 +
 +// Specifies VM netdev id for hotplug
@@ -923,6 +918,11 @@ index f7a72d70..d83b142f 100644
 +// Specifies VM chardev id for hotplug
 +message QemuVMChardevIdConfigured {
 +  string qemu_vm_chardev_id = 1; // required
++}
++
++// Specifies VM chardev id for hotplug
++message QemuVMDeviceIdConfigured {
++  string qemu_vm_device_id = 1; // required
 +}
 +
 +// Specifies native socket path
@@ -949,12 +949,12 @@ index f7a72d70..d83b142f 100644
 +    MtuValue mtu_value = 32;
 +    QemuSocketIpConfigured qemu_socket_ip = 33;
 +    QemuSocketPortConfigured qemu_socket_port = 34;
-+    QemuHotplugAddConfigured qemu_hotplug_add = 35;
-+    QemuHotplugDelConfigured qemu_hotplug_del = 36;
-+    MacAddress qemu_vm_mac_address = 37;
-+    QemuVMNetdevIdConfigured qemu_vm_netdev_id = 38;
-+    QemuVMChardevIdConfigured qemu_vm_chardev_id = 39;
-+    NativeSocketPathConfigured native_socket_path = 40;
++    QemuHotplugConfigured qemu_hotplug = 35;
++    MacAddress qemu_vm_mac_address = 36;
++    QemuVMNetdevIdConfigured qemu_vm_netdev_id = 37;
++    QemuVMChardevIdConfigured qemu_vm_chardev_id = 38;
++    NativeSocketPathConfigured native_socket_path = 39;
++    QemuVMDeviceIdConfigured qemu_vm_device_id = 40;
    }
  }
  
@@ -987,17 +987,17 @@ index f7a72d70..d83b142f 100644
 +        // Qemu monitor socket port used for hotplug.
 +        QemuSocketPortConfigured qemu_socket_port = 23;
 +        // Qemu monitor hotplug add status
-+        QemuHotplugAddConfigured qemu_hotplug_add = 24;
-+        // Qemu monitor hotplug del status
-+        QemuHotplugDelConfigured qemu_hotplug_del = 25;
++        QemuHotplugConfigured qemu_hotplug = 24;
 +        // VM mac address for qemu based VM's for hotplug
-+        MacAddress qemu_vm_mac_address = 26;
++        MacAddress qemu_vm_mac_address = 25;
 +        // VM netdev id for hotplug
-+        QemuVMNetdevIdConfigured qemu_vm_netdev_id = 27;
++        QemuVMNetdevIdConfigured qemu_vm_netdev_id = 26;
 +        // VM chardev id for hotplug
-+        QemuVMChardevIdConfigured qemu_vm_chardev_id = 28;
++        QemuVMChardevIdConfigured qemu_vm_chardev_id = 27;
 +        // The native socket path for hotplug
-+        NativeSocketPathConfigured native_socket_path = 29;
++        NativeSocketPathConfigured native_socket_path = 28;
++        // VM device id for hotplug
++        QemuVMDeviceIdConfigured qemu_vm_device_id = 29;
        }
      }
      // Data required to set info for a specific node.
