@@ -493,18 +493,21 @@ class P4InfoHelper(object):
         action_profile_group = p4runtime_pb2.ActionProfileGroup()
         action_profile_group.action_profile_id = self.get_action_profiles_id(table_name);
         action_profile_group.group_id = group_id
-        # Input for list of members is a comma speated values enclosed in
+        # If input for list of members is a comma speated values enclosed in
         # parenthesis. Here, remove the parenthesis and split members into
         # a list. Iterate over each member list and add to the group.
-        # Eg: reference_members=(11,22), this needs to be split into a list.
-        member_list = members.replace("(","").replace(")","").split(",")
-        for member_id in member_list:
-            if str.isdigit(member_id):
-                apg = action_profile_group.members.add()
-                apg.member_id = int(member_id)
-            else:
-                print("Member ID:", member_id, "should be numberic value.")
-                sys.exit(1)
+        #   Eg: reference_members=(11,22), this needs to be split into a list.
+        # If Members is NULL (delete group), we dont need to split into each
+        # member_id
+        if members:
+            member_list = members.replace("(","").replace(")","").split(",")
+            for member_id in member_list:
+                if str.isdigit(member_id):
+                    apg = action_profile_group.members.add()
+                    apg.member_id = int(member_id)
+                else:
+                    print("Member ID:", member_id, "should be numberic value.")
+                    sys.exit(1)
 
         action_profile_group.max_size = max_size
         return action_profile_group
