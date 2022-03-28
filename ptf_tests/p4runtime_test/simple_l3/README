@@ -81,8 +81,19 @@ Steps to be followed :
   alias sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH"'
   sudo gnmi-cli set "device:virtual-device,name:TAP0,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
   sudo gnmi-cli set "device:virtual-device,name:TAP1,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
-  ip link set dev TAP0 up
-  ip link set dev TAP1 up
+  sudo gnmi-cli set "device:virtual-device,name:TAP2,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+  sudo gnmi-cli set "device:virtual-device,name:TAP3,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+  ip addr add 1.1.1.1/24 dev TAP0
+  ip addr add 1.1.1.2/24 dev TAP1
+  ip addr add 1.1.1.3/24 dev TAP3
+  ip addr add 1.1.1.4/24 dev TAP4
+  ip link set TAP0 up
+  ip link set TAP1 up
+  ip link set TAP2 up
+  ip link set TAP3 up
+
+NOTE: we have to 4 TAP ports here for the simple_l3 example. because the port map file (port_info.json) has map of 4 TAP ports mapped to device id 0.
+the port_info.json is required because its a dummy port map file that tells the PTF dataplane.py to do port_add() during initialization.PTF's port_add() call, doesnot really add ports to the DPDK pipeline. currently PORT_INFO path is $TESTDIR/port_info.json. but user can provide customized port_info.json file path as well, with option -f while running the test.
 
 3) assign ip address to other 2 TAP ports
   ip addr add dev <interface_name> <ip_address>/24
@@ -92,6 +103,6 @@ Steps to be followed :
   generate compiler artifacts for the p4 program using p4c compiler
   ./run_p4_tests.sh -p <p4 program name> -t <path/to/the/test/directory/> --no-veth -s <test case name> --p4info <path/to/p4info/txt/file> --p4bin <path/to/bin/file> --ip <host/server machine IP>
 
-            (example) →  ./run_p4_tests.sh -p simple_l3 -t ./simple_l3/ --no-veth -s simple_l3 --p4info ./cfgs/simple_l3/p4Info.txt --p4bin ./cfgs/simple_l3/simple_l3.pb.bin
+  (example) ./run_p4_tests.sh -p simple_l3 -t ./simple_l3/ --no-veth -s simple_l3 --p4info ./cfgs/simple_l3/p4Info.txt --p4bin ./cfgs/simple_l3/simple_l3.pb.bin
 
 simplel3.py test sets the forwarding pipeline with simple_l3.pb.bin and configures TAP ports with rules and then sends the traffic. 
