@@ -514,3 +514,18 @@ previously configured CONFIG params.
     by the user it is considered as value `1500`
     control-port: TAP port that need to be created for control packets.
 
+9) Get attributes for Pipelines Configuration::
+
+    $ gnmi-cli get PARAMS
+    $ Example:
+    gnmi-cli get "device:virtual-device,name:net_vhost0,tdi-portin-id"
+    gnmi-cli get "device:virtual-device,name:net_vhost0,tdi-portout-id"
+
+  .. note::
+
+    ``PARAMS``: These params are key:value pairs. Here virtual-device is a
+    sub-node which holds multiple ports like net_vhost0, net_vhost1,... Pass
+    the key name for whose value need to be fetched. Each get can take ONLY
+    one key, and fetches value for that previously configured KEY.
+    tdi-portin-id: Port ID for Pipeline in Input Direction
+    tdi-portin-id: Port ID for Pipeline in Output Direction

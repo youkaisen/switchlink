@@ -163,6 +163,15 @@ bool HasConfigBeenPushed(const GnmiEvent& event) {
         }
         break;
       }
+      case DataRequest::Request::kTargetDpId: {
+        auto target_dp_data = tree->GetBfChassisManager()->GetPortData(req);
+        if (!target_dp_data.ok()) {
+          status.Update(target_dp_data.status());
+        } else {
+          resp = target_dp_data.ConsumeValueOrDie();
+        }
+        break;
+      }
 // TODO P4-OVS openconfig
 #if 0
       case DataRequest::Request::kNodeInfo: {
@@ -2489,6 +2498,36 @@ void SetUpInterfacesInterfaceConfigNativeSocket(const char *default_native_path,
       ->SetOnPollHandler(poll_functor)
       ->SetOnUpdateHandler(on_set_functor)
       ->SetOnReplaceHandler(on_set_functor);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// /interfaces/virtual-interface[name=<name>]/config/tdi_portin_id
+void SetUpInterfacesInterfaceConfigPortInId(uint32 node_id, uint32 port_id,
+                                            TreeNode* node, YangParseTree* tree) {
+  // Returns the Target Dp Index(tdi_portin_id) for the interface to be used by P4Runtime.
+  auto on_poll_functor = GetOnPollFunctor(
+      node_id, port_id, tree, &DataResponse::target_dp_id,
+      &DataResponse::has_target_dp_id,
+      &DataRequest::Request::mutable_target_dp_id, &TargetDatapathId::tdi_portin_id);
+  auto on_change_functor = UnsupportedFunc();
+  node->SetOnTimerHandler(on_poll_functor)
+      ->SetOnPollHandler(on_poll_functor)
+      ->SetOnChangeHandler(on_change_functor);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// /interfaces/virtual-interface[name=<name>]/config/tdi_portout_id
+void SetUpInterfacesInterfaceConfigPortOutId(uint32 node_id, uint32 port_id,
+                                             TreeNode* node, YangParseTree* tree) {
+  // Returns the Target Dp Index(tdi_portout_id) for the interface to be used by P4Runtime.
+  auto on_poll_functor = GetOnPollFunctor(
+      node_id, port_id, tree, &DataResponse::target_dp_id,
+      &DataResponse::has_target_dp_id,
+      &DataRequest::Request::mutable_target_dp_id, &TargetDatapathId::tdi_portout_id);
+  auto on_change_functor = UnsupportedFunc();
+  node->SetOnTimerHandler(on_poll_functor)
+      ->SetOnPollHandler(on_poll_functor)
+      ->SetOnChangeHandler(on_change_functor);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4872,6 +4911,14 @@ TreeNode* YangParseTreePaths::AddSubtreeInterface(
   node = tree->AddNode(GetPath("interfaces")(
       "virtual-interface", name)("config")("native-socket-path")());
   SetUpInterfacesInterfaceConfigNativeSocket("/", node_id, port_id, node, tree);
+
+  node = tree->AddNode(
+      GetPath("interfaces")("virtual-interface", name)("config")("tdi-portin-id")());
+  SetUpInterfacesInterfaceConfigPortInId(node_id, port_id, node, tree);
+
+  node = tree->AddNode(
+      GetPath("interfaces")("virtual-interface", name)("config")("tdi-portout-id")());
+  SetUpInterfacesInterfaceConfigPortOutId(node_id, port_id, node, tree);
 
   node = tree->AddNode(GetPath("interfaces")(
       "virtual-interface", name)("ethernet")("config")("forwarding-viable")());

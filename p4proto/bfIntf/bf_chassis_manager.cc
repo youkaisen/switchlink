@@ -1130,6 +1130,18 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
   return *sdk_port_id;
 }
 
+::util::Status BfChassisManager::GetTargetDatapathId(uint64 node_id,
+                                                     uint32 port_id,
+                                                     TargetDatapathId* target_dp_id) {
+  if (!initialized_) {
+    return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
+  }
+
+  ASSIGN_OR_RETURN(auto sdk_port_id, GetSdkPortId( node_id, port_id));
+  ASSIGN_OR_RETURN(auto unit, GetUnitFromNodeId(node_id));
+  return bf_sde_interface_->GetPortInfo(unit, sdk_port_id, target_dp_id);
+}
+
 ::util::StatusOr<DataResponse> BfChassisManager::GetPortData(
     const DataRequest::Request& request) {
   if (!initialized_) {
@@ -1233,6 +1245,12 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
                        GetSdkPortId(request.sdn_port_id().node_id(),
                                     request.sdn_port_id().port_id()));
       resp.mutable_sdn_port_id()->set_port_id(sdk_port_id);
+      break;
+    }
+    case Request::kTargetDpId: {
+      RETURN_IF_ERROR(GetTargetDatapathId(request.target_dp_id().node_id(),
+                                          request.target_dp_id().port_id(),
+                                          resp.mutable_target_dp_id()));
       break;
     }
     case Request::kForwardingViability: {

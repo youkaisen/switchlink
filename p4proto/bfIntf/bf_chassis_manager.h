@@ -236,6 +236,11 @@ class BfChassisManager {
   ::util::StatusOr<uint32> GetSdkPortId(uint64 node_id, uint32 port_id) const
       SHARED_LOCKS_REQUIRED(chassis_lock);
 
+  // Returns the port in id and port out id required to configure pipeline
+  ::util::Status GetTargetDatapathId(uint64 node_id, uint32 port_id,
+                                     TargetDatapathId* target_dp_id)
+      SHARED_LOCKS_REQUIRED(chassis_lock);
+
   // Cleans up the internal state. Resets all the internal port maps and
   // deletes the pointers.
   void CleanupInternalState() EXCLUSIVE_LOCKS_REQUIRED(chassis_lock);
