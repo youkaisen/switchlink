@@ -60,6 +60,7 @@ Setting Up The Repos and Test Environment Setup:
         pip3 install ipaddr==2.2.0
         pip3 install grpcio==1.35.0
         pip3 install protobuf==3.14.0
+        pip3 install p4runtime-shell
 
 ===============================================================================
 Running simple l3 scenario (using TAP ports):
@@ -87,9 +88,10 @@ Steps to be followed :
   ip addr add dev <interface_name> <ip_address>/24
 
 4) run the test using following command
-  goto ptf_tests directory under P4OVS repo
+  goto ptf_tests/p4runtime_test directory under P4OVS repo
+  generate compiler artifacts for the p4 program using p4c compiler
   ./run_p4_tests.sh -p <p4 program name> -t <path/to/the/test/directory/> --no-veth -s <test case name> --p4info <path/to/p4info/txt/file> --p4bin <path/to/bin/file> --ip <host/server machine IP>
 
-            (example) →  ./run_p4_tests.sh -p simple_l3 -t ./simple_l3/ --no-veth -s simple_l3 --p4info ./cfgs/simple_l3/p4Info.txt --p4bin ./cfgs/simple_l3/simple_l3.pb.bin --ip 10.233.132.153
+            (example) →  ./run_p4_tests.sh -p simple_l3 -t ./simple_l3/ --no-veth -s simple_l3 --p4info ./cfgs/simple_l3/p4Info.txt --p4bin ./cfgs/simple_l3/simple_l3.pb.bin
 
 simplel3.py test sets the forwarding pipeline with simple_l3.pb.bin and configures TAP ports with rules and then sends the traffic. 

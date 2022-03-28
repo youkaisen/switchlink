@@ -30,6 +30,9 @@ parser.add_argument("--arch", required=False, default="Tofino",
                     help="Architecture (Tofino or SimpleSwitch)")
 parser.add_argument("--target", required=False, default="asic-model",
                     help="Target (asic-model or hw)")
+parser.add_argument("--port-info", required=False,
+                    default="None",
+                    help="json file containing the port mapping")
 parser.add_argument("--grpc-server", required=False, default="localhost",
                     help="GRPC server IP address")
 parser.add_argument("--test-params", required=False, default="",
@@ -52,6 +55,17 @@ if __name__ == "__main__":
     if "--openflow" in args:
         new_args +=  ["-S 127.0.0.1", "-V1.3"]
 
+    #Example: 1@eth1 or 0-1@eth2 (use eth2 as port 1 of device 0)
+    if args.port_info is not None and args.port_info != "None":
+        import json
+        file_handler = open(args.port_info)
+        port_map = json.load(file_handler)
+        ports = port_map['port_map']
+        for key in ports.keys():
+            new_args += ["-i", str(ports[key][0]) + "-" + str(ports[key][1]) + "@" + str(key)]
+        #new_args += ["--interface", json.dumps(port_map['port_map'])]
+    if args.port_info is None or args.port_info == "None":
+        new_args += ["-i", "0-0@lo"]
 
     kvp = "arch='%s';" % (args.arch.lower())
     kvp += "target='%s';" % (args.target.lower())

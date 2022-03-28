@@ -49,13 +49,13 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
             test_params = ptf.testutils.test_params_get()
             p4info_file = test_params['p4info']
             p4bin_file = test_params['p4bin']
-            grpc_server_ip = test_params['ip']
+            grpc_server_ip = 'localhost'
 
             print("contacting grpc server")
             self.p4rt_server = grpc_server_ip
             self.sh.setup(
                 device_id=1,
-                grpc_addr= grpc_server_ip + ':9559',
+                grpc_addr= grpc_server_ip+':9559',
                 election_id=(4, 5), # (high, low)
                 config=self.sh.FwdPipeConfig(p4info_file, p4bin_file)
             )
@@ -81,7 +81,7 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
 
             #tcpdump
             p1 = subprocess.Popen(['tcpdump', '-w', '/tmp/capture1.pcap', 
-                '--i', 'TAP0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                '-i', 'TAP0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(1)
             sendp(pkt, iface='TAP1')
             time.sleep(2)
@@ -101,7 +101,7 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
 
             #tcpdump
             p2 = subprocess.Popen(['tcpdump', '-w', '/tmp/capture2.pcap',
-                '--i', 'TAP1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                '-i', 'TAP1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(1)
             sendp(pkt, iface='TAP0')
             time.sleep(2)
@@ -125,7 +125,7 @@ class SimpleL3Test(BaseTest, P4RuntimeUtils):
 
             #tcpdump
             p3 = subprocess.Popen(['tcpdump', '-w', '/tmp/capture3.pcap',
-                '--i', 'TAP1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                '-i', 'TAP1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(1)
             sendp(pkt, iface='TAP0')
             time.sleep(2)

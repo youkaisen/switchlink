@@ -9,6 +9,8 @@ function print_help() {
   echo "    Run PTF tests associated with P4 program"
   echo "  -t TEST_DIR"
   echo "    TEST_DIR contains test cases executed by PTF."
+  echo "  -f PORTINFO_FILE"
+  echo "    Read port to veth mapping information from PORTINFO_FILE"
   echo "  -s TEST_SUITE"
   echo "    Name of the test suite to execute passed to PTF"
   echo "  -c TEST_CASE"
@@ -67,6 +69,7 @@ eval set -- "$opts"
 # P4 program name
 P4_NAME=""
 # json file specifying model port to veth mapping info
+PORTINFO=None
 CONFIG_FILE='cfg'
 HELP=false
 SETUP=""
@@ -83,6 +86,7 @@ while true; do
       -p) P4_NAME=$2; shift 2;;
       -t) TEST_DIR="$2"; shift 2;;
       -s) TEST_SUITE="$2"; shift 2;;
+      -f) PORTINFO=$2; shift 2;;
       -h) HELP=true; shift 1;;
       --no-veth) NO_VETH=true; shift 1;;
       --config-file) CONFIG_FILE=$2; shift 2;;
@@ -125,6 +129,8 @@ if [[ $PORTINFO != None ]]; then
   CPUVETH=None
 fi
 
+export TESTDIR=$TEST_DIR
+export PORT_INFO=$TESTDIR/port_info.json
 PYTHON_VER=`python --version 2>&1 | awk {'print $2'} | awk -F"." {'print $1"."$2'}`
 
 export PATH=$PATH
@@ -184,12 +190,13 @@ fi
 #Run PTF tests
 sudo env -u http_proxy -u socks_proxy "PATH=$PATH" "PYTHONPATH=$PYTHONPATH"
  python3 \
-    /root/run_ptf_tests.py \
+    $TESTDIR/../run_ptf_tests.py \
     --test-dir $TEST_DIR \
     $TEST_SUITE \
     $TEST_CASE \
     --arch $ARCH \
     --target $TARGET \
+    --port-info $PORT_INFO \
     $PTF_BINARY \
     $PROFILE \
     $DRV_TEST_SEED $FAILFAST $SETUP $CLEANUP $TEST_PARAMS_STR $DB_PREFIX $@
