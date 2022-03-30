@@ -401,11 +401,14 @@ previously configured CONFIG params.
     qemu-vm_mac: Specify MAC address for port hotplugged to qemu VM
     qemu-vm_netdev-id: Specify netdev ID for port hotplugged to qemu VM
     qemu-vm_chardev-id: Specify chardev ID for port hotplugged to qemu VM
-    native-socket-path: Specify the native path for vhost-user socket on the host
+    native-socket-path: Specify the native path for vhost-user socket on host
     qemu-vm-device-id: Specify device ID for port hotplugged to qemu VM
 
-   Port can be hotplug added once and hotplug deleted once. Re-adding or deleting 
-   the port is not supported
+   Port can be hotplug added once and hotplug deleted once. Re-adding or 
+   deleting the port is not supported in older qemu versions due to qemu bug
+   reporting false duplicate IDs. This bug is fixed in qemu version 6.1.0 and
+   re-adding and re-deleting the hotplug port is supported from qemu version
+   6.1.0
 
 5) Set atrributes for link ports::
 
@@ -417,7 +420,7 @@ previously configured CONFIG params.
                   mempool-name:MEMPOOL0,mtu:1000,pci-bdf:0000:00:04.0,
                   port-type:link"
 
-  .. note::
+.. note::
 
     ``PARAMS``: These params are key:value pairs. Here physical-device is a
     sub-node which holds multiple ports like PORT0, PORT1,... and
