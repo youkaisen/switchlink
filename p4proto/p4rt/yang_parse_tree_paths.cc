@@ -1943,6 +1943,7 @@ void SetUpInterfacesInterfaceConfigQemuSocketIp(const char *default_socket_ip,
     // was configured!
     return SendResponse(GetResponse(path, default_socket_ip), stream);
   };
+
   auto on_set_functor =
       [node_id, port_id, node, tree](
           const ::gnmi::Path& path, const ::google::protobuf::Message& val,
@@ -1953,10 +1954,6 @@ void SetUpInterfacesInterfaceConfigQemuSocketIp(const char *default_socket_ip,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateHotplugConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kQemuSocketIp)) {
-        return MAKE_ERROR(ERR_INVALID_PARAM) << "Qemu socket ip is already set, cannot modify or re-add";
-    }
-
     auto socket_ip = typed_val->string_val();
 
     // Set the value.
@@ -1964,22 +1961,21 @@ void SetUpInterfacesInterfaceConfigQemuSocketIp(const char *default_socket_ip,
     auto* request = req.add_requests()->mutable_port();
     request->set_node_id(node_id);
     request->set_port_id(port_id);
-    request->SetRequest::Request::Port::mutable_qemu_socket_ip()->QemuSocketIpConfigured::set_qemu_socket_ip((const char*)socket_ip.c_str());
-
+    request->SetRequest::Request::Port::mutable_hotplug_config()->HotplugConfig::set_qemu_socket_ip((const char*)socket_ip.c_str());
 
     // Update the chassis config
     ChassisConfig* new_config = config->writable();
     for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_qemu_socket_ip((const char*)socket_ip.c_str());
-
+        singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_socket_ip((const char*)socket_ip.c_str());
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kQemuSocketIp));
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+                                                                           singleton_port,
+                                                                           SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_SOCK_IP));
         break;
       }
     }
+
 
     // Update the YANG parse tree.
     auto poll_functor = [socket_ip](const GnmiEvent& event,
@@ -2023,30 +2019,27 @@ void SetUpInterfacesInterfaceConfigQemuSocketPort(uint64 default_socket_port,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateHotplugConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kQemuSocketPort)) {
-        return MAKE_ERROR(ERR_INVALID_PARAM) << "Qemu socket port is already set, cannot modify or re-add!";
-    }
-
     auto socket_port = typed_val->int_val();
 
     // Set the value.
-    auto status = SetValue(node_id, port_id, tree,
-                           &SetRequest::Request::Port::mutable_qemu_socket_port,
-                           &QemuSocketPortConfigured::set_qemu_socket_port, socket_port);
-    if (status != ::util::OkStatus()) {
-      return status;
-    }
+    SetRequest req;
+    auto* request = req.add_requests()->mutable_port();
+    request->set_node_id(node_id);
+    request->set_port_id(port_id);
+
+    request->SetRequest::Request::Port::mutable_hotplug_config()->HotplugConfig::set_qemu_socket_port(socket_port);
 
     // Update the chassis config
     ChassisConfig* new_config = config->writable();
     for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_qemu_socket_port(socket_port);
+        singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_socket_port(socket_port);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kQemuSocketPort));
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+                                                                           singleton_port,
+                                                                           SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_SOCK_PORT));
+
         break;
       }
     }
@@ -2072,11 +2065,11 @@ void SetUpInterfacesInterfaceConfigQemuSocketPort(uint64 default_socket_port,
 ////////////////////////////////////////////////////////////////////////////////
 // /interfaces/virtual-interface[name=<name>]/config/hotplug
 //
-void SetUpInterfacesInterfaceConfigHotplugAdd(uint64 status,
-                                              uint64 node_id,
-                                              uint64 port_id,
-                                              TreeNode* node,
-                                              YangParseTree* tree) {
+void SetUpInterfacesInterfaceConfigHotplug(uint64 status,
+                                           uint64 node_id,
+                                           uint64 port_id,
+                                           TreeNode* node,
+                                           YangParseTree* tree) {
   auto poll_functor = [status](const GnmiEvent& event, const ::gnmi::Path& path,
                               GnmiSubscribeStream* stream) {
     // This leaf represents configuration data. Return what was known when it
@@ -2104,23 +2097,24 @@ void SetUpInterfacesInterfaceConfigHotplugAdd(uint64 status,
     }
 
     // Set the value.
-    auto status = SetValue(node_id, port_id, tree,
-                           &SetRequest::Request::Port::mutable_qemu_hotplug,
-                           &QemuHotplugConfigured::set_qemu_hotplug, hotplug_status);
-    if (status != ::util::OkStatus()) {
-      return status;
-    }
+    SetRequest req;
+    auto* request = req.add_requests()->mutable_port();
+    request->set_node_id(node_id);
+    request->set_port_id(port_id);
+
+    request->SetRequest::Request::Port::mutable_hotplug_config()->HotplugConfig::set_qemu_hotplug(hotplug_status);
 
     // Update the chassis config
     ChassisConfig* new_config = config->writable();
     for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_qemu_hotplug(hotplug_status);
+        singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_hotplug(hotplug_status);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kQemuHotplug));
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+                                                                           singleton_port,
+                                                                           SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_HOTPLUG));
+
         break;
       }
     }
@@ -2173,29 +2167,25 @@ void SetUpInterfacesInterfaceConfigQemuVmMacAddress(uint64 node_id,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "wrong value!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateHotplugConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kQemuVmMacAddress)) {
-        return MAKE_ERROR(ERR_INVALID_PARAM) << "Qemu VM mac address is already set, cannot modify or re-add!";
-    }
-
     uint64 mac_address = YangStringToMacAddress(mac_address_string);
     // Set the value.
-    auto status = SetValue(node_id, port_id, tree,
-                           &SetRequest::Request::Port::mutable_mac_address,
-                           &MacAddress::set_mac_address, mac_address);
-    if (status != ::util::OkStatus()) {
-      return status;
-    }
+    SetRequest req;
+    auto* request = req.add_requests()->mutable_port();
+    request->set_node_id(node_id);
+    request->set_port_id(port_id);
+
+    request->SetRequest::Request::Port::mutable_hotplug_config()->HotplugConfig::set_qemu_vm_mac_address(mac_address);
 
     // Update the chassis config
     ChassisConfig* new_config = config->writable();
     for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_qemu_vm_mac_address(mac_address);
+        singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_vm_mac_address(mac_address);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kQemuVmMacAddress));
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+                                                                           singleton_port,
+                                                                           SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_VM_MAC));
         break;
       }
     }
@@ -2243,10 +2233,6 @@ void SetUpInterfacesInterfaceConfigQemuVMNetdevId(const char *default_netdev_id,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateHotplugConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kQemuVmNetdevId)) {
-        return MAKE_ERROR(ERR_INVALID_PARAM) << "Qemu VM netdev ID is either already set, cannot modify or re-add!";
-    }
-
     auto vm_netdev_id = typed_val->string_val();
 
     // Set the value.
@@ -2254,19 +2240,19 @@ void SetUpInterfacesInterfaceConfigQemuVMNetdevId(const char *default_netdev_id,
     auto* request = req.add_requests()->mutable_port();
     request->set_node_id(node_id);
     request->set_port_id(port_id);
-    request->SetRequest::Request::Port::mutable_qemu_vm_netdev_id()->QemuVMNetdevIdConfigured::set_qemu_vm_netdev_id((const char*)vm_netdev_id.c_str());
+    request->SetRequest::Request::Port::mutable_hotplug_config()->HotplugConfig::set_qemu_vm_netdev_id((const char*)vm_netdev_id.c_str());
 
 
     // Update the chassis config
     ChassisConfig* new_config = config->writable();
     for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_qemu_vm_netdev_id((const char*)vm_netdev_id.c_str());
+        singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_vm_netdev_id((const char*)vm_netdev_id.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kQemuVmNetdevId));
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+                                                                           singleton_port,
+                                                                           SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_NETDEV_ID));
         break;
       }
     }
@@ -2313,10 +2299,6 @@ void SetUpInterfacesInterfaceConfigQemuVMChardevId(const char *default_chardev_i
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateHotplugConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kQemuVmChardevId)) {
-        return MAKE_ERROR(ERR_INVALID_PARAM) << "Qemu VM chardev ID is either already set , cannot modify or re-add!";
-    }
-
     auto vm_chardev_id = typed_val->string_val();
 
     // Set the value.
@@ -2324,19 +2306,19 @@ void SetUpInterfacesInterfaceConfigQemuVMChardevId(const char *default_chardev_i
     auto* request = req.add_requests()->mutable_port();
     request->set_node_id(node_id);
     request->set_port_id(port_id);
-    request->SetRequest::Request::Port::mutable_qemu_vm_chardev_id()->QemuVMChardevIdConfigured::set_qemu_vm_chardev_id((const char*)vm_chardev_id.c_str());
+    request->SetRequest::Request::Port::mutable_hotplug_config()->HotplugConfig::set_qemu_vm_chardev_id((const char*)vm_chardev_id.c_str());
 
 
     // Update the chassis config
     ChassisConfig* new_config = config->writable();
     for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_qemu_vm_chardev_id((const char*)vm_chardev_id.c_str());
+        singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_vm_chardev_id((const char*)vm_chardev_id.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kQemuVmChardevId));
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+                                                                           singleton_port,
+                                                                           SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_CHARDEV_ID));
         break;
       }
     }
@@ -2383,30 +2365,25 @@ void SetUpInterfacesInterfaceConfigQemuVMDeviceId(const char *default_device_id,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateHotplugConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kQemuVmDeviceId)) {
-        return MAKE_ERROR(ERR_INVALID_PARAM) << "Qemu VM device ID is either already set , cannot modify or re-add!";
-    }
-
     auto vm_device_id = typed_val->string_val();
-
     // Set the value.
     SetRequest req;
     auto* request = req.add_requests()->mutable_port();
     request->set_node_id(node_id);
     request->set_port_id(port_id);
-    request->SetRequest::Request::Port::mutable_qemu_vm_device_id()->QemuVMDeviceIdConfigured::set_qemu_vm_device_id((const char*)vm_device_id.c_str());
+    request->SetRequest::Request::Port::mutable_hotplug_config()->HotplugConfig::set_qemu_vm_device_id((const char*)vm_device_id.c_str());
 
 
     // Update the chassis config
     ChassisConfig* new_config = config->writable();
     for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_qemu_vm_device_id((const char*)vm_device_id.c_str());
+        singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_vm_device_id((const char*)vm_device_id.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kQemuVmDeviceId));
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+                                                                           singleton_port,
+                                                                           SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_DEVICE_ID));
         break;
       }
     }
@@ -2454,10 +2431,6 @@ void SetUpInterfacesInterfaceConfigNativeSocket(const char *default_native_path,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateHotplugConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kNativeSocketPath)) {
-        return MAKE_ERROR(ERR_INVALID_PARAM) << "Native socket path value is already set, cannot modify or re-add!";
-    }
-
     auto native_socket_path = typed_val->string_val();
 
     // Set the value.
@@ -2465,18 +2438,18 @@ void SetUpInterfacesInterfaceConfigNativeSocket(const char *default_native_path,
     auto* request = req.add_requests()->mutable_port();
     request->set_node_id(node_id);
     request->set_port_id(port_id);
-    request->SetRequest::Request::Port::mutable_native_socket_path()->NativeSocketPathConfigured::set_native_socket_path((const char*)native_socket_path.c_str());
+    request->SetRequest::Request::Port::mutable_hotplug_config()->HotplugConfig::set_native_socket_path((const char*)native_socket_path.c_str());
 
     // Update the chassis config
     ChassisConfig* new_config = config->writable();
     for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
-        singleton_port.mutable_config_params()->set_native_socket_path((const char*)native_socket_path.c_str());
+        singleton_port.mutable_config_params()->mutable_hotplug_config()->set_native_socket_path((const char*)native_socket_path.c_str());
 
           // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
-                                                                    singleton_port,
-                                                                    SetRequest::Request::Port::ValueCase::kNativeSocketPath));
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+                                                                           singleton_port,
+                                                                           SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_NATIVE_SOCK_PATH));
         break;
       }
     }
@@ -4890,7 +4863,7 @@ TreeNode* YangParseTreePaths::AddSubtreeInterface(
 
   node = tree->AddNode(GetPath("interfaces")(
       "virtual-interface", name)("config")("hotplug")());
-  SetUpInterfacesInterfaceConfigHotplugAdd(/*SWBackendQemuHotplugStatus*/ 0, node_id, port_id, node, tree);
+  SetUpInterfacesInterfaceConfigHotplug(/*SWBackendQemuHotplugStatus*/ 0, node_id, port_id, node, tree);
 
   node = tree->AddNode(GetPath("interfaces")(
       "virtual-interface", name)("config")("qemu-vm-mac")());

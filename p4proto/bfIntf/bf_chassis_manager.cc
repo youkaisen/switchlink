@@ -149,62 +149,6 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   return false;
 }
 
-bool
-BfChassisManager::ValidateHotplugConfig(uint64 node_id, uint32 port_id,
-                                        SetRequest::Request::Port::ValueCase config) {
-
-  uint32 validate = node_id_port_id_to_backend_[node_id][port_id];
-
-  switch (config) {
-    case SetRequest::Request::Port::ValueCase::kQemuSocketIp:
-      if (validate & GNMI_CONFIG_HOTPLUG_SOCKET_IP) {
-          return true;
-      }
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuSocketPort:
-      if (validate & GNMI_CONFIG_HOTPLUG_SOCKET_PORT) {
-          return true;
-      }
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuVmMacAddress:
-      if (validate & GNMI_CONFIG_HOTPLUG_VM_MAC) {
-          return true;
-      }
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuVmNetdevId:
-      if (validate & GNMI_CONFIG_HOTPLUG_VM_NETDEV_ID) {
-          return true;
-      }
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuVmChardevId:
-      if (validate & GNMI_CONFIG_HOTPLUG_VM_CHARDEV_ID) {
-          return true;
-      }
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuVmDeviceId:
-      if (validate & GNMI_CONFIG_HOTPLUG_VM_DEVICE_ID) {
-          return true;
-      }
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kNativeSocketPath:
-      if (validate & GNMI_CONFIG_NATIVE_SOCKET_PATH) {
-          return true;
-      }
-      break;
-
-    default:
-      break;
-  }
-
-  return false;
-}
-
 ::util::Status BfChassisManager::SendQemuCmdsHelper(int sockfd,
                                                     std::string cmd) {
     int sock_ret = 0, n = 0;
@@ -257,6 +201,10 @@ std::string BfChassisManager::PrepQemuCmdsHelper(qemu_cmd_type cmd_type,
        buffer << "device_add virtio-net-pci,mac=" << string_mac << ",netdev=" << netdev_id << ",id=" << device_id << "\n";
        break;
 
+    case CHARDEV_DEL:
+       buffer << "chardev_remove " << chardev_id << "\n";
+       break;
+
     case NETDEV_DEL:
        buffer << "netdev_del " << netdev_id << "\n";
        break;
@@ -305,6 +253,180 @@ int BfChassisManager::CreateHelperSocket(uint64 node_id, uint32 port_id) {
     return -1;
   }
   return sockfd;
+}
+
+::util::Status BfChassisManager::HotplugValidateAndAdd(uint64 node_id, uint32 port_id,
+                                                       const SingletonPort& singleton_port,
+                                                       SetRequest::Request::Port::ValueCase change_field,
+                                                       SWBackendHotplugParams params) {
+  auto unit = node_id_to_unit_[node_id];
+  uint32 sdk_port_id = node_id_to_port_id_to_sdk_port_id_[node_id][port_id];
+  auto& config = node_id_to_port_id_to_port_config_[node_id][port_id];
+  uint32 validate = node_id_port_id_to_backend_[node_id][port_id];
+  const auto& config_params = singleton_port.config_params();
+
+    switch (params) {
+    case PARAM_SOCK_IP:
+      config.hotplug_config.qemu_socket_ip = config_params.hotplug_config().qemu_socket_ip();
+      validate |= GNMI_CONFIG_HOTPLUG_SOCKET_IP;
+      LOG(INFO) << "ValidateAndAdd::kQemuSocketIp = " << config_params.hotplug_config().qemu_socket_ip();
+      break;
+
+    case PARAM_SOCK_PORT:
+      validate |= GNMI_CONFIG_HOTPLUG_SOCKET_PORT;
+      config.hotplug_config.qemu_socket_port = config_params.hotplug_config().qemu_socket_port();
+      LOG(INFO) << "ValidateAndAdd::kQemuSocketPort = " << config_params.hotplug_config().qemu_socket_port();
+      break;
+
+    case PARAM_HOTPLUG:
+      validate |= GNMI_CONFIG_HOTPLUG_VAL;
+      config.hotplug_config.qemu_hotplug = config_params.hotplug_config().qemu_hotplug();
+      LOG(INFO) << "ValidateAndAdd::kQemuHotplug = " << config_params.hotplug_config().qemu_hotplug();
+      break;
+
+    case PARAM_VM_MAC:
+      validate |= GNMI_CONFIG_HOTPLUG_VM_MAC;
+      config.hotplug_config.qemu_vm_mac_address = config_params.hotplug_config().qemu_vm_mac_address();
+      LOG(INFO) << "ValidateAndAdd::kQemuVmMacAddress = " << config_params.hotplug_config().qemu_vm_mac_address();
+      break;
+
+    case PARAM_NETDEV_ID:
+      validate |= GNMI_CONFIG_HOTPLUG_VM_NETDEV_ID;
+      config.hotplug_config.qemu_vm_netdev_id = config_params.hotplug_config().qemu_vm_netdev_id();
+      LOG(INFO) << "ValidateAndAdd::kQemuVmNetdevId = " << config_params.hotplug_config().qemu_vm_netdev_id();
+      break;
+
+    case PARAM_CHARDEV_ID:
+      validate |= GNMI_CONFIG_HOTPLUG_VM_CHARDEV_ID;
+      config.hotplug_config.qemu_vm_chardev_id = config_params.hotplug_config().qemu_vm_chardev_id();
+      LOG(INFO) << "ValidateAndAdd::kQemuVmChardevId = " << config_params.hotplug_config().qemu_vm_chardev_id();
+      break;
+
+    case PARAM_NATIVE_SOCK_PATH:
+      validate |= GNMI_CONFIG_NATIVE_SOCKET_PATH;
+      config.hotplug_config.native_socket_path = config_params.hotplug_config().native_socket_path();
+      LOG(INFO) << "ValidateAndAdd::kNativeSocketPath = " << config_params.hotplug_config().native_socket_path();
+      break;
+
+    case PARAM_DEVICE_ID:
+      validate |= GNMI_CONFIG_HOTPLUG_VM_DEVICE_ID;
+      config.hotplug_config.qemu_vm_device_id = config_params.hotplug_config().qemu_vm_device_id();
+      LOG(INFO) << "ValidateAndAdd::kQemuVmDeviceId = " << config_params.hotplug_config().qemu_vm_device_id();
+      break;
+
+    default:
+      break;
+  }
+
+  node_id_port_id_to_backend_[node_id][port_id] = validate;
+
+  if (((validate & GNMI_CONFIG_HOTPLUG_ADD) == GNMI_CONFIG_HOTPLUG_ADD) &&
+      (config.hotplug_config.qemu_hotplug == HOTPLUG_ADD)) {
+    if ((validate & GNMI_CONFIG_PORT_DONE) != GNMI_CONFIG_PORT_DONE) {
+      validate &= ~GNMI_CONFIG_HOTPLUG_ADD;
+      RETURN_ERROR(ERR_INTERNAL) << "Unsupported operation, requested port doesn't exist \n";
+    }
+    if ((validate & GNMI_CONFIG_HOTPLUG_DONE) == GNMI_CONFIG_HOTPLUG_DONE) {
+      validate &= ~GNMI_CONFIG_HOTPLUG_ADD;
+      RETURN_ERROR(ERR_INTERNAL) << "Unsupported operation, requested port is already hotplugged \n";
+    }
+    int sockfd = CreateHelperSocket(node_id, port_id);
+    if (sockfd == -1) {
+      validate &= ~GNMI_CONFIG_HOTPLUG_ADD;
+      RETURN_ERROR(ERR_INTERNAL) << "Unable to qemu hoplug the device due to socket connection error \n";
+    }
+
+    std::string cmd;
+    ::util::Status status;
+
+    cmd = PrepQemuCmdsHelper(CHARDEV_ADD, node_id, port_id);
+    status = SendQemuCmdsHelper(sockfd, cmd);
+    if (!status.ok()) {
+      close(sockfd);
+      validate &= ~GNMI_CONFIG_HOTPLUG_ADD;
+      RETURN_ERROR(ERR_INTERNAL)
+           << "Error : Failed to hotplug the port due to QEMU error when adding character device \n";
+    }
+
+    cmd = PrepQemuCmdsHelper(NETDEV_ADD, node_id, port_id);
+    status = SendQemuCmdsHelper(sockfd, cmd);
+    if (!status.ok()) {
+      // Best effort to remove character dev created before
+      cmd = PrepQemuCmdsHelper(CHARDEV_DEL, node_id, port_id);
+      SendQemuCmdsHelper(sockfd, cmd);
+      close(sockfd);
+      validate &= ~GNMI_CONFIG_HOTPLUG_ADD;
+      RETURN_ERROR(ERR_INTERNAL)
+           << "Error : Failed to hotplug the port due to QEMU error when adding netdev device \n";
+    }
+
+    cmd = PrepQemuCmdsHelper(DEVICE_ADD, node_id, port_id);
+    status = SendQemuCmdsHelper(sockfd, cmd);
+    if (!status.ok()) {
+      cmd = PrepQemuCmdsHelper(NETDEV_DEL, node_id, port_id);
+      SendQemuCmdsHelper(sockfd, cmd);
+      close(sockfd);
+      validate &= ~GNMI_CONFIG_HOTPLUG_ADD;
+      RETURN_ERROR(ERR_INTERNAL)
+           << "Error : Failed to hotplug the port due to QEMU error when adding device\n";
+    }
+    close(sockfd);
+    validate |= GNMI_CONFIG_HOTPLUG_DONE;
+    LOG(INFO) << "Port was successfully hotplugged";
+
+    // Unset this entry to allow future entries
+    if (validate & GNMI_CONFIG_HOTPLUG_VAL) {
+      validate &= ~(GNMI_CONFIG_HOTPLUG_VAL);
+      config.hotplug_config.qemu_hotplug = NO_HOTPLUG;
+    }
+  } else if (((validate & GNMI_CONFIG_HOTPLUG_VAL) == GNMI_CONFIG_HOTPLUG_VAL) &&
+              (config.hotplug_config.qemu_hotplug == HOTPLUG_DEL)) {
+    if (!((validate & GNMI_CONFIG_HOTPLUG_DONE) == GNMI_CONFIG_HOTPLUG_DONE)) {
+       validate &= ~GNMI_CONFIG_HOTPLUG_VAL;
+       RETURN_ERROR(ERR_INTERNAL) << "Unsupported operation, No device is hotplugged to be deleted";
+    }
+    int sockfd = CreateHelperSocket(node_id, port_id);
+    if (sockfd == -1) {
+      validate &= ~GNMI_CONFIG_HOTPLUG_VAL;
+      RETURN_ERROR(ERR_INTERNAL) << " Unable to qemu hotplug the device due to socket connection error";
+    }
+
+    std::string cmd;
+    ::util::Status status;
+
+    if (config.hotplug_config.qemu_hotplug == HOTPLUG_DEL) {
+      cmd = PrepQemuCmdsHelper(DEVICE_DEL, node_id, port_id);
+      status = SendQemuCmdsHelper(sockfd, cmd);
+      if (!status.ok()) {
+        close(sockfd);
+        validate &= ~GNMI_CONFIG_HOTPLUG_VAL;
+        RETURN_ERROR(ERR_INTERNAL)
+             << "Error : Failed to delete the hotplugged port due to QEMU error when deleting device \n";
+      }
+
+      cmd = PrepQemuCmdsHelper(NETDEV_DEL, node_id, port_id);
+      status = SendQemuCmdsHelper(sockfd, cmd);
+      if (!status.ok()) {
+        close(sockfd);
+        validate &= ~GNMI_CONFIG_HOTPLUG_VAL;
+        RETURN_ERROR(ERR_INTERNAL)
+             << "Error : Failed to delete the hotplugged port due to QEMU error when deleting netdev \n";
+      }
+      close(sockfd);
+      validate &= ~(GNMI_CONFIG_HOTPLUG_DONE);
+      validate &= ~GNMI_CONFIG_HOTPLUG_ADD;
+      // Unset this entry to allow future entries
+      if (validate & GNMI_CONFIG_HOTPLUG_VAL) {
+        validate &= ~(GNMI_CONFIG_HOTPLUG_VAL);
+        config.hotplug_config.qemu_hotplug = NO_HOTPLUG;
+      }
+      LOG(INFO) << "Port was successfully removed from QEMU VM";
+    }
+  }
+
+  node_id_port_id_to_backend_[node_id][port_id] = validate;
+  google::FlushLogFiles(google::INFO);
+  return ::util::OkStatus();
 }
 
 ::util::Status BfChassisManager::ValidateAndAdd(uint64 node_id, uint32 port_id,
@@ -376,54 +498,6 @@ int BfChassisManager::CreateHelperSocket(uint64 node_id, uint32 port_id) {
       LOG(INFO) << "ValidateAndAdd::kHostConfig = " << config_params.host_name();
       break;
 
-    case SetRequest::Request::Port::ValueCase::kQemuSocketIp:
-      validate |= GNMI_CONFIG_HOTPLUG_SOCKET_IP;
-      config.hotplug_config.qemu_socket_ip = config_params.qemu_socket_ip();
-      LOG(INFO) << "ValidateAndAdd::kQemuSocketIp = " << config_params.qemu_socket_ip();
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuSocketPort:
-      validate |= GNMI_CONFIG_HOTPLUG_SOCKET_PORT;
-      config.hotplug_config.qemu_socket_port = config_params.qemu_socket_port();
-      LOG(INFO) << "ValidateAndAdd::kQemuSocketPort = " << config_params.qemu_socket_port();
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuHotplug:
-      validate |= GNMI_CONFIG_HOTPLUG_VAL;
-      config.hotplug_config.qemu_hotplug = config_params.qemu_hotplug();
-      LOG(INFO) << "ValidateAndAdd::kQemuHotplug = " << config_params.qemu_hotplug();
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuVmMacAddress:
-      validate |= GNMI_CONFIG_HOTPLUG_VM_MAC;
-      config.hotplug_config.qemu_vm_mac_address = config_params.qemu_vm_mac_address();
-      LOG(INFO) << "ValidateAndAdd::kQemuVmMacAddress = " << config_params.qemu_vm_mac_address();
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuVmNetdevId:
-      validate |= GNMI_CONFIG_HOTPLUG_VM_NETDEV_ID;
-      config.hotplug_config.qemu_vm_netdev_id = config_params.qemu_vm_netdev_id();
-      LOG(INFO) << "ValidateAndAdd::kQemuVmNetdevId = " << config_params.qemu_vm_netdev_id();
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kQemuVmChardevId:
-      validate |= GNMI_CONFIG_HOTPLUG_VM_CHARDEV_ID;
-      config.hotplug_config.qemu_vm_chardev_id = config_params.qemu_vm_chardev_id();
-      LOG(INFO) << "ValidateAndAdd::kQemuVmChardevId = " << config_params.qemu_vm_chardev_id();
-      break;
-
-     case SetRequest::Request::Port::ValueCase::kQemuVmDeviceId:
-      validate |= GNMI_CONFIG_HOTPLUG_VM_DEVICE_ID;
-      config.hotplug_config.qemu_vm_device_id = config_params.qemu_vm_device_id();
-      LOG(INFO) << "ValidateAndAdd::kQemuVmDeviceId = " << config_params.qemu_vm_device_id();
-      break;
-
-    case SetRequest::Request::Port::ValueCase::kNativeSocketPath:
-      validate |= GNMI_CONFIG_NATIVE_SOCKET_PATH;
-      config.hotplug_config.native_socket_path = config_params.native_socket_path();
-      LOG(INFO) << "ValidateAndAdd::kNativeSocketPath = " << config_params.native_socket_path();
-      break;
-
     default:
       break;
   }
@@ -471,94 +545,6 @@ int BfChassisManager::CreateHelperSocket(uint64 node_id, uint32 port_id) {
       validate |= GNMI_CONFIG_PORT_DONE;
       node_id_port_id_to_backend_[node_id][port_id] = validate;
     }
-  }
-
-  if (((validate & GNMI_CONFIG_HOTPLUG_ADD) == GNMI_CONFIG_HOTPLUG_ADD) &&
-        (config.hotplug_config.qemu_hotplug == HOTPLUG_ADD)) {
-    if ((validate & GNMI_CONFIG_HOTPLUG_DONE) == GNMI_CONFIG_HOTPLUG_DONE) {
-      RETURN_ERROR(ERR_INTERNAL) << "Unsupported operation, requested port is already hotplugged \n";
-    }
-    int sockfd = CreateHelperSocket(node_id, port_id);
-    if (sockfd == -1) {
-      RETURN_ERROR(ERR_INTERNAL) << "Unable to qemu hoplug the device due to socket connection error \n";
-    }
-
-    std::string cmd;
-    ::util::Status status;
-
-    cmd = PrepQemuCmdsHelper(CHARDEV_ADD, node_id, port_id);
-    status = SendQemuCmdsHelper(sockfd, cmd);
-    if (!status.ok()) {
-      close(sockfd);
-      RETURN_ERROR(ERR_INTERNAL)
-           << "Error : Failed to hotplug the port due to QEMU error when adding character device \n";
-    }
-
-    cmd = PrepQemuCmdsHelper(NETDEV_ADD, node_id, port_id);
-    status = SendQemuCmdsHelper(sockfd, cmd);
-    if (!status.ok()) {
-      close(sockfd);
-      RETURN_ERROR(ERR_INTERNAL)
-           << "Error : Failed to hotplug the port due to QEMU error when adding netdev device \n";
-    }
-
-    cmd = PrepQemuCmdsHelper(DEVICE_ADD, node_id, port_id);
-    status = SendQemuCmdsHelper(sockfd, cmd);
-    if (!status.ok()) {
-      close(sockfd);
-      RETURN_ERROR(ERR_INTERNAL)
-           << "Error : Failed to hotplug the port due to QEMU error when adding device\n";
-    }
-    close(sockfd);
-    validate |= GNMI_CONFIG_HOTPLUG_DONE;
-    node_id_port_id_to_backend_[node_id][port_id] = validate;
-    LOG(INFO) << "Port was successfully hotplugged";
-
-    //Unset this entry to allow future entries
-    if (validate & GNMI_CONFIG_HOTPLUG_VAL) {
-      validate &= ~(GNMI_CONFIG_HOTPLUG_VAL);
-      config.hotplug_config.qemu_hotplug = NO_HOTPLUG;
-    }
-    node_id_to_port_id_to_port_config_[node_id][port_id] = config;
-    node_id_port_id_to_backend_[node_id][port_id] = validate;
-  } else if (((validate & GNMI_CONFIG_HOTPLUG_VAL) == GNMI_CONFIG_HOTPLUG_VAL) &&
-              (config.hotplug_config.qemu_hotplug == HOTPLUG_DEL)) {
-    if (!((validate & GNMI_CONFIG_HOTPLUG_DONE) == GNMI_CONFIG_HOTPLUG_DONE)) {
-       RETURN_ERROR(ERR_INTERNAL) << "Unsupported operation, No device is hotplugged to be deleted";
-    }
-    int sockfd = CreateHelperSocket(node_id, port_id);
-    if (sockfd == -1) {
-      RETURN_ERROR(ERR_INTERNAL) << " Unable to qemu hotplug the device due to socket connection error";
-    }
-
-    std::string cmd;
-    ::util::Status status;
-
-    if (config.hotplug_config.qemu_hotplug == HOTPLUG_DEL) {
-      cmd = PrepQemuCmdsHelper(DEVICE_DEL, node_id, port_id);
-      status = SendQemuCmdsHelper(sockfd, cmd);
-      if (!status.ok()) {
-        close(sockfd);
-        RETURN_ERROR(ERR_INTERNAL)
-             << "Error : Failed to delete the hotplugged port due to QEMU error when deleting device \n";
-      }
-
-      cmd = PrepQemuCmdsHelper(NETDEV_DEL, node_id, port_id);
-      status = SendQemuCmdsHelper(sockfd, cmd);
-      if (!status.ok()) {
-        close(sockfd);
-        RETURN_ERROR(ERR_INTERNAL)
-             << "Error : Failed to delete the hotplugged port due to QEMU error when deleting netdev \n";
-      }
-    }
-    close(sockfd);
-    //Unset this hotplug entry if any to allow future entries
-    validate &= ~(GNMI_CONFIG_HOTPLUG_VAL);
-    validate &= ~(GNMI_CONFIG_HOTPLUG_DONE);
-    config.hotplug_config.qemu_hotplug = NO_HOTPLUG;
-    node_id_to_port_id_to_port_config_[node_id][port_id] = config;
-    node_id_port_id_to_backend_[node_id][port_id] = validate;
-    LOG(INFO) << "Port was successfully removed from QEMU VM";
   }
 
   google::FlushLogFiles(google::INFO);

@@ -79,6 +79,7 @@ typedef enum qemu_cmd_type {
    CHARDEV_ADD,
    NETDEV_ADD,
    DEVICE_ADD,
+   CHARDEV_DEL,
    NETDEV_DEL,
    DEVICE_DEL
 } qemu_cmd_type;
@@ -144,12 +145,14 @@ class BfChassisManager {
   bool ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
                              SetRequest::Request::Port::ValueCase config);
 
-  bool ValidateHotplugConfig(uint64 node_id, uint32 port_id,
-                             SetRequest::Request::Port::ValueCase config);
-
   ::util::Status ValidateAndAdd(uint64 node_id, uint32 port_id,
                                 const SingletonPort& singleton_port,
                                 SetRequest::Request::Port::ValueCase change_field);
+
+  ::util::Status HotplugValidateAndAdd(uint64 node_id, uint32 port_id,
+                                       const SingletonPort& singleton_port,
+                                       SetRequest::Request::Port::ValueCase change_field,
+                                       SWBackendHotplugParams params);
 
   // BfChassisManager is neither copyable nor movable.
   BfChassisManager(const BfChassisManager&) = delete;
