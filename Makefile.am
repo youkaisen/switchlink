@@ -128,6 +128,19 @@ EXTRA_DIST = \
         ptf_tests/p4runtime_test/simple_l3/simple_l3.py \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.p4 \
 	ptf_tests/p4runtime_test/simple_l3/port_info.json \
+	ptf_tests/ovs_p4ctl/README \
+	ptf_tests/ovs_p4ctl/ctl_module_setup.sh \
+	ptf_tests/ovs_p4ctl/run_p4_tests.sh \
+	ptf_tests/ovs_p4ctl/run_ptf_tests.py \
+	ptf_tests/ovs_p4ctl/ovsp4ctl/LICENSE.txt \
+	ptf_tests/ovs_p4ctl/ovsp4ctl/README.rst \
+	ptf_tests/ovs_p4ctl/ovsp4ctl/setup.py \
+	ptf_tests/ovs_p4ctl/ovsp4ctl/ovsp4ctl/__init__.py \
+	ptf_tests/ovs_p4ctl/ovsp4ctl/ovsp4ctl/ovs_p4ctl.py \
+	ptf_tests/ovs_p4ctl/simple_l3_ovsctl/README \
+	ptf_tests/ovs_p4ctl/simple_l3_ovsctl/__init__.py \
+	ptf_tests/ovs_p4ctl/simple_l3_ovsctl/port_info.json \
+	ptf_tests/ovs_p4ctl/simple_l3_ovsctl/simplel3.py \
 	.mailmap
 bin_PROGRAMS =
 sbin_PROGRAMS =
