@@ -1,0 +1,83 @@
+{
+    "switch": "br0",
+    "pb_bin": "common/p4c_artifacts/l3_action_profile/simple_l3_action_profile.pb.bin",
+    "p4_info": "common/p4c_artifacts/l3_action_profile/p4Info.txt",
+    "port": [
+        {
+            "id": "1",
+            "device": "virtual-device",
+            "name": "TAP0",
+            "port_type": "TAP",
+            "pipeline_name": "pipe",
+            "mempool_name": "MEMPOOL0",
+            "mtu": "2000",
+            "single_cmd": "TRUE",
+            "mac": "00:00:01:00:00:01"
+        },
+        {
+            "id": "2",
+            "device": "virtual-device",
+            "name": "TAP1",
+            "port_type": "TAP",
+            "pipeline_name": "pipe",
+            "mempool_name": "MEMPOOL0",
+            "mtu": "1500",
+            "single_cmd": "TRUE",
+            "mac": "00:00:01:00:00:02"
+        },
+        {
+            "id": "3",
+            "device": "virtual-device",
+            "name": "TAP2",
+            "port_type": "TAP",
+            "pipeline_name": "pipe",
+            "mempool_name": "MEMPOOL0",
+            "mtu": "1500",
+            "single_cmd": "TRUE"
+        },
+        {
+            "id": "4",
+            "device": "virtual-device",
+            "name": "TAP3",
+            "port_type": "TAP",
+            "pipeline_name": "pipe",
+            "mempool_name": "MEMPOOL0",
+            "mtu": "1500",
+            "single_cmd": "TRUE"
+        }
+    ],
+    "table": [ 
+		{
+            "description": "table_for_configure_member",
+            "switch": "br0",
+            "name": "ingress.as_sl3",
+            "type": "entry",
+            "member_details": [
+					"action=ingress.send(1),member_id=2",
+					"action=ingress.send(2),member_id=3",
+					"action=ingress.send(3),member_id=4"
+			 ]
+		},
+        {
+            "description": "table_for_ipv4",
+            "switch": "br0",
+	    "name": "ingress.ipv4_host",
+            "type": "entry",
+            "match_action": [
+                    "headers.ipv4.dst_addr=1.1.1.2,member_id=2",
+                    "headers.ipv4.dst_addr=224.0.0.1,member_id=3",
+		    "headers.ipv4.dst_addr=255.255.255.255,member_id=4"
+            ]
+		}	
+	    ],
+
+    "traffic": 
+    	 {
+          "in_pkt_header": {
+				"ip_dst_1": "1.1.1.2",
+				"ip_dst_2": "224.0.0.1",
+				"ip_dst_3": "255.255.255.255"
+	  },
+         "out_pkt_header": []
+         }
+ }     

@@ -1,0 +1,94 @@
+pkg_info {
+  arch: "psa"
+}
+tables {
+  preamble {
+    id: 45942454
+    name: "ingress.eth_host_dst"
+    alias: "eth_host_dst"
+  }
+  match_fields {
+    id: 1
+    name: "headers.ethernet.dst_addr"
+    bitwidth: 48
+    match_type: EXACT
+  }
+  action_refs {
+    id: 18638031
+  }
+  action_refs {
+    id: 33281717
+  }
+  action_refs {
+    id: 21257015
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
+  }
+  size: 65536
+}
+tables {
+  preamble {
+    id: 43107164
+    name: "ingress.eth_host_src"
+    alias: "eth_host_src"
+  }
+  match_fields {
+    id: 1
+    name: "headers.ethernet.src_addr"
+    bitwidth: 48
+    match_type: EXACT
+  }
+  action_refs {
+    id: 18638031
+  }
+  action_refs {
+    id: 33281717
+  }
+  action_refs {
+    id: 21257015
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
+  }
+  size: 65536
+}
+actions {
+  preamble {
+    id: 21257015
+    name: "NoAction"
+    alias: "NoAction"
+    annotations: "@noWarn(\"unused\")"
+  }
+}
+actions {
+  preamble {
+    id: 18638031
+    name: "ingress.send"
+    alias: "send"
+  }
+  params {
+    id: 1
+    name: "dst_port"
+    bitwidth: 32
+    type_name {
+      name: "PortId_t"
+    }
+  }
+}
+actions {
+  preamble {
+    id: 33281717
+    name: "ingress.drop"
+    alias: "drop"
+  }
+}
+type_info {
+  new_types {
+    key: "PortId_t"
+    value {
+      translated_type {
+        uri: "p4.org/psa/v1/PortId_t"
+        sdn_bitwidth: 32
+      }
+    }
+  }
+}

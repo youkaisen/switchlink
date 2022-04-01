@@ -1,0 +1,87 @@
+{
+    "switch": "br0",
+    "pb_bin": "common/p4c_artifacts/l2_exact_match/simple_l2.pb.bin",
+    "p4_info": "common/p4c_artifacts/l2_exact_match/p4Info.txt",
+    "port": [
+        {
+            "id": "1",
+            "device": "virtual-device",
+            "name": "TAP0",
+            "port_type": "TAP",
+            "pipeline_name": "pipe",
+            "mempool_name": "MEMPOOL0",
+            "mtu": "2000",
+            "single_cmd": "TRUE",
+            "ip": "1.1.1.1/24",
+            "mac": "00:00:01:00:00:01"
+        },
+        {
+            "id": "2",
+            "device": "virtual-device",
+            "name": "TAP1",
+            "port_type": "TAP",
+            "pipeline_name": "pipe",
+            "mempool_name": "MEMPOOL0",
+            "mtu": "1500",
+            "single_cmd": "TRUE",
+            "ip": "2.2.2.2/24",
+            "mac": "00:00:01:00:00:02"
+        },
+        {
+            "id": "3",
+            "device": "virtual-device",
+            "name": "TAP2",
+            "port_type": "TAP",
+            "pipeline_name": "pipe",
+            "mempool_name": "MEMPOOL0",
+            "mtu": "1500",
+            "single_cmd": "TRUE"
+        },
+        {
+            "id": "4",
+            "device": "virtual-device",
+            "name": "TAP3",
+            "port_type": "TAP",
+            "pipeline_name": "pipe",
+            "mempool_name": "MEMPOOL0",
+            "mtu": "1500",
+            "single_cmd": "TRUE"
+        }
+    ],
+    "table": [ 
+        {
+            "description": "table_for_dst_mac",
+            "switch": "br0",
+	    "name": "ingress.eth_host_dst",
+            "type": "entry",
+            "match_action": [
+                    "headers.ethernet.dst_addr=00:00:01:00:00:01,action=ingress.send(0)",
+                    "headers.ethernet.dst_addr=00:00:01:00:00:02,action=ingress.drop(1)"
+            ]
+	  },
+        {
+            "description": "table_for_src_mac",
+            "switch": "br0",
+            "name": "ingress.eth_host_src",
+            "type": "entry",
+            "match_action": [
+                    "headers.ethernet.src_addr=00:00:01:00:00:01,action=ingress.send(0)",
+                    "headers.ethernet.src_addr=00:00:01:00:00:02,action=ingress.drop(1)"
+            ]
+	}	
+	    ],
+
+    "traffic": 
+    	 {
+          "type": "tcp",
+          "send_port": [1, 0],
+          "receive_port": [0, 1],
+          "in_pkt_header": {
+		  "eth_dst_1": "00:00:01:00:00:01",
+		  "eth_dst_2": "00:00:01:00:00:02",
+		  "eth_src_1": "00:00:01:00:00:01",
+                  "eth_src_2": "00:00:01:00:00:02"
+	  },
+         "out_pkt_header": []
+         }
+ }     

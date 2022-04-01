@@ -1,0 +1,552 @@
+
+simple_l3_action_selector–,{
+  "schema_version" : "1.0.0",
+  "tables" : [
+    {
+      "name" : "pipe.ingress.ipv4_host",
+      "id" : 43484571,
+      "size" : 65536,
+      "annotations" : [],
+      "depends_on" : [298353370, 2180632743],
+      "table_type" : "MatchAction_Indirect_Selector",
+      "has_const_default_action" : false,
+      "key" : [
+        {
+          "id" : 1,
+          "name" : "headers.ipv4.dst_addr",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : false,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "bytes",
+            "width" : 32
+          }
+        }
+      ],
+      "data" : [
+        {
+          "mandatory" : true,
+          "read_only" : false,
+          "oneof" : [
+            {
+              "id" : 65539,
+              "name" : "$ACTION_MEMBER_ID",
+              "repeated" : false,
+              "annotations" : [],
+              "type" : {
+                "type" : "uint32"
+              }
+            },
+            {
+              "id" : 65540,
+              "name" : "$SELECTOR_GROUP_ID",
+              "repeated" : false,
+              "annotations" : [],
+              "type" : {
+                "type" : "uint32"
+              }
+            }
+          ]
+        }
+      ],
+      "supported_operations" : [],
+      "attributes" : ["EntryScope"]
+    },
+    {
+      "name" : "pipe.ingress.as_sl3",
+      "id" : 298353370,
+      "table_type" : "Action",
+      "size" : 128,
+      "annotations" : [],
+      "depends_on" : [],
+      "key" : [
+        {
+          "id" : 65539,
+          "name" : "$ACTION_MEMBER_ID",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : true,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "uint32"
+          }
+        }
+      ],
+      "action_specs" : [
+        {
+          "id" : 18638031,
+          "name" : "ingress.send",
+          "action_scope" : "TableAndDefault",
+          "annotations" : [],
+          "data" : [
+            {
+              "id" : 1,
+              "name" : "dst_port",
+              "repeated" : false,
+              "mandatory" : true,
+              "read_only" : false,
+              "annotations" : [],
+              "type" : {
+                "type" : "bytes",
+                "width" : 32
+              }
+            }
+          ]
+        },
+        {
+          "id" : 33281717,
+          "name" : "ingress.drop",
+          "action_scope" : "TableAndDefault",
+          "annotations" : [],
+          "data" : []
+        },
+        {
+          "id" : 21257015,
+          "name" : "NoAction",
+          "action_scope" : "DefaultOnly",
+          "annotations" : [
+            {
+              "name" : "@defaultonly"
+            }
+          ],
+          "data" : []
+        }
+      ],
+      "data" : [],
+      "supported_operations" : [],
+      "attributes" : []
+    },
+    {
+      "name" : "pipe.ingress.as_sl3_sel",
+      "id" : 2180632743,
+      "table_type" : "Selector",
+      "size" : 128,
+      "annotations" : [],
+      "depends_on" : [298353370],
+      "key" : [
+        {
+          "id" : 65560,
+          "name" : "$SELECTOR_GROUP_ID",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : true,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "uint32"
+          }
+        }
+      ],
+      "data" : [
+        {
+          "mandatory" : false,
+          "read_only" : false,
+          "singleton" : {
+            "id" : 65559,
+            "name" : "$ACTION_MEMBER_ID",
+            "repeated" : true,
+            "annotations" : [],
+            "type" : {
+              "type" : "uint32"
+            }
+          }
+        },
+        {
+          "mandatory" : false,
+          "read_only" : false,
+          "singleton" : {
+            "id" : 65561,
+            "name" : "$ACTION_MEMBER_STATUS",
+            "repeated" : true,
+            "annotations" : [],
+            "type" : {
+              "type" : "bool"
+            }
+          }
+        },
+        {
+          "mandatory" : false,
+          "read_only" : false,
+          "singleton" : {
+            "id" : 65562,
+            "name" : "$MAX_GROUP_SIZE",
+            "repeated" : false,
+            "annotations" : [],
+            "type" : {
+              "type" : "uint32",
+              "default_value" : 120
+            }
+          }
+        }
+      ],
+      "supported_operations" : [],
+      "attributes" : []
+    },
+    {
+      "name" : "pipe.ingress.as_sl3_sel_get_member",
+      "id" : 2197409959,
+      "table_type" : "SelectorGetMember",
+      "size" : 1,
+      "annotations" : [],
+      "depends_on" : [2180632743],
+      "key" : [
+        {
+          "id" : 65560,
+          "name" : "$SELECTOR_GROUP_ID",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : true,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "uint64"
+          }
+        },
+        {
+          "id" : 65563,
+          "name" : "hash_value",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : true,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "uint64"
+          }
+        }
+      ],
+      "data" : [
+        {
+          "mandatory" : false,
+          "read_only" : false,
+          "singleton" : {
+            "id" : 65559,
+            "name" : "$ACTION_MEMBER_ID",
+            "repeated" : false,
+            "annotations" : [],
+            "type" : {
+              "type" : "uint64"
+            }
+          }
+        }
+      ],
+      "supported_operations" : [],
+      "attributes" : []
+    }
+  ],
+  "learn_filters" : []
+}ÖH
+pipeÏ-{
+    "program_name": "simple_l3_action_selector",
+    "build_date": "Sun Sep 26 23:12:19 2021",
+    "compile_command": "/root/pv/WORKING-DIR/P4C-DPDK/p4c/build/p4c-dpdk -I /root/pv/WORKING-DIR/P4C-DPDK/p4c/build/p4include --p4v=16 --p4runtime-files ./p4Info.txt -I /root/pv/WORKING-DIR/P4C-DPDK/p4c/build/p4include/dpdk -o ./pipe/simple_l3_action_selector.spec ./pipe/simple_l3_action_selector.p4i --arch psa --bf-rt-schema ./bf-rt.json --context ./pipe/context.json ",
+    "compiler_version": "0.1",
+    "schema_version": "0.1",
+    "target": "DPDK",
+    "tables": [
+        {
+            "table_type": "match",
+            "direction": "ingress",
+            "handle": 65536,
+            "name": "ingress.ipv4_host",
+            "size": 65536,
+            "stateful_table_refs": [],
+            "statistics_table_refs": [],
+            "meter_table_refs": [],
+            "p4_hidden": false,
+            "action_data_table_refs": [
+                {
+                    "name": "ingress.as_sl3",
+                    "handle": 65538
+                }
+            ],
+            "selection_table_refs": [
+                {
+                    "name": "ingress.as_sl3_sel",
+                    "handle": 65537
+                }
+            ],
+            "action_profile": "as_sl3",
+            "match_key_fields": [
+                {
+                    "name": "headers.ipv4.dst_addr",
+                    "instance_name": "headers.ipv4",
+                    "field_name": "dst_addr",
+                    "match_type": "exact",
+                    "start_bit": 0,
+                    "bit_width": 32,
+                    "bit_width_full": 32,
+                    "position":0
+                } 
+            ],
+            "actions": [
+                {
+                    "name": "ingress.send",
+                    "handle": 131073,
+                    "constant_default_action": false,
+                    "is_compiler_added_action": false,
+                    "allowed_as_hit_action": true,
+                    "allowed_as_default_action": true,
+                    "p4_parameters": [
+                        {
+                            "name": "dst_port",
+                            "start_bit": 0,
+                            "bit_width": 32,
+                            "position": 0,
+                            "byte_array_index": 0
+                        }
+                    ]
+                },
+                {
+                    "name": "ingress.drop",
+                    "handle": 131075,
+                    "constant_default_action": false,
+                    "is_compiler_added_action": false,
+                    "allowed_as_hit_action": true,
+                    "allowed_as_default_action": true,
+                    "p4_parameters": []
+                },
+                {
+                    "name": "NoAction",
+                    "handle": 131077,
+                    "constant_default_action": false,
+                    "is_compiler_added_action": false,
+                    "allowed_as_hit_action": true,
+                    "allowed_as_default_action": true,
+                    "p4_parameters": []
+                }
+            ],
+            "match_attributes": {
+                "stage_tables": [
+                    {
+                        "action_format": [
+                            {
+                    "action_name": "ingress.send",
+                                "action_handle": 131073,
+                                "immediate_fields": [
+                                    {
+                                        "param_name": "dst_port",
+                                        "dest_start": 0,
+                                        "dest_width": 32
+                                    }
+                                ]
+                            },
+                            {
+                    "action_name": "ingress.drop",
+                                "action_handle": 131075,
+                                "immediate_fields": []
+                            },
+                            {
+                    "action_name": "NoAction",
+                                "action_handle": 131077,
+                                "immediate_fields": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            "default_action_handle": 131077
+        },
+        {
+            "table_type": "selection",
+            "direction": "ingress",
+            "handle": 65537,
+            "name": "ingress.as_sl3_sel",
+            "size": 65536,
+            "p4_hidden": true,
+            "max_n_groups": 128,
+            "max_n_members_per_group": 1024,
+            "bound_to_action_data_table_handle": 65538
+        },
+        {
+            "table_type": "action",
+            "direction": "ingress",
+            "handle": 65538,
+            "name": "ingress.as_sl3",
+            "size": 65536,
+            "p4_hidden": true,
+            "actions": [
+                {
+                    "name": "ingress.send",
+                    "handle": 131073,
+                    "p4_parameters": [
+                        {
+                            "name": "dst_port",
+                            "start_bit": 0,
+                            "bit_width": 32,
+                            "position": 0,
+                            "byte_array_index": 0
+                        }
+                    ]
+                },
+                {
+                    "name": "ingress.drop",
+                    "handle": 131075,
+                    "p4_parameters": []
+                },
+                {
+                    "name": "NoAction",
+                    "handle": 131077,
+                    "p4_parameters": []
+                }
+            ],
+            "default_action_handle": 131077
+        }
+    ]
+}
+õ
+
+struct ethernet_h {
+	bit<48> dst_addr
+	bit<48> src_addr
+	bit<16> ether_type
+}
+
+struct ipv4_h {
+	bit<8> version_ihl
+	bit<8> diffserv
+	bit<16> total_len
+	bit<16> identification
+	bit<16> flags_frag_offset
+	bit<8> ttl
+	bit<8> protocol
+	bit<16> hdr_checksum
+	bit<32> src_addr
+	bit<32> dst_addr
+}
+
+struct ipv4_host_set_group_id_arg_t {
+	bit<32> group_id
+}
+
+struct send_arg_t {
+	bit<32> dst_port
+}
+
+header ethernet instanceof ethernet_h
+header ipv4 instanceof ipv4_h
+
+struct local_metadata_t {
+	bit<32> psa_ingress_parser_input_metadata_ingress_port
+	bit<32> psa_ingress_parser_input_metadata_packet_path
+	bit<32> psa_egress_parser_input_metadata_egress_port
+	bit<32> psa_egress_parser_input_metadata_packet_path
+	bit<32> psa_ingress_input_metadata_ingress_port
+	bit<32> psa_ingress_input_metadata_packet_path
+	bit<64> psa_ingress_input_metadata_ingress_timestamp
+	bit<8> psa_ingress_input_metadata_parser_error
+	bit<8> psa_ingress_output_metadata_class_of_service
+	bit<8> psa_ingress_output_metadata_clone
+	bit<16> psa_ingress_output_metadata_clone_session_id
+	bit<8> psa_ingress_output_metadata_drop
+	bit<8> psa_ingress_output_metadata_resubmit
+	bit<32> psa_ingress_output_metadata_multicast_group
+	bit<32> psa_ingress_output_metadata_egress_port
+	bit<8> psa_egress_input_metadata_class_of_service
+	bit<32> psa_egress_input_metadata_egress_port
+	bit<32> psa_egress_input_metadata_packet_path
+	bit<16> psa_egress_input_metadata_instance
+	bit<64> psa_egress_input_metadata_egress_timestamp
+	bit<8> psa_egress_input_metadata_parser_error
+	bit<32> psa_egress_deparser_input_metadata_egress_port
+	bit<8> psa_egress_output_metadata_clone
+	bit<16> psa_egress_output_metadata_clone_session_id
+	bit<8> psa_egress_output_metadata_drop
+	bit<48> local_metadata_dst_addr
+	bit<48> local_metadata_src_addr
+	bit<32> Ingress_ipv4_host_group_id
+	bit<32> Ingress_ipv4_host_member_id
+}
+metadata instanceof local_metadata_t
+
+struct psa_ingress_output_metadata_t {
+	bit<8> class_of_service
+	bit<8> clone
+	bit<16> clone_session_id
+	bit<8> drop
+	bit<8> resubmit
+	bit<32> multicast_group
+	bit<32> egress_port
+}
+
+struct psa_egress_output_metadata_t {
+	bit<8> clone
+	bit<16> clone_session_id
+	bit<8> drop
+}
+
+struct psa_egress_deparser_input_metadata_t {
+	bit<32> egress_port
+}
+
+action NoAction args none {
+	return
+}
+
+action send args instanceof send_arg_t {
+	mov m.psa_ingress_output_metadata_egress_port t.dst_port
+	return
+}
+
+action drop args none {
+	mov m.psa_ingress_output_metadata_drop 1
+	return
+}
+
+action ipv4_host_set_group_id args instanceof ipv4_host_set_group_id_arg_t {
+	mov m.Ingress_ipv4_host_group_id t.group_id
+	return
+}
+
+table ipv4_host {
+	key {
+		h.ipv4.dst_addr exact
+	}
+	actions {
+		ipv4_host_set_group_id
+		NoAction
+	}
+	default_action NoAction args none 
+	size 0x10000
+}
+
+
+table as_sl3 {
+	key {
+		m.Ingress_ipv4_host_member_id exact
+	}
+	actions {
+		send
+		drop
+		NoAction
+	}
+	default_action NoAction args none 
+	size 0x10000
+}
+
+
+selector as_sl3_sel {
+	group_id m.Ingress_ipv4_host_group_id
+	selector {
+		h.ipv4.src_addr
+	}
+	member_id m.Ingress_ipv4_host_member_id
+	n_groups_max 128
+	n_members_per_group_max 1024
+}
+
+apply {
+	rx m.psa_ingress_input_metadata_ingress_port
+	mov m.psa_ingress_output_metadata_drop 0x0
+	extract h.ethernet
+	extract h.ipv4
+	table ipv4_host
+	table as_sl3_sel
+	table as_sl3
+	jmpneq LABEL_DROP m.psa_ingress_output_metadata_drop 0x0
+	emit h.ethernet
+	emit h.ipv4
+	tx m.psa_ingress_output_metadata_egress_port
+	LABEL_DROP : drop
+}
+
+
+" 
