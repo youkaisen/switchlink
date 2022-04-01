@@ -1,0 +1,158 @@
+{
+    "program_name": "simple_l3_action_selector",
+    "build_date": "Sun Sep 26 23:12:19 2021",
+    "compile_command": "/root/pv/WORKING-DIR/P4C-DPDK/p4c/build/p4c-dpdk -I /root/pv/WORKING-DIR/P4C-DPDK/p4c/build/p4include --p4v=16 --p4runtime-files ./p4Info.txt -I /root/pv/WORKING-DIR/P4C-DPDK/p4c/build/p4include/dpdk -o ./pipe/simple_l3_action_selector.spec ./pipe/simple_l3_action_selector.p4i --arch psa --bf-rt-schema ./bf-rt.json --context ./pipe/context.json ",
+    "compiler_version": "0.1",
+    "schema_version": "0.1",
+    "target": "DPDK",
+    "tables": [
+        {
+            "table_type": "match",
+            "direction": "ingress",
+            "handle": 65536,
+            "name": "ingress.ipv4_host",
+            "size": 65536,
+            "stateful_table_refs": [],
+            "statistics_table_refs": [],
+            "meter_table_refs": [],
+            "p4_hidden": false,
+            "action_data_table_refs": [
+                {
+                    "name": "ingress.as_sl3",
+                    "handle": 65538
+                }
+            ],
+            "selection_table_refs": [
+                {
+                    "name": "ingress.as_sl3_sel",
+                    "handle": 65537
+                }
+            ],
+            "action_profile": "as_sl3",
+            "match_key_fields": [
+                {
+                    "name": "headers.ipv4.dst_addr",
+                    "instance_name": "headers.ipv4",
+                    "field_name": "dst_addr",
+                    "match_type": "exact",
+                    "start_bit": 0,
+                    "bit_width": 32,
+                    "bit_width_full": 32,
+                    "position":0
+                } 
+            ],
+            "actions": [
+                {
+                    "name": "ingress.send",
+                    "handle": 131073,
+                    "constant_default_action": false,
+                    "is_compiler_added_action": false,
+                    "allowed_as_hit_action": true,
+                    "allowed_as_default_action": true,
+                    "p4_parameters": [
+                        {
+                            "name": "dst_port",
+                            "start_bit": 0,
+                            "bit_width": 32,
+                            "position": 0,
+                            "byte_array_index": 0
+                        }
+                    ]
+                },
+                {
+                    "name": "ingress.drop",
+                    "handle": 131075,
+                    "constant_default_action": false,
+                    "is_compiler_added_action": false,
+                    "allowed_as_hit_action": true,
+                    "allowed_as_default_action": true,
+                    "p4_parameters": []
+                },
+                {
+                    "name": "NoAction",
+                    "handle": 131077,
+                    "constant_default_action": false,
+                    "is_compiler_added_action": false,
+                    "allowed_as_hit_action": true,
+                    "allowed_as_default_action": true,
+                    "p4_parameters": []
+                }
+            ],
+            "match_attributes": {
+                "stage_tables": [
+                    {
+                        "action_format": [
+                            {
+                    "action_name": "ingress.send",
+                                "action_handle": 131073,
+                                "immediate_fields": [
+                                    {
+                                        "param_name": "dst_port",
+                                        "dest_start": 0,
+                                        "dest_width": 32
+                                    }
+                                ]
+                            },
+                            {
+                    "action_name": "ingress.drop",
+                                "action_handle": 131075,
+                                "immediate_fields": []
+                            },
+                            {
+                    "action_name": "NoAction",
+                                "action_handle": 131077,
+                                "immediate_fields": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            "default_action_handle": 131077
+        },
+        {
+            "table_type": "selection",
+            "direction": "ingress",
+            "handle": 65537,
+            "name": "ingress.as_sl3_sel",
+            "size": 65536,
+            "p4_hidden": true,
+            "max_n_groups": 128,
+            "max_n_members_per_group": 1024,
+            "bound_to_action_data_table_handle": 65538
+        },
+        {
+            "table_type": "action",
+            "direction": "ingress",
+            "handle": 65538,
+            "name": "ingress.as_sl3",
+            "size": 65536,
+            "p4_hidden": true,
+            "actions": [
+                {
+                    "name": "ingress.send",
+                    "handle": 131073,
+                    "p4_parameters": [
+                        {
+                            "name": "dst_port",
+                            "start_bit": 0,
+                            "bit_width": 32,
+                            "position": 0,
+                            "byte_array_index": 0
+                        }
+                    ]
+                },
+                {
+                    "name": "ingress.drop",
+                    "handle": 131075,
+                    "p4_parameters": []
+                },
+                {
+                    "name": "NoAction",
+                    "handle": 131077,
+                    "p4_parameters": []
+                }
+            ],
+            "default_action_handle": 131077
+        }
+    ]
+}

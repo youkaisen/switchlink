@@ -100,7 +100,7 @@ def ovs_p4ctl_add_member_and_verify(bridge, tbl_name, member_details):
         for i in dict_var:
             member_returned.update(dict([i.split("=")]))
         if out == None:
-            print(f"PASS: ovs-p4ctl get details for {member_details} :  {member_returned}")
+            print(f"PASS: ovs-p4ctl get details for member {mem_id} :  {member_returned}")
         keys = member_returned.keys()
         if (tbl_name == member_returned["action_profiles"]) and (action == member_returned["actions"]) and (' '.join(map(str, action_data)) == member_returned["dst_port"]):
             print("PASS : Returned member details matching with configured group")
@@ -132,7 +132,7 @@ def ovs_p4ctl_get_member(bridge, tbl_name, member_id, member_details=None):
             member_returned.update(dict([i.split("=")]))
 
         if out == None:
-            print(f"PASS: ovs-p4ctl get details for {member_id} :  {member_returned}")
+            print(f"PASS: ovs-p4ctl get details for member {member_id} :  {member_returned}")
         
         if member_details != None:
             action, action_data, mem_id = ovs_p4ctl.parse_profile_mem(member_details + ',' + member_id)
@@ -199,7 +199,7 @@ def ovs_p4ctl_add_group_and_verify(bridge, tbl_name, group_details):
         group_returned = dict(substring.split("=") for substring in values[1].strip().split(" "))
 
         if out == None:
-            print(f"PASS: ovs-p4ctl get details for {group_details} :  {group_returned}")
+            print(f"PASS: ovs-p4ctl get details for group {group_id} :  {group_returned}")
         if (tbl_name == group_returned["action_profiles"]) and (members == group_returned["reference_members"]) and (max_size == group_returned["max_size"]):
             print("PASS: Returned group details matching with configured group")
         else:
@@ -243,7 +243,7 @@ def ovs_p4ctl_get_group(bridge, tbl_name, group_id, group_details=None):
         group_returned = dict(substring.split("=") for substring in values[1].strip().split(" "))
 
         if out == None:
-            print(f"PASS: ovs-p4ctl get details for {group_id} :  {group_returned}")
+            print(f"PASS: ovs-p4ctl get details for group {group_id} :  {group_returned}")
             
         if group_details != None:
             group_id, members, max_size = ovs_p4ctl.parse_profile_group(group_id + ',' + group_details)

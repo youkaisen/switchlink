@@ -1,0 +1,255 @@
+2022-03-07 22:44:43.371917 DEBUG BF_DVM BF-SDE vesion: 9.7.0
+2022-03-07 22:44:43.372005 INFO  BF_PORT Entering port_mgr_init
+2022-03-07 22:44:43.372021 INFO  BF_PORT Entering port_mgr_shared_init
+2022-03-07 22:44:43.372035 INFO  BF_PORT Exiting port_mgr_shared_init
+2022-03-07 22:44:43.372056 INFO  BF_PORT Exiting port_mgr_init
+2022-03-07 22:44:43.372258 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:44:43.372274 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:44:43.372284 INFO  BF_LLD lld_dpdk_init Start...
+2022-03-07 22:44:43.372294 INFO  BF_LLD lld_dpdk_init:92 EALargs present
+2022-03-07 22:44:43.372303 INFO  BF_LLD parse EAL args are dummy -n 4 -c 3
+2022-03-07 22:44:43.505833 INFO  BF_LLD lld_dpdk_init:110 Creating Mempool MEMPOOL0
+2022-03-07 22:44:43.507299 INFO  BF_LLD lld_dpdk_init:130 Creating Pipeline pipe
+2022-03-07 22:44:43.507342 INFO  BF_LLD lld_dpdk_init End...
+
+2022-03-07 22:44:43.507351 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:44:43.507359 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:44:43.507366 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:44:43.507373 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:44:43.507381 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:44:43.507433 FATAL BF_BFRT Unable to find any BfRt Json File
+2022-03-07 22:44:43.507552 ERROR BF_BFRT makeBfRtInfo:387 Failed to create BfRtInfo for dev_id  0
+2022-03-07 22:44:56.453069 INFO  BF_DVM bf_device_warm_init_begin:218 Entering WARM_INIT_BEGIN for device 0 with warm_init_mode 1 
+2022-03-07 22:44:56.453173 INFO  BF_PORT Entering port_mgr_dev_remove
+2022-03-07 22:44:56.453190 INFO  BF_LLD Entering dummy STUB:lld_dev_remove
+
+2022-03-07 22:44:56.453216 INFO  BF_LLD Exiting dummy STUB:lld_dev_remove
+
+2022-03-07 22:44:56.453226 INFO  BF_DVM bf_device_warm_init_begin:255 Exiting WARM_INIT_BEGIN for device 0
+2022-03-07 22:44:56.453410 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:44:56.453423 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:44:56.453431 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:44:56.453438 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:44:56.453445 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:44:56.453452 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:44:56.453459 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:44:56.453625 ERROR BF_PIPE Number of ports added to DPDK Pipeline pipe in input direction should be a power of 2
+2022-03-07 22:44:56.453715 ERROR BF_PIPE Failed to Build Pipeline pipe
+2022-03-07 22:44:56.453737 ERROR BF_DVM Device add handling failed for dev 0, sts Internal error (22), Client pipe-mgr 
+2022-03-07 22:44:56.453754 ERROR BF_DVM Device add failed for dev 0, sts Internal error (22)
+2022-03-07 22:44:56.453784 INFO  BF_PORT Entering port_mgr_dev_remove
+2022-03-07 22:44:56.453793 INFO  BF_LLD Entering dummy STUB:lld_dev_remove
+
+2022-03-07 22:44:56.453800 INFO  BF_LLD Exiting dummy STUB:lld_dev_remove
+
+2022-03-07 22:45:03.467883 DEBUG BF_DVM BF-SDE vesion: 9.7.0
+2022-03-07 22:45:03.467943 INFO  BF_PORT Entering port_mgr_init
+2022-03-07 22:45:03.467979 INFO  BF_PORT Entering port_mgr_shared_init
+2022-03-07 22:45:03.467998 INFO  BF_PORT Exiting port_mgr_shared_init
+2022-03-07 22:45:03.468023 INFO  BF_PORT Exiting port_mgr_init
+2022-03-07 22:45:03.468282 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:45:03.468305 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:45:03.468318 INFO  BF_LLD lld_dpdk_init Start...
+2022-03-07 22:45:03.468331 INFO  BF_LLD lld_dpdk_init:92 EALargs present
+2022-03-07 22:45:03.468344 INFO  BF_LLD parse EAL args are dummy -n 4 -c 3
+2022-03-07 22:45:03.598316 INFO  BF_LLD lld_dpdk_init:110 Creating Mempool MEMPOOL0
+2022-03-07 22:45:03.599781 INFO  BF_LLD lld_dpdk_init:130 Creating Pipeline pipe
+2022-03-07 22:45:03.599823 INFO  BF_LLD lld_dpdk_init End...
+
+2022-03-07 22:45:03.599832 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:45:03.599840 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:45:03.599848 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:45:03.599865 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:45:03.599873 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:45:03.599923 FATAL BF_BFRT Unable to find any BfRt Json File
+2022-03-07 22:45:03.600049 ERROR BF_BFRT makeBfRtInfo:387 Failed to create BfRtInfo for dev_id  0
+2022-03-07 22:45:18.244653 INFO  BF_PORT Entering port_mgr_port_add
+2022-03-07 22:45:18.245553 INFO  BF_PORT Entering port_mgr_set_port_info
+2022-03-07 22:45:18.245591 INFO  BF_PORT Exiting port_mgr_set_port_info
+2022-03-07 22:45:18.245604 INFO  BF_PORT Exiting port_mgr_port_add
+2022-03-07 22:45:19.774054 INFO  BF_PORT Entering port_mgr_port_add
+2022-03-07 22:45:19.775810 INFO  BF_PORT Entering port_mgr_set_port_info
+2022-03-07 22:45:19.775836 INFO  BF_PORT Exiting port_mgr_set_port_info
+2022-03-07 22:45:19.775845 INFO  BF_PORT Exiting port_mgr_port_add
+2022-03-07 22:45:27.448636 INFO  BF_DVM bf_device_warm_init_begin:218 Entering WARM_INIT_BEGIN for device 0 with warm_init_mode 1 
+2022-03-07 22:45:27.448748 INFO  BF_PORT Entering port_mgr_dev_remove
+2022-03-07 22:45:27.448765 INFO  BF_LLD Entering dummy STUB:lld_dev_remove
+
+2022-03-07 22:45:27.448773 INFO  BF_LLD Exiting dummy STUB:lld_dev_remove
+
+2022-03-07 22:45:27.448782 INFO  BF_DVM bf_device_warm_init_begin:255 Exiting WARM_INIT_BEGIN for device 0
+2022-03-07 22:45:27.449072 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:45:27.449090 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:45:27.449099 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:45:27.449106 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:45:27.449114 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:45:27.449122 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:45:27.449130 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:45:27.554537 INFO  BF_DVM bf_device_warm_init_end:267 Entering WARM_INIT_END for device 0
+2022-03-07 22:45:27.554560 INFO  BF_DVM bf_device_warm_init_end:288 Apply BF_RECONFIG_LOCK step to device 0
+2022-03-07 22:45:27.554568 INFO  BF_DVM bf_device_warm_init_end:300 Exiting WARM_INIT_END for device 0
+2022-03-07 22:45:43.060246 DEBUG BF_DVM BF-SDE vesion: 9.7.0
+2022-03-07 22:45:43.060297 INFO  BF_PORT Entering port_mgr_init
+2022-03-07 22:45:43.060310 INFO  BF_PORT Entering port_mgr_shared_init
+2022-03-07 22:45:43.060325 INFO  BF_PORT Exiting port_mgr_shared_init
+2022-03-07 22:45:43.060345 INFO  BF_PORT Exiting port_mgr_init
+2022-03-07 22:45:43.060541 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:45:43.060558 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:45:43.060569 INFO  BF_LLD lld_dpdk_init Start...
+2022-03-07 22:45:43.060579 INFO  BF_LLD lld_dpdk_init:92 EALargs present
+2022-03-07 22:45:43.060589 INFO  BF_LLD parse EAL args are dummy -n 4 -c 3
+2022-03-07 22:45:43.187940 INFO  BF_LLD lld_dpdk_init:110 Creating Mempool MEMPOOL0
+2022-03-07 22:45:43.189387 INFO  BF_LLD lld_dpdk_init:130 Creating Pipeline pipe
+2022-03-07 22:45:43.189429 INFO  BF_LLD lld_dpdk_init End...
+
+2022-03-07 22:45:43.189438 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:45:43.189447 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:45:43.189455 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:45:43.189463 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:45:43.189472 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:45:43.189522 FATAL BF_BFRT Unable to find any BfRt Json File
+2022-03-07 22:45:43.189642 ERROR BF_BFRT makeBfRtInfo:387 Failed to create BfRtInfo for dev_id  0
+2022-03-07 22:45:52.734551 INFO  BF_PORT Entering port_mgr_port_add
+2022-03-07 22:45:52.735088 INFO  BF_PORT Entering port_mgr_set_port_info
+2022-03-07 22:45:52.735125 INFO  BF_PORT Exiting port_mgr_set_port_info
+2022-03-07 22:45:52.735138 INFO  BF_PORT Exiting port_mgr_port_add
+2022-03-07 22:45:53.848303 INFO  BF_PORT Entering port_mgr_port_add
+2022-03-07 22:45:53.850176 INFO  BF_PORT Entering port_mgr_set_port_info
+2022-03-07 22:45:53.850203 INFO  BF_PORT Exiting port_mgr_set_port_info
+2022-03-07 22:45:53.850221 INFO  BF_PORT Exiting port_mgr_port_add
+2022-03-07 22:46:00.396272 INFO  BF_DVM bf_device_warm_init_begin:218 Entering WARM_INIT_BEGIN for device 0 with warm_init_mode 1 
+2022-03-07 22:46:00.396386 INFO  BF_PORT Entering port_mgr_dev_remove
+2022-03-07 22:46:00.396403 INFO  BF_LLD Entering dummy STUB:lld_dev_remove
+
+2022-03-07 22:46:00.396411 INFO  BF_LLD Exiting dummy STUB:lld_dev_remove
+
+2022-03-07 22:46:00.396419 INFO  BF_DVM bf_device_warm_init_begin:255 Exiting WARM_INIT_BEGIN for device 0
+2022-03-07 22:46:00.396702 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:46:00.396718 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:46:00.396727 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:46:00.396734 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:46:00.396741 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:46:00.396749 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:46:00.396756 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:46:00.428621 INFO  BF_DVM bf_device_warm_init_end:267 Entering WARM_INIT_END for device 0
+2022-03-07 22:46:00.428640 INFO  BF_DVM bf_device_warm_init_end:288 Apply BF_RECONFIG_LOCK step to device 0
+2022-03-07 22:46:00.428648 INFO  BF_DVM bf_device_warm_init_end:300 Exiting WARM_INIT_END for device 0
+2022-03-07 22:46:18.736688 DEBUG BF_DVM BF-SDE vesion: 9.7.0
+2022-03-07 22:46:18.736728 INFO  BF_PORT Entering port_mgr_init
+2022-03-07 22:46:18.736737 INFO  BF_PORT Entering port_mgr_shared_init
+2022-03-07 22:46:18.736749 INFO  BF_PORT Exiting port_mgr_shared_init
+2022-03-07 22:46:18.736765 INFO  BF_PORT Exiting port_mgr_init
+2022-03-07 22:46:18.736918 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:46:18.736932 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:46:18.736940 INFO  BF_LLD lld_dpdk_init Start...
+2022-03-07 22:46:18.736962 INFO  BF_LLD lld_dpdk_init:92 EALargs present
+2022-03-07 22:46:18.736970 INFO  BF_LLD parse EAL args are dummy -n 4 -c 3
+2022-03-07 22:46:18.877366 INFO  BF_LLD lld_dpdk_init:110 Creating Mempool MEMPOOL0
+2022-03-07 22:46:18.879273 INFO  BF_LLD lld_dpdk_init:130 Creating Pipeline pipe
+2022-03-07 22:46:18.879330 INFO  BF_LLD lld_dpdk_init End...
+
+2022-03-07 22:46:18.879340 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:46:18.879349 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:46:18.879356 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:46:18.879364 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:46:18.879372 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:46:18.879427 FATAL BF_BFRT Unable to find any BfRt Json File
+2022-03-07 22:46:18.879574 ERROR BF_BFRT makeBfRtInfo:387 Failed to create BfRtInfo for dev_id  0
+2022-03-07 22:46:41.471390 INFO  BF_PORT Entering port_mgr_port_add
+2022-03-07 22:46:41.474921 INFO  BF_PORT Entering port_mgr_set_port_info
+2022-03-07 22:46:41.474972 INFO  BF_PORT Exiting port_mgr_set_port_info
+2022-03-07 22:46:41.474985 INFO  BF_PORT Exiting port_mgr_port_add
+2022-03-07 22:46:42.969378 INFO  BF_PORT Entering port_mgr_port_add
+2022-03-07 22:46:42.972460 INFO  BF_PORT Entering port_mgr_set_port_info
+2022-03-07 22:46:42.972487 INFO  BF_PORT Exiting port_mgr_set_port_info
+2022-03-07 22:46:42.972495 INFO  BF_PORT Exiting port_mgr_port_add
+2022-03-07 22:46:59.961863 INFO  BF_DVM bf_device_warm_init_begin:218 Entering WARM_INIT_BEGIN for device 0 with warm_init_mode 1 
+2022-03-07 22:46:59.961989 INFO  BF_PORT Entering port_mgr_dev_remove
+2022-03-07 22:46:59.962009 INFO  BF_LLD Entering dummy STUB:lld_dev_remove
+
+2022-03-07 22:46:59.962017 INFO  BF_LLD Exiting dummy STUB:lld_dev_remove
+
+2022-03-07 22:46:59.962026 INFO  BF_DVM bf_device_warm_init_begin:255 Exiting WARM_INIT_BEGIN for device 0
+2022-03-07 22:46:59.962211 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:46:59.962227 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:46:59.962235 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:46:59.962244 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:46:59.962251 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:46:59.962269 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:46:59.962277 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:46:59.962472 ERROR BF_PIPE Error -22 at line 9: Invalid struct field size.
+.
+2022-03-07 22:46:59.962570 ERROR BF_PIPE Failed to Build Pipeline pipe
+2022-03-07 22:46:59.962592 ERROR BF_DVM Device add handling failed for dev 0, sts Unexpected error (15), Client pipe-mgr 
+2022-03-07 22:46:59.962608 ERROR BF_DVM Device add failed for dev 0, sts Unexpected error (15)
+2022-03-07 22:46:59.962637 INFO  BF_PORT Entering port_mgr_dev_remove
+2022-03-07 22:46:59.962647 INFO  BF_LLD Entering dummy STUB:lld_dev_remove
+
+2022-03-07 22:46:59.962653 INFO  BF_LLD Exiting dummy STUB:lld_dev_remove
+
+2022-03-07 22:51:58.744102 DEBUG BF_DVM BF-SDE vesion: 9.7.0
+2022-03-07 22:51:58.744139 INFO  BF_PORT Entering port_mgr_init
+2022-03-07 22:51:58.744149 INFO  BF_PORT Entering port_mgr_shared_init
+2022-03-07 22:51:58.744160 INFO  BF_PORT Exiting port_mgr_shared_init
+2022-03-07 22:51:58.744174 INFO  BF_PORT Exiting port_mgr_init
+2022-03-07 22:51:58.744323 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:51:58.744336 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:51:58.744344 INFO  BF_LLD lld_dpdk_init Start...
+2022-03-07 22:51:58.744352 INFO  BF_LLD lld_dpdk_init:92 EALargs present
+2022-03-07 22:51:58.744359 INFO  BF_LLD parse EAL args are dummy -n 4 -c 3
+2022-03-07 22:51:58.877548 INFO  BF_LLD lld_dpdk_init:110 Creating Mempool MEMPOOL0
+2022-03-07 22:51:58.879003 INFO  BF_LLD lld_dpdk_init:130 Creating Pipeline pipe
+2022-03-07 22:51:58.879046 INFO  BF_LLD lld_dpdk_init End...
+
+2022-03-07 22:51:58.879055 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:51:58.879064 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:51:58.879072 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:51:58.879080 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:51:58.879088 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:51:58.879137 FATAL BF_BFRT Unable to find any BfRt Json File
+2022-03-07 22:51:58.879257 ERROR BF_BFRT makeBfRtInfo:387 Failed to create BfRtInfo for dev_id  0
+2022-03-07 22:52:06.947686 INFO  BF_PORT Entering port_mgr_port_add
+2022-03-07 22:52:06.950095 INFO  BF_PORT Entering port_mgr_set_port_info
+2022-03-07 22:52:06.950126 INFO  BF_PORT Exiting port_mgr_set_port_info
+2022-03-07 22:52:06.950135 INFO  BF_PORT Exiting port_mgr_port_add
+2022-03-07 22:52:08.328418 INFO  BF_PORT Entering port_mgr_port_add
+2022-03-07 22:52:08.330181 INFO  BF_PORT Entering port_mgr_set_port_info
+2022-03-07 22:52:08.330207 INFO  BF_PORT Exiting port_mgr_set_port_info
+2022-03-07 22:52:08.330215 INFO  BF_PORT Exiting port_mgr_port_add
+2022-03-07 22:52:28.342271 INFO  BF_DVM bf_device_warm_init_begin:218 Entering WARM_INIT_BEGIN for device 0 with warm_init_mode 1 
+2022-03-07 22:52:28.342386 INFO  BF_PORT Entering port_mgr_dev_remove
+2022-03-07 22:52:28.342707 INFO  BF_LLD Entering dummy STUB:lld_dev_remove
+
+2022-03-07 22:52:28.342720 INFO  BF_LLD Exiting dummy STUB:lld_dev_remove
+
+2022-03-07 22:52:28.342822 INFO  BF_DVM bf_device_warm_init_begin:255 Exiting WARM_INIT_BEGIN for device 0
+2022-03-07 22:52:28.343037 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2022-03-07 22:52:28.343055 INFO  BF_LLD Entering :lld_dev_add
+
+2022-03-07 22:52:28.343063 INFO  BF_LLD Exiting :lld_dev_add
+
+2022-03-07 22:52:28.343072 INFO  BF_PORT Entering port_mgr_dev_add
+2022-03-07 22:52:28.343080 INFO  BF_PORT Enter port_mgr_config_import
+2022-03-07 22:52:28.343088 INFO  BF_PORT port_mgr_config_import: device 0, file (null)
+2022-03-07 22:52:28.343096 INFO  BF_PORT Exit port_mgr_config_import
+2022-03-07 22:52:28.446827 INFO  BF_DVM bf_device_warm_init_end:267 Entering WARM_INIT_END for device 0
+2022-03-07 22:52:28.446849 INFO  BF_DVM bf_device_warm_init_end:288 Apply BF_RECONFIG_LOCK step to device 0
+2022-03-07 22:52:28.446858 INFO  BF_DVM bf_device_warm_init_end:300 Exiting WARM_INIT_END for device 0
