@@ -52,13 +52,13 @@
         {
             "description": "table_for_dst_ip",
             "switch": "br0",
-	    "name": "ingress.ipv4_host_dst",
+     "name": "ingress.ipv4_host_dst",
             "type": "entry",
             "match_action": [
                     "headers.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)",
                     "headers.ipv4.dst_addr=1.1.1.2,action=ingress.drop(1)"
             ]
-	  },
+   },
         {
             "description": "table_for_src_ip",
             "switch": "br0",
@@ -68,20 +68,20 @@
                     "headers.ipv4.src_addr=1.1.1.1,action=ingress.send(0)",
                     "headers.ipv4.src_addr=1.1.1.2,action=ingress.drop(1)"
             ]
-	}	
-	    ],
+ } 
+     ],
 
     "traffic": 
-	 {
+  {
           "type": "tcp",
           "send_port": [1, 0],
           "receive_port": [0, 1],
           "in_pkt_header": {
-		  "ip_dst_1": "1.1.1.1",
-		  "ip_dst_2": "1.1.1.2",
-		  "ip_src_1": "1.1.1.1",
+    "ip_dst_1": "1.1.1.1",
+    "ip_dst_2": "1.1.1.2",
+    "ip_src_1": "1.1.1.1",
                   "ip_src_2": "1.1.1.2"
-	  },
+   },
          "out_pkt_header": []
          }
  }     

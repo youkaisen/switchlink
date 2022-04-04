@@ -1,18 +1,18 @@
 {
-	"ports" : [
-	  {
-	    "dev_port" : 0,
-	    "port_name" : "TAP0",
-	    "mempool_name" : "MEMPOOL0",
-	    "pipe_name" : "pipe",
-	    "port_dir" : "default",
-	    "port_in_id" : 0,
-	    "port_out_id" : 0,
-	    "port_type" : "tap",
-	    "tap_port_attributes" : {
-	      "mtu" : 1500
-	    }
-	  },
+ "ports" : [
+   {
+     "dev_port" : 0,
+     "port_name" : "TAP0",
+     "mempool_name" : "MEMPOOL0",
+     "pipe_name" : "pipe",
+     "port_dir" : "default",
+     "port_in_id" : 0,
+     "port_out_id" : 0,
+     "port_type" : "tap",
+     "tap_port_attributes" : {
+       "mtu" : 1500
+     }
+   },
           {
             "dev_port" : 1,
             "port_name" : "TAP1",
@@ -64,5 +64,5 @@
               "file_name" : "./pcap_files/sink0.pcap"
             }
           }
-	]
+ ]
 }
