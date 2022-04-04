@@ -70,7 +70,7 @@
 	    ],
 
     "traffic": 
-    	 {
+	 {
           "type": "tcp",
           "send_port": [1, 0],
           "receive_port": [0, 1],

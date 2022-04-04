@@ -72,7 +72,7 @@
 	    ],
 
     "traffic": 
-    	 {
+	 {
           "in_pkt_header": {
 				"ip_dst_1": "1.1.1.2",
 				"ip_dst_2": "224.0.0.1",
