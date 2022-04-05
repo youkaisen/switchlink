@@ -40,11 +40,11 @@ def gnmi_set_params(params):
 
     return output
 
-
-def ifconfig_set_ipv4(interface_ip_list):
+def ip_set_ipv4(interface_ip_list):
     port_config = PortConfig()
     for interface_ipv4_dict in interface_ip_list:
         for interface, ip in interface_ipv4_dict.items():
-            port_config.Ifconfig.ifconfig_ipv4_set(interface, ip)
+            port_config.Ip.iplink_enable_disable_link(interface, status_to_change='up')
+            port_config.Ip.ipaddr_ipv4_set(interface, ip)
 
     return

@@ -10,7 +10,7 @@ class PortConfig(object):
         Constructor method
         """
         self.GNMICLI = self._GNMICLI()
-        self.Ifconfig = self._Ifconfig()
+        self.Ip = self._IpCMD()
 
     class _Common(object):
         cmd_prefix = None
@@ -69,20 +69,37 @@ class PortConfig(object):
 
         def tear_down(self):
             """
-            close ssh related objects.
-            :return: None
+            TBD
             """
             pass
 
-    class _Ifconfig(_Common):
+    class _IpCMD(_Common):
         def __init__(self):
             """
-            Constructor method
+            Constructor Method
             """
-            self.cmd_prefix = 'ifconfig'
+            self.cmd_prefix = 'ip'
             self.local = Local()
 
-        def ifconfig_ipv4_set(self, interface, ip):
+        def iplink_enable_disable_link(self, interface, status_to_change='up'):
+            """
+            Brings <interface> up
+            :param: interface: network interface name --> str e.g. "TAP1"
+            :param: status_to_change: state of the interface to be changed to --> str --> accepted values 'up' or 'down'
+            :return: True/False --> boolean
+            """
+            assert status_to_change == 'up' or status_to_change == 'down'
+
+            cmd = self.form_cmd(f" link set {interface} {status_to_change}")
+            output, return_code, _ = self.local.execute_command(cmd)
+            if return_code:
+                print(f"FAIL: {cmd}")
+                raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
+
+            print(f"PASS: {cmd}")
+            return True
+
+        def ipaddr_ipv4_set(self, interface, ip):
             """
             Assigns IP address 'ip' to 'interface'
             :param interface: network interface name --> str e.g. "TAP0"
@@ -91,7 +108,7 @@ class PortConfig(object):
             :param ip: ipv4 address --> str e.g. "1.1.1.1/24"
             :return: True/False --> boolean
             """
-            cmd = self.form_cmd(f" {interface} {ip} up")
+            cmd = self.form_cmd(f" addr add {ip} dev {interface}")
             output, return_code, _ = self.local.execute_command(cmd)
             if return_code:
                 print(f"FAIL: {cmd}")
@@ -102,7 +119,6 @@ class PortConfig(object):
 
         def tear_down(self):
             """
-            close ssh related objects.
-            :return: None
+            TBD
             """
             pass

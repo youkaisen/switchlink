@@ -21,7 +21,7 @@ from scapy.all import *
 import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
 from common.utils.config_file_utils import get_config_dict, get_params_tap_port_simple, get_interface_ipv4_dict
-from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params, ifconfig_set_ipv4
+from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params, ip_set_ipv4
 
 
 class L3_Exact_Match(BaseTest):
@@ -43,7 +43,7 @@ class L3_Exact_Match(BaseTest):
 
     def runTest(self):
         gnmi_set_params(self.gnmicli_params)
-        ifconfig_set_ipv4(self.interface_ip_list)
+        ip_set_ipv4(self.interface_ip_list)
 
         port_list = self.config_data['port_list']
         port_ids = test_utils.add_port_to_dataplane(port_list)

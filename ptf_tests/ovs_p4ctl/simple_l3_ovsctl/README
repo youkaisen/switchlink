@@ -28,31 +28,31 @@ dependencies to be installed are:
                 - pip install crc16
 
 3) install ovsp4ctl module:
-		
-		- run ctl_module_setup.sh from ptf_tests directory. this script facilitates ovsp4ctl installation.
+  
+  - run ctl_module_setup.sh from ptf_tests directory. this script facilitates ovsp4ctl installation.
 
 steps to run the ptf:
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------<
 on server side :
 start ovs by running run_ovs.sh
-	./run_ovs.sh
+ ./run_ovs.sh
 
 on client side:
 set the alias
-	alias sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH"'
+ alias sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH"'
 
 add TAP ports
-	sudo gnmi-cli set "device:virtual-device,name:TAP0,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
-	sudo gnmi-cli set "device:virtual-device,name:TAP1,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+ sudo gnmi-cli set "device:virtual-device,name:TAP0,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+ sudo gnmi-cli set "device:virtual-device,name:TAP1,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
 
 bring the TAP interfaces up
-	ifconfig TAP0 up
-	ifconfig TAP1 up
-	ifconfig TAP0 1.1.1.1/24 up
-	ifconfig TAP1 1.1.1.2/24 up
+ ip link set TAP0 up
+ ip link set TAP1 up
+ ip addr add 1.1.1.1/24 dev TAP0
+ ip addr add 1.1.1.2/24 dev TAP1 
 
 run the simplel3 test case
         get the compiler artifacts from the p4c compiler and generate pb.bin file before running this step.
-	goto ptf_tests directory and the run the below command:
-	./run_p4_tests.sh -p simple_l3 -t ./simple_l3_ovsctl/ --no-veth -s simplel3 --p4info ./simple_l3_ovsctl/cfgs/simple_l3/p4Info.txt --p4bin ./simple_l3_ovsctl/cfgs/simple_l3/simple_l3.pb.bin
+ goto ptf_tests directory and the run the below command:
+ ./run_p4_tests.sh -p simple_l3 -t ./simple_l3_ovsctl/ --no-veth -s simplel3 --p4info ./simple_l3_ovsctl/cfgs/simple_l3/p4Info.txt --p4bin ./simple_l3_ovsctl/cfgs/simple_l3/simple_l3.pb.bin
 

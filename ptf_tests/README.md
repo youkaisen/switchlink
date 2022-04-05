@@ -1,4 +1,4 @@
-P4OVS tests using PTF framework
+# P4OVS tests using PTF framework
 
 ---
 
@@ -54,6 +54,7 @@ P4OVS and P4SDE should be installed before running the tests
 # Installing Dependencies
 
 ~ cd <ptf_tests>
+
 ~ python3 -m pip install -r requirements.txt
 
 # Pre Test
@@ -77,13 +78,23 @@ E.g. ptf --test-dir tests/ l3_exact_match_with_tap_port --pypath $PWD --test-par
 All logs can be found at ptf_tests/ptf.log
 
 ## Console Output
+
 Individual steps start with "PASS" or "FAIL" which shows their execution status.
+
 E.g.
+
 FAIL: ovs-p4ctl set pipe Failed with error: P4Runtime RPC error (FAILED_PRECONDITION): Only a single forwarding pipeline can be pushed for any node so far.
+
 Scenario1 : l3 exact match with destination IP
+
 Adding rule for port 0 and 1 with destination IP
+
 PASS: ovs-p4ctl add entry: headers.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)
+
 PASS: ovs-p4ctl add entry: headers.ipv4.dst_addr=1.1.1.2,action=ingress.drop(1)
+
+Test has PASSED
+
 
 ## Consolidated output
 [TBD]
