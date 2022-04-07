@@ -35,6 +35,10 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         ptf.dataplane_instance = ptf.dataplane.DataPlane(config)
 
         self.config_data = get_config_dict(config_json)
+
+        if not test_utils.gen_dep_files_p4c_ovs_pipeline_builder(self.config_data):
+            self.fail("Failed to generate P4C artifacts or pb.bin")
+
         self.gnmicli_params = get_params_tap_port_simple(self.config_data)
         self.interface_ip_list = get_interface_ipv4_dict(self.config_data)
 

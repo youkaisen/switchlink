@@ -1,7 +1,6 @@
 {
     "switch": "br0",
-    "pb_bin": "common/p4c_artifacts/l3_exact_match/simple_l3.pb.bin",
-    "p4_info": "common/p4c_artifacts/l3_exact_match/p4Info.txt",
+    "p4file": "l3_exact_match",
     "port": [
         {
             "id": "1",

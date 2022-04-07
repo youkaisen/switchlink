@@ -1,7 +1,6 @@
 {
     "switch": "br0",
-    "pb_bin": "common/p4c_artifacts/l3_action_profile/simple_l3_action_profile.pb.bin",
-    "p4_info": "common/p4c_artifacts/l3_action_profile/p4Info.txt",
+    "p4file": "l3_action_profile",
     "port": [
         {
             "id": "1",

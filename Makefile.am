@@ -151,46 +151,14 @@ EXTRA_DIST = \
 	ptf_tests/common/config/l2_exact_match_with_tap.json \
 	ptf_tests/common/config/l3_action_profile_with_tap_ports.json \
 	ptf_tests/common/config/l3_action_selector_with_tap_test1.json \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/simple_l3_action_selector.p4 \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/simple_l3_action_profile.conf \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/zlog-cfg-cur \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/bf-rt.json \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/simple_l3_action_selector.conf \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/topology1_port.json \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/simple_l3_action_profile.pb.bin \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/p4Info.txt \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/simple_l3_action_selector.pb.bin \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/bf_shell_commands.txt \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/simple_l3_action_profile.p4 \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/p4_driver.log \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/pipe/simple_l3_action_profile.spec \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/pipe/context.json \
-	ptf_tests/common/p4c_artifacts/l3_action_profile/pipe/simple_l3_action_selector.spec \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/simple_l3_action_selector.p4 \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/zlog-cfg-cur \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/bf-rt.json \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/simple_l3_action_selector.conf \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/topology1_port.json \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/p4Info.txt \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/simple_l3_action_selector.pb.bin \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/bf_shell_commands.txt \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/p4_driver.log \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/pipe/context.json \
-	ptf_tests/common/p4c_artifacts/l3_action_selector/pipe/simple_l3_action_selector.spec \
-	ptf_tests/common/p4c_artifacts/l3_exact_match/simple_l3.p4 \
-	ptf_tests/common/p4c_artifacts/l3_exact_match/simple_l3.conf \
-	ptf_tests/common/p4c_artifacts/l3_exact_match/bf-rt.json \
-	ptf_tests/common/p4c_artifacts/l3_exact_match/p4Info.txt \
-	ptf_tests/common/p4c_artifacts/l3_exact_match/simple_l3.pb.bin \
-	ptf_tests/common/p4c_artifacts/l3_exact_match/pipe/simple_l3.spec \
-	ptf_tests/common/p4c_artifacts/l3_exact_match/pipe/context.json \
-	ptf_tests/common/p4c_artifacts/l2_exact_match/simple_l2.p4 \
-	ptf_tests/common/p4c_artifacts/l2_exact_match/simple_l2.conf \
-	ptf_tests/common/p4c_artifacts/l2_exact_match/bf-rt.json \
-	ptf_tests/common/p4c_artifacts/l2_exact_match/p4Info.txt \
-	ptf_tests/common/p4c_artifacts/l2_exact_match/simple_l2.pb.bin \
-	ptf_tests/common/p4c_artifacts/l2_exact_match/pipe/simple_l2.spec \
-	ptf_tests/common/p4c_artifacts/l2_exact_match/pipe/context.json \
+	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
+	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
+	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
+	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.conf \
+	ptf_tests/common/p4c_artifacts/l3_exact_match/l3_exact_match.conf \
+	ptf_tests/common/p4c_artifacts/l3_exact_match/l3_exact_match.p4 \
+	ptf_tests/common/p4c_artifacts/l2_exact_match/l2_exact_match.conf \
+	ptf_tests/common/p4c_artifacts/l2_exact_match/l2_exact_match.p4 \
 	ptf_tests/common/lib/__init__.py \
 	ptf_tests/common/lib/local_connection.py \
 	ptf_tests/common/lib/ovs_p4ctl.py \

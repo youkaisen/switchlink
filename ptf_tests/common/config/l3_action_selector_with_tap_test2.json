@@ -1,7 +1,6 @@
 {
     "switch": "br0",
-    "pb_bin": "common/p4c_artifacts/l3_action_selector/simple_l3_action_selector.pb.bin",
-    "p4_info": "common/p4c_artifacts/l3_action_selector/p4Info.txt",
+    "p4file": "l3_action_selector",
     "port": [
         {
             "id": "1",

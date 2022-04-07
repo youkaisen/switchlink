@@ -47,7 +47,7 @@ The following directory structure is a pre-requisite to run the tests. All steps
 
 # Pre-requisite
 
-P4OVS and P4SDE should be installed before running the tests
+P4OVS, P4SDE and P4C should be installed before running the tests
 
 ---
 
