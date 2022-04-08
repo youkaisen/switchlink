@@ -40,19 +40,19 @@ def get_config_dict(config_json):
 
         for table in data['table']:
             if 'match_action' in table.keys():
-                table['del_action']=[]
+                table['del_action'] = []
                 for match_action in table['match_action']:
                     table['del_action'].append(match_action.split(',')[0])
 
         for table in data['table']:
             if 'member_details' in table.keys():
-                table['del_member']=[]
+                table['del_member'] = []
                 for member_detail in table['member_details']:
                     table['del_member'].append(member_detail.split(',')[1])
 
         for table in data['table']:
             if 'group_details' in table.keys():
-                table['del_group']=[]
+                table['del_group'] = []
                 for group_detail in table['group_details']:
                     table['del_group'].append(group_detail.split(',')[0])
 
@@ -61,32 +61,6 @@ def get_config_dict(config_json):
         #######################################################
 
         return data
-
-
-def get_params_tap_port_simple(data):
-    """
-    util function to parse 'data' dictionary and return list of 'params' string for gnmi-cli set/get
-    :param data: dictionary obtained from config json file
-    :return: list --> list of params
-                --> ["device:virtual-device,name:TAP0,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP",
-                     "device:virtual-device,name:TAP1,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP",
-                     ...]
-    """
-    params = []
-    keys = ["pipeline-name", "mempool-name", "mtu", "port-type"]
-
-    for port in data['port']:
-        param = ""
-        param += f"device:{port['device']}"
-        param += f",name:{port['name']}"
-        param += f",pipeline-name:{port['pipeline_name']}"
-        param += f",mempool-name:{port['mempool_name']}"
-        param += f",mtu:{port['mtu']}"
-        param += f",port-type:{port['port_type']}"
-
-        params.append(param)
-
-    return params
 
 
 def get_interface_ipv4_dict(data):
@@ -102,3 +76,60 @@ def get_interface_ipv4_dict(data):
         interface_ip_list.append({port['name']: port.setdefault('ip', '0.0.0.0')})
 
     return interface_ip_list
+
+
+def get_device_type(port):
+    """
+    helper function to decide the device type: tap/vhost/link
+    :params: port --> dictionary containing port details from json
+    :returns: string --> tap / vhost / link
+    """
+    if port['device'] == "physical-device":
+        return "link"
+    elif port['device'] == 'virtual-device' and port['port-type'] == 'LINK':
+        return 'vhost'
+    elif port['device'] == 'virtual-device' and port['port-type'] == 'TAP':
+        return 'tap'
+    else:
+        print("Invalid 'device' or 'port-type' in json")
+        return None
+
+
+def get_gnmi_params_simple(data):
+    """
+    util function to parse 'data' dictionary and return list of 'params' string for gnmi-cli set/get
+    :param data: dictionary obtained from config json file
+    :return: list --> list of params
+                --> ["device:virtual-device,name:net_vhost0,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,port-type:LINK",
+                "device:virtual-device,name:net_vhost1,host:host2,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-1,port-type:LINK",
+                ...]
+    """
+    common = ['device', 'name']
+    mandatory = {'tap': [],
+                 'vhost': ['host', 'device-type', 'queues', 'socket-path'],
+                 'link': ['pci-bdf']
+                 }
+    optional = ['pipeline-name', 'mempool-name', 'control-port', 'mtu']
+
+    params = []
+
+    for port in data['port']:
+        param = ""
+        for field in common:
+            param += f"{field}:{port[field]},"
+
+        device_type = get_device_type(port)
+        if not device_type:
+            return None
+        for field in mandatory[device_type]:
+            param += f"{field}:{port[field]},"
+
+        for field in optional:
+            if field in port.keys():
+                param += f"{field}:{port[field]},"
+
+        param += f"port-type:{port['port-type']}"
+
+        params.append(param)
+
+    return params

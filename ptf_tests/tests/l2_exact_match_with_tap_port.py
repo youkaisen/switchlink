@@ -20,7 +20,7 @@ from scapy.all import *
 # framework related imports
 import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
-from common.utils.config_file_utils import get_config_dict, get_params_tap_port_simple, get_interface_ipv4_dict
+from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict
 from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params, ip_set_ipv4
 
 
@@ -40,7 +40,7 @@ class L2_Exact_Match(BaseTest):
         if not test_utils.gen_dep_files_p4c_ovs_pipeline_builder(self.config_data):
             self.fail("Failed to generate P4C artifacts or pb.bin")
 
-        self.gnmicli_params = get_params_tap_port_simple(self.config_data)
+        self.gnmicli_params = get_gnmi_params_simple(self.config_data)
         self.interface_ip_list = get_interface_ipv4_dict(self.config_data)
 
         self.PASSED = True

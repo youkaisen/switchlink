@@ -6,41 +6,41 @@
             "id": "1",
             "device": "virtual-device",
             "name": "TAP0",
-            "port_type": "TAP",
-            "pipeline_name": "pipe",
-            "mempool_name": "MEMPOOL0",
+            "port-type": "TAP",
+            "pipeline-name": "pipe",
+            "mempool-name": "MEMPOOL0",
             "mtu": "2000",
-            "single_cmd": "TRUE"
+            "single-cmd": "TRUE"
         },
         {
             "id": "2",
             "device": "virtual-device",
             "name": "TAP1",
-            "port_type": "TAP",
-            "pipeline_name": "pipe",
-            "mempool_name": "MEMPOOL0",
+            "port-type": "TAP",
+            "pipeline-name": "pipe",
+            "mempool-name": "MEMPOOL0",
             "mtu": "1500",
-            "single_cmd": "TRUE"
+            "single-cmd": "TRUE"
         },
         {
             "id": "3",
             "device": "virtual-device",
             "name": "TAP2",
-            "port_type": "TAP",
-            "pipeline_name": "pipe",
-            "mempool_name": "MEMPOOL0",
+            "port-type": "TAP",
+            "pipeline-name": "pipe",
+            "mempool-name": "MEMPOOL0",
             "mtu": "1500",
-            "single_cmd": "TRUE"
+            "single-cmd": "TRUE"
         },
         {
             "id": "4",
             "device": "virtual-device",
             "name": "TAP3",
-            "port_type": "TAP",
-            "pipeline_name": "pipe",
-            "mempool_name": "MEMPOOL0",
+            "port-type": "TAP",
+            "pipeline-name": "pipe",
+            "mempool-name": "MEMPOOL0",
             "mtu": "1500",
-            "single_cmd": "TRUE"
+            "single-cmd": "TRUE"
         }
     ],
     "table": [ 
