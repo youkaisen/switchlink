@@ -245,6 +245,22 @@ services that are available for a p4runtime client.
     ``FLOW``: Refers to the group ID which was earlier configured via add
     action profile group. Format "group_id=<number>"
 
+14. Rule to program ternary match_type ::
+
+    $ ovs-p4ctl add-entry SWITCH TABLE FLOW
+    $ Example: ovs-p4ctl add-entry br0 filter "src_ip=192.168.15.0/255.255.255.0,priority=100,action=drop"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``TABLE``: Refers to table_name present in p4info.txt file.
+    ``FLOW``: Refers to parameters for a the above mentioned TABLE. Since we
+    are programming a match_type ternary we expect user to provide priority
+    as well. 'priority' is a case sensitivity field expected from user.
+    Mask for ternary or WCM match field is expected in x.x.x.x format for IPv4.
+    match_filed_key=value,priority=value,action=action_name(value)
+
 
 gnmi_cli executable
 -------------------
