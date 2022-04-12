@@ -38,6 +38,13 @@ typedef struct switchlink_db_tuntap_obj_ {
   switchlink_db_tuntap_info_t tunp_info;
 } switchlink_db_tuntap_obj_t;
 
+typedef struct switchlink_db_tunnel_intf_obj_ {
+  tommy_trie_inplace_node ifindex_node;
+  tommy_trie_inplace_node handle_node;
+  uint32_t ifindex;
+  switchlink_db_tunnel_interface_info_t tnl_intf_info;
+} switchlink_db_tunnel_intf_obj_t;
+
 typedef struct switchlink_db_bridge_obj_ {
   tommy_trie_inplace_node ifindex_node;
   tommy_trie_inplace_node handle_node;

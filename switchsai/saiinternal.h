@@ -32,11 +32,15 @@ limitations under the License.
 #include <string.h>
 
 #include <arpa/inet.h>
+
+#include "switch_base_types.h"
 //#include <bfsys/bf_sal/bf_sys_intf.h>
 //#include <bfsys/bf_sal/bf_sys_mem.h>
 //
 #ifndef __SAIINTERNAL_H_
 #define __SAIINTERNAL_H_
+
+//switch_device_t device = 0;
 
 #define SAI_MAX_ENTRY_STRING_LEN 200
 
@@ -169,7 +173,7 @@ sai_status_t sai_buffer_initialize(sai_api_service_t *sai_api_service);
 sai_status_t sai_fdb_initialize(sai_api_service_t *sai_api_service);
 sai_status_t sai_hash_initialize(sai_api_service_t *sai_api_service);
 sai_status_t sai_hostif_initialize(sai_api_service_t *sai_api_service);
-sai_status_t sai_initialize();
+sai_status_t sai_initialize(void);
 sai_status_t sai_ipmc_initialize(sai_api_service_t *sai_api_service);
 sai_status_t sai_l2mc_initialize(sai_api_service_t *sai_api_service);
 sai_status_t sai_lag_initialize(sai_api_service_t *sai_api_service);
@@ -228,22 +232,19 @@ sai_status_t sai_ipprefix_to_string(_In_ sai_ip_prefix_t ip_prefix,
                                     _Out_ char *entry_string,
                                     _Out_ int *entry_length);
 
-//sai_status_t sai_ip_prefix_to_switch_ip_addr(
-  //  const _In_ sai_ip_prefix_t *sai_ip_prefix, _Out_ switch_ip_addr_t *ip_addr);
+sai_status_t sai_ip_prefix_to_switch_ip_addr(
+    const _In_ sai_ip_prefix_t *sai_ip_prefix, _Out_ switch_ip_addr_t *ip_addr);
 
-//sai_status_t sai_ip_addr_to_switch_ip_addr(
-  //  const _In_ sai_ip_address_t *sai_ip_addr, _Out_ switch_ip_addr_t *ip_addr);
+sai_status_t sai_ip_addr_to_switch_ip_addr(
+    const _In_ sai_ip_address_t *sai_ip_addr, _Out_ switch_ip_addr_t *ip_addr);
 
 //sai_status_t sai_port_speed_to_switch_port_speed(
   //  uint32_t sai_port_speed, _Out_ switch_port_speed_t *switch_port_speed);
 
-//switch_acl_action_t sai_packet_action_to_switch_packet_action(
-  //  _In_ sai_packet_action_t action);
-
 //sai_packet_action_t switch_packet_action_to_sai_packet_action(
   //  switch_acl_action_t acl_action);
 
-//sai_status_t sai_switch_status_to_sai_status(_In_ const switch_status_t status);
+sai_status_t sai_switch_status_to_sai_status(_In_ const switch_status_t status);
 
 //sai_status_t sai_switch_ip_addr_to_sai_ip_addr(
   //  _Out_ sai_ip_address_t *sai_ip_addr, const _In_ switch_ip_addr_t *ip_addr);
@@ -320,8 +321,8 @@ sai_status_t sai_hashtable_done(sai_hashtable_t *hashtable);
 */
 switch_uint32_t sai_acl_priority_to_switch_priority(sai_uint32_t);
 
-switch_uint32_t switch_sai_port_non_default_ppgs();
-bool switch_sai_default_initialize();
+switch_uint32_t switch_sai_port_non_default_ppgs(void);
+bool switch_sai_default_initialize(void);
 
 //void sai_recv_hostif_packet_cb(switch_hostif_packet_t *hostif_packet);
 /*

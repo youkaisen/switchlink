@@ -20,6 +20,7 @@ limitations under the License.
 #include "switch_base_types.h"
 #include "switch_port.h"
 #include "switch_port_int.h"
+#include "switch_internal.h"
 
 #include <bf_types/bf_types.h>
 #include <port_mgr/dpdk/bf_dpdk_port_if.h>
@@ -44,53 +45,6 @@ typedef switch_status_t bf_status_t;
 typedef switch_status_t switch_pd_status_t;
 #define SWITCH_PD_STATUS_SUCCESS 0
 
-switch_status_t switch_pd_status_to_status(switch_pd_status_t pd_status) {
-  switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  switch (pd_status) {
-    case BF_SUCCESS:
-      status = SWITCH_STATUS_SUCCESS;
-      break;
-
-    case BF_NO_SYS_RESOURCES:
-      status = SWITCH_STATUS_INSUFFICIENT_RESOURCES;
-      break;
-
-    case BF_ALREADY_EXISTS:
-      status = SWITCH_STATUS_ITEM_ALREADY_EXISTS;
-      break;
-
-    case BF_IN_USE:
-      status = SWITCH_STATUS_RESOURCE_IN_USE;
-      break;
-
-    case BF_HW_COMM_FAIL:
-      status = SWITCH_STATUS_HW_FAILURE;
-      break;
-
-    case BF_OBJECT_NOT_FOUND:
-      status = SWITCH_STATUS_ITEM_NOT_FOUND;
-      break;
-
-    case BF_NOT_IMPLEMENTED:
-      status = SWITCH_STATUS_NOT_IMPLEMENTED;
-      break;
-
-    case BF_INVALID_ARG:
-      status = SWITCH_STATUS_INVALID_PARAMETER;
-      break;
-
-    case BF_NO_SPACE:
-      status = SWITCH_STATUS_TABLE_FULL;
-      break;
-
-    default:
-      status = SWITCH_STATUS_PD_FAILURE;
-      break;
-  }
-  return status;
-}
-
 switch_status_t switch_pd_device_port_add(switch_device_t device,
     switch_dev_port_t dev_port,
     switch_uint32_t mtu)
@@ -106,16 +60,19 @@ switch_status_t switch_pd_device_port_add(switch_device_t device,
    snprintf(portNameDpdk, sizeof(portNameDpdk), "%d", dev_port);
    bf_dev_id = (bf_dev_id_t)device;
    bf_dev_port = (bf_dev_port_t)dev_port;
-   port_attrib.port_type = BF_DPDK_TAP;
    strncat(portName, portNameDpdk,10);
-   port_attrib.port_dir = PM_PORT_DIR_DEFAULT;
-   port_attrib.port_in_id = dev_port;
-   port_attrib.port_out_id = dev_port;
-   strncpy(port_attrib.mempool_name, "MEMPOOL0",
-                   sizeof(port_attrib.mempool_name));
-   strncpy(port_attrib.pipe_name, "pipe", sizeof(port_attrib.pipe_name));
-   port_attrib.tap.mtu = mtu;
    strncpy(port_attrib.port_name, portName, sizeof(port_attrib.port_name));
+   VLOG_INFO("port_attrib.port_name=%s\n", port_attrib.port_name);
+#if 0
+   //port_attrib.port_type = BF_DPDK_TAP;
+   //port_attrib.port_dir = PM_PORT_DIR_DEFAULT;
+   //port_attrib.port_in_id = dev_port;
+   //port_attrib.port_out_id = dev_port;
+   //strncpy(port_attrib.mempool_name, "MEMPOOL0",
+   //                sizeof(port_attrib.mempool_name));
+   //strncpy(port_attrib.pipe_name, "pipe", sizeof(port_attrib.pipe_name));
+   //port_attrib.tap.mtu = mtu;
+
 
    VLOG_INFO("bf_pal_port_add called with three parameters:\n");
    VLOG_INFO("[bf_dev_id, bf_dev_port, port_attrib]\n");
@@ -131,7 +88,7 @@ switch_status_t switch_pd_device_port_add(switch_device_t device,
    VLOG_INFO("port_attrib.port_out_id=%d\n", port_attrib.port_out_id);
    VLOG_INFO("port_attrib.port_dir=%d\n", port_attrib.port_dir);
    VLOG_INFO("port_attrib.port_type=%d\n", port_attrib.port_type);
-
+#endif
    bf_status = bf_pal_port_add(bf_dev_id, bf_dev_port, &port_attrib);
    if (bf_status != BF_SUCCESS)
    {

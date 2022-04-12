@@ -178,6 +178,7 @@ static inline char *switch_port_oper_status_to_string(
       return "UP";
     case SWITCH_PORT_OPER_STATUS_DOWN:
       return "DOWN";
+    case SWITCH_PORT_OPER_STATUS_MAX:
     default:
       return "NONE";
   }
@@ -210,6 +211,7 @@ static inline char *switch_port_lb_mode_to_string(
       return "mac near";
     case SWITCH_PORT_LOOPBACK_MODE_MAC_FAR:
       return "mac far";
+    case SWITCH_PORT_LOOPBACK_MODE_MAX:
     default:
       return "none";
   }

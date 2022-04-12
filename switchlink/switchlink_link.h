@@ -49,6 +49,4 @@ typedef enum {
 
 extern void interface_change_type(uint32_t ifindex,
                                   switchlink_intf_type_t type);
-extern void interface_create_l3vi(uint32_t ifindex);
-
 #endif /* __SWITCHLINK_LINK_H__ */

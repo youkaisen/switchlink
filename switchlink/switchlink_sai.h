@@ -99,4 +99,11 @@ extern int switchlink_send_packet(char *buf,
                                   uint32_t buf_size,
                                   uint16_t port_id);
 
+extern int switchlink_tunnel_interface_create(
+                                switchlink_db_tunnel_interface_info_t *tnl_intf,
+                                switchlink_handle_t *tnl_intf_h,
+                                switchlink_handle_t *tnl_term_h);
+extern int switchlink_tunnel_interface_delete(
+                              switchlink_db_tunnel_interface_info_t *tnl_intf);
+
 #endif /* __SWITCHLINK_SAI_H__ */

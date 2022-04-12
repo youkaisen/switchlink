@@ -20,11 +20,13 @@ limitations under the License.
 /**
  * Third party includes
  */
-#include <target_utils/Judy.h>
-#include <target_utils/tommyds/tommyhashtbl.h>
-#include <target_utils/tommyds/tommylist.h>
-#include <target_sys/bf_sal/bf_sys_mem.h>
-#include <target_sys/bf_sal/bf_sys_timer.h>
+#include <target-utils/third-party/judy-1.0.5/src/Judy.h>
+//#include <target-utils/tommyds/tommyhashtbl.h>
+#include <switchlink/tommyds/tommyhashtbl.h>
+//#include <target-utils/tommyds/tommylist.h>
+#include <switchlink/tommyds/tommylist.h>
+#include <target-sys/bf_sal/bf_sys_mem.h>
+#include <target-sys/bf_sal/bf_sys_timer.h>
 #ifdef STATIC_LINK_LIB
 #include <bf_switchd/bf_switchd.h>
 #endif  // STATIC_LINK_LIB
@@ -39,6 +41,7 @@ limitations under the License.
 /**
  * standard includes
  */
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -118,6 +121,12 @@ extern "C" {
 
 /** Mac address length */
 #define SWITCH_MAC_LENGTH 6
+
+#define SWITCH_MAC_LENGTH_START 2
+
+#define SWITCH_MAC_LENGTH_MID 2
+
+#define SWITCH_MAC_LENGTH_END 2
 
 #define _In_
 
@@ -289,7 +298,7 @@ typedef enum switch_ip_type_s {
 typedef unsigned char switch_uint8_t;
 typedef unsigned short switch_uint16_t;
 typedef unsigned int switch_uint32_t;
-typedef uint64_t switch_uint64_t;
+typedef unsigned long switch_uint64_t;
 typedef unsigned char switch_uchar_t;
 typedef char switch_int8_t;
 typedef char switch_char_t;
@@ -381,6 +390,17 @@ typedef struct switch_mac_addr_s {
   switch_uint8_t mac_addr[SWITCH_MAC_LENGTH];
 } switch_mac_addr_t;
 
+
+/** MAC address split **/
+typedef struct switch_mac_s {
+  /** mac address array */
+  switch_uint8_t mac_addr_start[SWITCH_MAC_LENGTH_START];
+
+  switch_uint8_t mac_addr_mid[SWITCH_MAC_LENGTH_MID];
+
+  switch_uint8_t mac_addr_end[SWITCH_MAC_LENGTH_END];
+} switch_mac_t;
+
 /** IP address */
 typedef struct switch_ip_addr_s {
   /** IP type - v4 or v6 */
@@ -418,6 +438,7 @@ typedef struct switch_counter_s {
 } switch_counter_t;
 
 /* init */
+#if 0
 #ifdef STATIC_LINK_LIB
 switch_status_t switch_api_init(switch_device_t device,
                                 unsigned int num_ports,
@@ -433,6 +454,9 @@ switch_status_t switch_api_init(switch_device_t device,
                                 char *cpu_port,
                                 bool add_ports);
 #endif  // STATIC_LINK_LIB
+#endif
+
+switch_status_t switch_api_init(switch_device_t device);
 
 switch_status_t switch_mirror_on_drop_set(switch_device_t device,
                                           bool mirror_on_drop);

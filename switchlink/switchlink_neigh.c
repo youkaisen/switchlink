@@ -28,6 +28,9 @@ limitations under the License.
 #include "switchlink_route.h"
 #include "switchlink_db.h"
 #include "switchlink_sai.h"
+#include "openvswitch/vlog.h"
+
+VLOG_DEFINE_THIS_MODULE(switchlink_neigh)
 
 static void mac_delete(switchlink_mac_addr_t mac_addr,
                        switchlink_handle_t bridge_h) {
@@ -37,6 +40,9 @@ static void mac_delete(switchlink_mac_addr_t mac_addr,
   if (status != SWITCHLINK_DB_STATUS_SUCCESS) {
     return;
   }
+  VLOG_INFO("Delete a FDB entry: 0x%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1],
+                                                       mac_addr[2], mac_addr[3],
+                                                       mac_addr[4], mac_addr[5]);
   switchlink_mac_delete(mac_addr, bridge_h);
   switchlink_db_mac_delete(mac_addr, bridge_h);
 }
@@ -49,11 +55,12 @@ static void mac_create(switchlink_mac_addr_t mac_addr,
   status = switchlink_db_mac_get_intf(mac_addr, bridge_h, &old_intf_h);
   if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
     if (old_intf_h != intf_h) {
-      switchlink_mac_update(mac_addr, bridge_h, intf_h);
-      switchlink_db_mac_set_intf(mac_addr, bridge_h, intf_h);
-      return;
+      mac_delete(mac_addr, bridge_h);
     }
   }
+  VLOG_INFO("Create a FDB entry: 0x%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1],
+                                                       mac_addr[2], mac_addr[3],
+                                                       mac_addr[4], mac_addr[5]);
 
   switchlink_mac_create(mac_addr, bridge_h, intf_h);
   switchlink_db_mac_add(mac_addr, bridge_h, intf_h);
@@ -74,6 +81,7 @@ static void neigh_delete(switchlink_handle_t vrf_h,
     return;
   }
 
+  VLOG_INFO("Delete a neighbor entry: 0x%x", ipaddr->ip.v4addr.s_addr);
   switchlink_neighbor_delete(&neigh_info);
   switchlink_nexthop_delete(&neigh_info);
   switchlink_db_neighbor_delete(&neigh_info);
@@ -112,10 +120,13 @@ void neigh_create(switchlink_handle_t vrf_h,
   }
 
   memcpy(neigh_info.mac_addr, mac_addr, sizeof(switchlink_mac_addr_t));
+  VLOG_INFO("Create a Nexthop entry: 0x%x", ipaddr->ip.v4addr.s_addr);
   if (switchlink_nexthop_create(&neigh_info) == -1) {
     return;
   }
+  VLOG_INFO("Create a neighbor entry: 0x%x", ipaddr->ip.v4addr.s_addr);
   if (switchlink_neighbor_create(&neigh_info) == -1) {
+    VLOG_INFO("Delete a Nexthop entry: 0x%x", ipaddr->ip.v4addr.s_addr);
     switchlink_nexthop_delete(&neigh_info);
     return;
   }
@@ -140,7 +151,13 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
   ovs_assert((type == RTM_NEWNEIGH) || (type == RTM_DELNEIGH));
   nbh = nlmsg_data(nlmsg);
   hdrlen = sizeof(struct ndmsg);
-  NL_LOG_DEBUG(
+
+  if (nbh->ndm_family == AF_INET6) {
+    VLOG_DBG("Ignoring IPv6 neighbors, as supported is not available");
+    return;
+  }
+
+  VLOG_DBG(
       ("%sneigh: family = %d, ifindex = %d, state = 0x%x, "
        "flags = 0x%x, type = %d\n",
        ((type == RTM_NEWNEIGH) ? "new" : "del"),
@@ -153,14 +170,10 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
   switchlink_db_interface_info_t ifinfo;
   if (switchlink_db_interface_get_info(nbh->ndm_ifindex, &ifinfo) !=
       SWITCHLINK_DB_STATUS_SUCCESS) {
-    NL_LOG_DEBUG(("neigh: switchlink_db_interface_get_info failed\n"));
-    return;
-  }
-
-  if (strncmp(ifinfo.ifname,
-              SWITCHLINK_CPU_INTERFACE_NAME,
-              SWITCHLINK_INTERFACE_NAME_LEN_MAX) == 0) {
-    NL_LOG_DEBUG(("neigh: skipping neighbor on CPU interface\n"));
+    char intf_name[16] = {0};
+    if_indextoname(nbh->ndm_ifindex, intf_name);
+    VLOG_DBG("neigh: switchlink_db_interface_get_info failed " \
+             "for :%s\n", intf_name);
     return;
   }
 
@@ -171,14 +184,21 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
     int attr_type = nla_type(attr);
     switch (attr_type) {
       case NDA_DST:
-        ipaddr_valid = true;
-        ipaddr.family = nbh->ndm_family;
-        if (nbh->ndm_family == AF_INET) {
-          ipaddr.ip.v4addr.s_addr = ntohl(nla_get_u32(attr));
-          ipaddr.prefix_len = 32;
+        if ((nbh->ndm_state == NUD_REACHABLE) ||
+            (nbh->ndm_state == NUD_PERMANENT) ||
+            (nbh->ndm_state == NUD_FAILED)) {
+            ipaddr_valid = true;
+            ipaddr.family = nbh->ndm_family;
+            if (nbh->ndm_family == AF_INET) {
+              ipaddr.ip.v4addr.s_addr = ntohl(nla_get_u32(attr));
+              ipaddr.prefix_len = 32;
+            } else {
+              memcpy(&(ipaddr.ip.v6addr), nla_data(attr), nla_len(attr));
+              ipaddr.prefix_len = 128;
+            }
         } else {
-          memcpy(&(ipaddr.ip.v6addr), nla_data(attr), nla_len(attr));
-          ipaddr.prefix_len = 128;
+            VLOG_DBG(("Ignoring un-used neighbor states\n", attr_type));
+            return;
         }
         break;
       case NDA_LLADDR: {
@@ -188,14 +208,14 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
         break;
       }
       default:
-        NL_LOG_DEBUG(("neigh: skipping attr(%d)\n", attr_type));
+        VLOG_DBG(("neigh: skipping attr(%d)\n", attr_type));
         break;
     }
     attr = nla_next(attr, &attrlen);
   }
 
   switchlink_handle_t intf_h = ifinfo.intf_h;
-  switchlink_handle_t bridge_h = 0;
+  switchlink_handle_t bridge_h = g_default_bridge_h;
   if (ifinfo.intf_type == SWITCHLINK_INTF_TYPE_L2_ACCESS) {
     bridge_h = ifinfo.bridge_h;
     ovs_assert(bridge_h);
@@ -203,6 +223,10 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
 
   if (type == RTM_NEWNEIGH) {
     if (bridge_h && mac_addr_valid) {
+      mac_create(mac_addr, bridge_h, intf_h);
+    } else if(mac_addr_valid && ifinfo.intf_type == SWITCHLINK_INTF_TYPE_L3) {
+      // Here we are creating FDB entry from neighbor table, check for
+      // type as SWITCHLINK_INTF_TYPE_L3
       mac_create(mac_addr, bridge_h, intf_h);
     }
     if (ipaddr_valid) {
@@ -214,151 +238,12 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
       }
     }
   } else {
-    if (bridge_h && mac_addr_valid) {
+    // if (bridge_h && mac_addr_valid) {
+    if (mac_addr_valid) {
       mac_delete(mac_addr, bridge_h);
     }
     if (ipaddr_valid) {
       neigh_delete(g_default_vrf_h, &ipaddr, intf_h);
     }
   }
-}
-//
-//void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
-//  int hdrlen, attrlen;
-//  struct nlattr *attr;
-//  struct ndmsg *nbh;
-//  switchlink_mac_addr_t mac_addr;
-//  bool mac_addr_valid = false;
-//  bool ipaddr_valid = false;
-//  switchlink_ip_addr_t ipaddr;
-//
-//  ovs_assert((type == RTM_NEWNEIGH) || (type == RTM_DELNEIGH));
-//  nbh = nlmsg_data(nlmsg);
-//  hdrlen = sizeof(struct ndmsg);
-//  NL_LOG_DEBUG(
-//      ("%sneigh: family = %d, ifindex = %d, state = 0x%x, "
-//       "flags = 0x%x, type = %d\n",
-//       ((type == RTM_NEWNEIGH) ? "new" : "del"),
-//       nbh->ndm_family,
-//       nbh->ndm_ifindex,
-//       nbh->ndm_state,
-//       nbh->ndm_flags,
-//       nbh->ndm_type));
-//
-//  switchlink_db_interface_info_t ifinfo;
-//  if (switchlink_db_interface_get_info(nbh->ndm_ifindex, &ifinfo) !=
-//      SWITCHLINK_DB_STATUS_SUCCESS) {
-//    NL_LOG_DEBUG(("neigh: switchlink_db_interface_get_info failed\n"));
-//    return;
-//  }
-//
-//  if (strncmp(ifinfo.ifname,
-//              SWITCHLINK_CPU_INTERFACE_NAME,
-//              SWITCHLINK_INTERFACE_NAME_LEN_MAX) == 0) {
-//    NL_LOG_DEBUG(("neigh: skipping neighbor on CPU interface\n"));
-//    return;
-//  }
-//
-//  memset(&ipaddr, 0, sizeof(switchlink_ip_addr_t));
-//  attrlen = nlmsg_attrlen(nlmsg, hdrlen);
-//  attr = nlmsg_attrdata(nlmsg, hdrlen);
-//  while (nla_ok(attr, attrlen)) {
-//    int attr_type = nla_type(attr);
-//    switch (attr_type) {
-//      case NDA_DST:
-//        ipaddr_valid = true;
-//        ipaddr.family = nbh->ndm_family;
-//        if (nbh->ndm_family == AF_INET) {
-//          ipaddr.ip.v4addr.s_addr = ntohl(nla_get_u32(attr));
-//          ipaddr.prefix_len = 32;
-//        } else {
-//          memcpy(&(ipaddr.ip.v6addr), nla_data(attr), nla_len(attr));
-//          ipaddr.prefix_len = 128;
-//        }
-//        break;
-//      case NDA_LLADDR: {
-//        mac_addr_valid = true;
-//        ovs_assert(nla_len(attr) == sizeof(switchlink_mac_addr_t));
-//        memcpy(mac_addr, nla_data(attr), nla_len(attr));
-//        break;
-//      }
-//      default:
-//        NL_LOG_DEBUG(("neigh: skipping attr(%d)\n", attr_type));
-//        break;
-//    }
-//    attr = nla_next(attr, &attrlen);
-//  }
-//
-//  switchlink_handle_t intf_h = ifinfo.intf_h;
-//  switchlink_handle_t bridge_h = 0;
-//  if (ifinfo.intf_type == SWITCHLINK_INTF_TYPE_L2_ACCESS) {
-//    bridge_h = ifinfo.bridge_h;
-//    ovs_assert(bridge_h);
-//  }
-//
-//  if (type == RTM_NEWNEIGH) {
-//    if (bridge_h && mac_addr_valid) {
-//      mac_create(mac_addr, bridge_h, intf_h);
-//    }
-//    if (ipaddr_valid) {
-//      if (mac_addr_valid) {
-//        neigh_create(g_default_vrf_h, &ipaddr, mac_addr, intf_h);
-//      } else {
-//        // mac address is not valid, remove the neighbor entry
-//        neigh_delete(g_default_vrf_h, &ipaddr, intf_h);
-//      }
-//    }
-//  } else {
-//    if (bridge_h && mac_addr_valid) {
-//      mac_delete(mac_addr, bridge_h);
-//    }
-//    if (ipaddr_valid) {
-//      neigh_delete(g_default_vrf_h, &ipaddr, intf_h);
-//    }
-//  }
-//}
-//
-void switchlink_linux_mac_update(switchlink_mac_addr_t mac_addr,
-                                 switchlink_handle_t bridge_h,
-                                 switchlink_handle_t intf_h,
-                                 bool create) {
-  switchlink_db_status_t status;
-  uint32_t ifindex;
-
-  if (!create) {
-    status = switchlink_db_mac_get_intf(mac_addr, bridge_h, &intf_h);
-    if (status != SWITCHLINK_DB_STATUS_SUCCESS) {
-      ovs_assert(false);
-      return;
-    }
-  }
-
-  status = switchlink_db_interface_get_ifindex(intf_h, &ifindex);
-  if (status != SWITCHLINK_DB_STATUS_SUCCESS) {
-    return;
-  }
-
-  struct nl_sock *nlsk = switchlink_get_nl_sock();
-  if (!nlsk) {
-    return;
-  }
-
-  struct nl_addr *nl_addr = nl_addr_build(AF_LLC, mac_addr, ETH_ALEN);
-  struct rtnl_neigh *rtnl_neigh = rtnl_neigh_alloc();
-  rtnl_neigh_set_ifindex(rtnl_neigh, ifindex);
-  rtnl_neigh_set_lladdr(rtnl_neigh, nl_addr);
-  rtnl_neigh_set_state(rtnl_neigh, rtnl_neigh_str2state("permanent"));
-  rtnl_neigh_set_family(rtnl_neigh, AF_BRIDGE);
-
-  if (create) {
-    status = switchlink_db_mac_add(mac_addr, bridge_h, intf_h);
-    ovs_assert(status == SWITCHLINK_DB_STATUS_SUCCESS);
-    rtnl_neigh_add(nlsk, rtnl_neigh, NLM_F_CREATE | NLM_F_REPLACE);
-  } else {
-    status = switchlink_db_mac_delete(mac_addr, bridge_h);
-    ovs_assert(status == SWITCHLINK_DB_STATUS_SUCCESS);
-    rtnl_neigh_delete(nlsk, rtnl_neigh, 0);
-  }
-  rtnl_neigh_put(rtnl_neigh);
-  nl_addr_put(nl_addr);
 }

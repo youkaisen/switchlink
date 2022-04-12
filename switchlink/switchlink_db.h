@@ -18,6 +18,8 @@ limitations under the License.
 #define __SWITCHLINK_DB_H__
 
 #include <stdbool.h>
+#include "switchlink/switchlink.h"
+#include "switchlink/switchlink_link.h"
 
 #define SWITCHLINK_INTERFACE_NAME_LEN_MAX 32
 #define SWITCHLINK_ECMP_NUM_MEMBERS_MAX 16
@@ -61,6 +63,7 @@ typedef struct switchlink_db_interface_info_ {
   switchlink_stp_state_t stp_state;
   switchlink_handle_t stp_port_h;
   switchlink_mac_addr_t mac_addr;
+  switchlink_ip_addr_t intf_ip;
   struct interface_flags {
     bool ipv4_unicast_enabled;
     bool ipv6_unicast_enabled;
@@ -98,6 +101,7 @@ typedef struct switchlink_db_route_info_ {
   switchlink_ip_addr_t ip_addr;
   bool ecmp;
   switchlink_handle_t nhop_h;
+  switchlink_handle_t intf_h;
 } switchlink_db_route_info_t;
 
 typedef struct switchlink_db_oifl_info_ {
@@ -122,6 +126,20 @@ typedef struct switchlink_db_mdb_info_ {
   switchlink_handle_t intfs[SWITCHLINK_OIFL_NUM_MEMBERS_MAX];
 } switchlink_db_mdb_info_t;
 
+typedef struct switchlink_db_tunnel_interface_info_ {
+  char ifname[SWITCHLINK_INTERFACE_NAME_LEN_MAX];
+  switchlink_handle_t orif_h;
+  switchlink_handle_t urif_h;
+  switchlink_handle_t tnl_term_h;
+  switchlink_ip_addr_t src_ip;
+  switchlink_ip_addr_t dst_ip;
+  switchlink_link_type_t link_type;
+  uint32_t ifindex;
+  uint32_t vni_id;
+  uint16_t dst_port;
+  uint8_t ttl;
+} switchlink_db_tunnel_interface_info_t;
+
 /*** port ***/
 extern switchlink_db_status_t switchlink_db_port_get(char *name,
                                                      uint16_t *port_id);
@@ -143,6 +161,16 @@ extern switchlink_db_status_t switchlink_db_interface_update(
     uint32_t ifindex, switchlink_db_interface_info_t *intf_info);
 
 extern switchlink_db_status_t switchlink_db_interface_delete(uint32_t ifindex);
+
+/*** Tunnel ***/
+extern switchlink_db_status_t switchlink_db_tunnel_interface_add(
+    uint32_t ifindex, switchlink_db_tunnel_interface_info_t *tnl_intf_info);
+
+extern switchlink_db_status_t switchlink_db_tunnel_interface_get_info(
+    uint32_t ifindex, switchlink_db_tunnel_interface_info_t *tunnel_intf_info);
+
+extern switchlink_db_status_t switchlink_db_tunnel_interface_delete(
+    uint32_t ifindex);
 
 /*** bridge/vlan ***/
 extern switchlink_db_status_t switchlink_db_bridge_add(
@@ -269,5 +297,13 @@ extern switchlink_db_status_t switchlink_db_mdb_delete(
 
 extern switchlink_db_status_t switchlink_db_mdb_get_info(
     switchlink_db_mdb_info_t *mdb_info);
+
+/*** Tuntap entry ***/
+extern switchlink_db_status_t switchlink_db_tuntap_add(
+    uint32_t ifindex, switchlink_db_tuntap_info_t *tunp_info);
+
+extern switchlink_db_status_t switchlink_db_tuntap_get_info(
+    uint32_t ifindex, switchlink_db_tuntap_info_t *tunp_info);
+
 
 #endif /* __SWITCHLINK_DB_H__ */

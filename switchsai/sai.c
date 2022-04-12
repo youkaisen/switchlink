@@ -18,16 +18,15 @@ limitations under the License.
 #include <openvswitch/vlog.h>
 #include "saiinternal.h"
 //#include "switchapi/switch.h"
-//#include "switchapi/switch_handle.h"
-//#include "switchapi/switch_nhop.h"
+#include "switchapi/switch_handle.h"
+#include "switchapi/switch_nhop.h"
+#include "switch_base_types.h"
 
 VLOG_DEFINE_THIS_MODULE(sai);
-
 static int api_log_level[SAI_API_MAX + 1];
 static char log_buffer[SAI_LOG_BUFFER_SIZE + 1];
 static sai_api_service_t sai_api_service;
 static sai_api_t api_id = SAI_API_UNSPECIFIED;
-//switch_device_t device = 0;
 
 #ifdef __cplusplus
 extern "C" {
@@ -238,7 +237,6 @@ sai_status_t sai_api_query(_In_ sai_api_t sai_api_id,
 *    Return SAI_OBJECT_TYPE_NULL when sai_object_id is not valid.
 *    Otherwise, return a valid sai object type SAI_OBJECT_TYPE_XXX
 */
-/*
 sai_object_type_t sai_object_type_query(_In_ sai_object_id_t sai_object_id) {
   sai_object_type_t object_type = SAI_OBJECT_TYPE_NULL;
   switch_nhop_id_type_t nhop_type = 0;
@@ -265,8 +263,6 @@ sai_object_type_t sai_object_type_query(_In_ sai_object_id_t sai_object_id) {
       object_type = SAI_OBJECT_TYPE_VIRTUAL_ROUTER;
       break;
     case SWITCH_HANDLE_TYPE_NHOP:
-      switch_api_nhop_id_type_get(
-          device, (switch_handle_t)sai_object_id, &nhop_type);
       if (nhop_type == SWITCH_NHOP_ID_TYPE_ONE_PATH) {
         object_type = SAI_OBJECT_TYPE_NEXT_HOP;
       } else if (nhop_type == SWITCH_NHOP_ID_TYPE_ECMP) {
@@ -390,7 +386,7 @@ sai_object_type_t sai_object_type_query(_In_ sai_object_id_t sai_object_id) {
 
   return object_type;
 }
-*/
+
 sai_status_t sai_object_type_get_availability(
     _In_ sai_object_id_t switch_id,
     _In_ sai_object_type_t object_type,
@@ -411,19 +407,22 @@ sai_status_t sai_initialize() {
 
   SAI_LOG_ENTER();
 
+  // Init Switch API
+  switch_api_init(0);
+
 //  sai_switch_initialize(&sai_api_service);
   sai_port_initialize(&sai_api_service);
 //  sai_bridge_initialize(&sai_api_service);
-//  sai_fdb_initialize(&sai_api_service);
+  sai_fdb_initialize(&sai_api_service);
 //  sai_vlan_initialize(&sai_api_service);
 //  sai_lag_initialize(&sai_api_service);
-//  sai_router_interface_initialize(&sai_api_service);
-//  sai_next_hop_initialize(&sai_api_service);
+  sai_router_interface_initialize(&sai_api_service);
+  sai_next_hop_initialize(&sai_api_service);
 //  sai_next_hop_group_initialize(&sai_api_service);
-//  sai_route_initialize(&sai_api_service);
-//  sai_virtual_router_initialize(&sai_api_service);
+  sai_route_initialize(&sai_api_service);
+  sai_virtual_router_initialize(&sai_api_service);
 //  sai_stp_initialize(&sai_api_service);
-//  sai_neighbor_initialize(&sai_api_service);
+  sai_neighbor_initialize(&sai_api_service);
 //  sai_hostif_initialize(&sai_api_service);
 //  sai_acl_initialize(&sai_api_service);
 //  sai_mirror_initialize(&sai_api_service);
@@ -439,7 +438,7 @@ sai_status_t sai_initialize() {
 //  sai_queue_initialize(&sai_api_service);
 //  sai_dtel_initialize(&sai_api_service);
 //  sai_wred_initialize(&sai_api_service);
-//  sai_tunnel_initialize(&sai_api_service);
+  sai_tunnel_initialize(&sai_api_service);
 
   SAI_LOG_EXIT();
 

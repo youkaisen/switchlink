@@ -18,6 +18,7 @@ limitations under the License.
 #ifndef __SWITCH_PORT_H__
 #define __SWITCH_PORT_H__
 
+#include "switch_internal.h"
 #include "switch_base_types.h"
 #include "switch_handle.h"
 #include "switch_id.h"

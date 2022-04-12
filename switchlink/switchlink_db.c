@@ -30,6 +30,7 @@ limitations under the License.
 #include "switchlink_route.h"
 #include "switchlink_db.h"
 #include "switchlink_db_int.h"
+#include "switchlink_int.h"
 
 #define SWITCHLINK_MAC_KEY_LEN 14
 
@@ -58,6 +59,7 @@ static switchlink_db_port_obj_t switchlink_db_port_map[] = {
 static tommy_trie_inplace switchlink_db_handle_obj_map;
 static tommy_trie_inplace switchlink_db_tuntap_obj_map;
 static tommy_trie_inplace switchlink_db_interface_obj_map;
+static tommy_trie_inplace switchlink_db_tunnel_obj_map;
 static tommy_trie_inplace switchlink_db_bridge_obj_map;
 static tommy_hashlin switchlink_db_mac_obj_hash;
 static tommy_list switchlink_db_mac_obj_list;
@@ -184,6 +186,49 @@ switchlink_db_status_t switchlink_db_interface_update(
 switchlink_db_status_t switchlink_db_interface_delete(uint32_t ifindex) {
   switchlink_db_intf_obj_t *obj;
   obj = tommy_trie_inplace_remove(&switchlink_db_interface_obj_map, ifindex);
+  if (!obj) {
+    return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
+  }
+  tommy_trie_inplace_remove_existing(&switchlink_db_handle_obj_map,
+                                     &obj->handle_node);
+  switchlink_free(obj);
+  return SWITCHLINK_DB_STATUS_SUCCESS;
+}
+
+switchlink_db_status_t switchlink_db_tunnel_interface_add(
+    uint32_t ifindex, switchlink_db_tunnel_interface_info_t *tnl_intf_info) {
+  switchlink_db_tunnel_intf_obj_t *obj =
+      switchlink_malloc(sizeof(switchlink_db_tunnel_intf_obj_t), 1);
+  obj->ifindex = ifindex;
+  memcpy(&(obj->tnl_intf_info), tnl_intf_info,
+         sizeof(switchlink_db_tunnel_interface_info_t));
+  tommy_trie_inplace_insert(
+      &switchlink_db_tunnel_obj_map, &obj->ifindex_node, obj, obj->ifindex);
+  tommy_trie_inplace_insert(&switchlink_db_handle_obj_map,
+                            &obj->handle_node,
+                            obj,
+                            obj->tnl_intf_info.urif_h);
+  return SWITCHLINK_DB_STATUS_SUCCESS;
+}
+
+switchlink_db_status_t switchlink_db_tunnel_interface_get_info(
+    uint32_t ifindex, switchlink_db_tunnel_interface_info_t *tunnel_intf_info) {
+  ovs_assert(tunnel_intf_info);
+  switchlink_db_tunnel_intf_obj_t *obj;
+  obj = tommy_trie_inplace_search(&switchlink_db_tunnel_obj_map, ifindex);
+  if (!obj) {
+    return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
+  }
+  if (tunnel_intf_info) {
+    memcpy(tunnel_intf_info, &(obj->tnl_intf_info),
+           sizeof(switchlink_db_interface_info_t));
+  }
+  return SWITCHLINK_DB_STATUS_SUCCESS;
+}
+
+switchlink_db_status_t switchlink_db_tunnel_interface_delete(uint32_t ifindex) {
+  switchlink_db_tunnel_intf_obj_t *obj;
+  obj = tommy_trie_inplace_remove(&switchlink_db_tunnel_obj_map, ifindex);
   if (!obj) {
     return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
   }
@@ -824,10 +869,11 @@ switchlink_db_status_t switchlink_db_mdb_get_info(
   return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
 }
 
-void switchlink_db_init() {
+void switchlink_db_init(void) {
   tommy_trie_inplace_init(&switchlink_db_handle_obj_map);
   tommy_trie_inplace_init(&switchlink_db_interface_obj_map);
   tommy_trie_inplace_init(&switchlink_db_tuntap_obj_map);
+  tommy_trie_inplace_init(&switchlink_db_tunnel_obj_map);
   tommy_trie_inplace_init(&switchlink_db_bridge_obj_map);
   tommy_hashlin_init(&switchlink_db_mac_obj_hash);
   tommy_list_init(&switchlink_db_mac_obj_list);

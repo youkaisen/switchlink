@@ -2075,8 +2075,6 @@ sai_status_t sai_create_port(_Out_ sai_object_id_t *port_id,
     uint64_t portid = 0;
     uint32_t mtu = 0;
 
-    switch_device_t device = 0;
-
     switch_handle_t port_handle = SWITCH_API_INVALID_HANDLE;
     switch_api_port_info_t api_port_info = {0};
 
@@ -2087,7 +2085,7 @@ sai_status_t sai_create_port(_Out_ sai_object_id_t *port_id,
         switch (attribute->id) {
             case SAI_PORT_ATTR_HW_LANE_LIST:
                 portid = attribute->value.oid;
-                VLOG_INFO("[SAI_CREATE_PORT]: Port ID = %d\n", portid);
+                VLOG_INFO("[SAI_CREATE_PORT]: Port ID = %"PRIu64, portid);
                 break;
             case SAI_PORT_ATTR_MTU:
                 mtu = attribute->value.u32;
@@ -2108,7 +2106,7 @@ sai_status_t sai_create_port(_Out_ sai_object_id_t *port_id,
    // api_port_info.initial_admin_state = admin_state;
    // api_port_info.non_default_ppgs = switch_sai_port_non_default_ppgs();
 
-    status = switch_api_port_add(device, &api_port_info, &port_handle);
+    status = switch_api_port_add(1, &api_port_info, &port_handle);
     return status;
 }
 

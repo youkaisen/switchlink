@@ -20,6 +20,8 @@ limitations under the License.
 
 #include "switch_base_types.h"
 #include "switch_handle.h"
+#include "switch_interface.h"
+#include "switch_tunnel_int.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,6 +37,105 @@ extern "C" {
 
 /** Srv6 Segment ID Length */
 #define SWITCH_SRV6_SID_LENGTH 16
+
+/** tunnel handle wrappers */
+#define switch_tunnel_handle_create(_device) \
+  switch_handle_create(                      \
+      _device, SWITCH_HANDLE_TYPE_TUNNEL, sizeof(switch_tunnel_info_t))
+
+#define switch_tunnel_handle_delete(_device, _handle) \
+  switch_handle_delete(_device, SWITCH_HANDLE_TYPE_TUNNEL, _handle)
+
+#define switch_tunnel_get(_device, _handle, _info)                    \
+  ({                                                                  \
+    switch_tunnel_info_t *_tmp_tunnel_info = NULL;                    \
+    (void)(_tmp_tunnel_info == *_info);                               \
+    switch_handle_get(                                                \
+        _device, SWITCH_HANDLE_TYPE_TUNNEL, _handle, (void **)_info); \
+  })
+
+/** tunnel term handle wrappers */
+#define switch_tunnel_term_handle_create(_device)      \
+  switch_handle_create(_device,                        \
+                       SWITCH_HANDLE_TYPE_TUNNEL_TERM, \
+                       sizeof(switch_tunnel_term_info_t))
+
+#define switch_tunnel_term_handle_delete(_device, _handle) \
+  switch_handle_delete(_device, SWITCH_HANDLE_TYPE_TUNNEL_TERM, _handle)
+
+#define switch_tunnel_term_get(_device, _handle, _info)                    \
+  ({                                                                       \
+    switch_tunnel_term_info_t *_tmp_tunnel_term_info = NULL;               \
+    (void)(_tmp_tunnel_term_info == *_info);                               \
+    switch_handle_get(                                                     \
+        _device, SWITCH_HANDLE_TYPE_TUNNEL_TERM, _handle, (void **)_info); \
+  })
+
+/** vxlan default port */
+#define SWITCH_VXLAN_DEFAULT_PORT 4789
+
+
+#define SWITCH_TUNNEL_VNI_SIZE 24
+
+#define SWITCH_TUNNEL_VNI_VALID(_vni) \
+  (_vni < ((1 << SWITCH_TUNNEL_VNI_SIZE) - 1))
+
+//#define SWITCH_TUNNEL_HANDLE_SIZE 16384
+
+switch_status_t switch_tunnel_init(switch_device_t device);
+
+switch_status_t switch_tunnel_free(switch_device_t device);
+
+switch_status_t switch_tunnel_default_entries_add(switch_device_t device);
+
+switch_status_t switch_tunnel_default_entries_delete(switch_device_t device);
+
+/** tunnel device context */
+typedef struct switch_tunnel_context_s {
+  /** source ip rewrite hashtable */
+  switch_hashtable_t src_ip_hashtable;
+
+  /** destionation ip rewrite haashtable */
+  switch_hashtable_t dst_ip_hashtable;
+
+  /**
+   * ingress tunnel vni hashtable
+   * tunnel type and vni uniquely identifies a
+   * bridge domain
+   */
+  switch_hashtable_t ingress_tunnel_vni_hashtable;
+
+  /**
+   * egress tunnel vni hashtable
+   * tunnel type and bd uniquely identifies a vni
+   */
+  switch_hashtable_t egress_tunnel_vni_hashtable;
+
+  /** source vtep hashtable */
+  switch_hashtable_t src_vtep_hashtable;
+
+  /** destination vtep hashtable */
+  switch_hashtable_t dst_vtep_hashtable;
+
+  /** source ip rewrite index allocator */
+  switch_id_allocator_t *src_ip_id_allocator;
+
+  /** destination ip rewrite index allocator */
+  switch_id_allocator_t *dst_ip_id_allocator;
+
+  /** tunnel vni allocator */
+  switch_id_allocator_t *tunnel_vni_allocator;
+
+  /** mpls transit array indexed by label */
+  switch_array_t *mpls_transit_array;
+
+  /** data structure to store tunnel destination IPs */
+  Pvoid_t PJLarr_tunnel_dest;
+
+  /** map to avoid duplicate adds to tunnel_mgid table */
+  switch_array_t tunnel_mgid_map;
+
+} switch_tunnel_context_t;
 
 /* Tunnel types */
 typedef enum switch_tunnel_type_s {
@@ -153,6 +254,9 @@ typedef struct switch_api_tunnel_info_s {
   /** source ip address */
   switch_ip_addr_t src_ip;
 
+  /** source ip address */
+  switch_ip_addr_t dst_ip;
+
   /** time to live */
   switch_uint8_t ttl;
 
@@ -180,7 +284,34 @@ typedef struct switch_api_tunnel_info_s {
   /** IPv6 sr first segment */
   switch_uint8_t srv6_first_seg;
 
+  /** UDP port number **/
+  switch_uint16_t udp_port;
+
 } switch_api_tunnel_info_t;
+
+typedef struct switch_tunnel_info_s {
+  /** array of tunnel term objects */
+  switch_array_t tunnel_term_array;
+
+  /** api tunnel info */
+  switch_api_tunnel_info_t api_tunnel_info;
+
+  /** underlay vrf handle */
+  switch_handle_t underlay_vrf_handle;
+
+  /** tunnel type */
+  switch_tunnel_type_t tunnel_type;
+
+  /** tunnel source ip rewrite index */
+  switch_id_t sip_index;
+
+  /** tunnel vni for IPinIP tunnel */
+  switch_vni_t tunnel_vni;
+
+  /** interface handle */
+  switch_handle_t intf_handle;
+
+} switch_tunnel_info_t;
 
 typedef struct switch_api_tunnel_term_info_s {
   /** tunnel handle */
@@ -201,7 +332,17 @@ typedef struct switch_api_tunnel_term_info_s {
   /** destination ip address */
   switch_ip_addr_t dst_ip;
 
+  /** to Hold tunnel ID */
+  switch_uint32_t tunnel_id;
+
 } switch_api_tunnel_term_info_t;
+
+/** tunnel termination object */
+typedef struct switch_tunnel_term_info_s {
+  /** api tunnel term info */
+  switch_api_tunnel_term_info_t api_tunnel_term_info;
+
+} switch_tunnel_term_info_t;
 
 /** tunnel mapper */
 typedef struct switch_api_tunnel_mapper_s {
@@ -265,8 +406,8 @@ switch_status_t switch_api_tunnel_create(
     const switch_api_tunnel_info_t *tunnel_info,
     switch_handle_t *tunnel_handle);
 
-switch_status_t switch_api_tunnel_delete(const switch_device_t device,
-                                         const switch_handle_t tunnel_handle);
+switch_status_t switch_api_tunnel_delete(
+    const switch_handle_t tunnel_handle);
 
 switch_status_t switch_api_tunnel_info_get(
     const switch_device_t device,
@@ -290,7 +431,7 @@ switch_status_t switch_api_tunnel_term_create(
     switch_handle_t *tunnel_handle);
 
 switch_status_t switch_api_tunnel_term_delete(
-    const switch_device_t device, const switch_handle_t tunnel_term_handle);
+    const switch_handle_t tunnel_term_handle);
 
 switch_status_t switch_api_tunnel_term_get(
     const switch_device_t device,
