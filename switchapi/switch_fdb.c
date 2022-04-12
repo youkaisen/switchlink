@@ -377,8 +377,7 @@ switch_status_t switch_api_l2_forward_delete (
 
   SWITCH_MEMCPY(&l2_mac, &api_l2_info->dst_mac, sizeof(switch_mac_addr_t));
   status = switch_api_l2_handle_get(device, &l2_mac, &l2_handle);
-  if (status != SWITCH_STATUS_SUCCESS &&
-      status != SWITCH_STATUS_ITEM_NOT_FOUND) {
+  if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
         "l2 create failed on device %d: "
         "l2 get failed:(%s)\n",

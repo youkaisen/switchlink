@@ -95,8 +95,6 @@ sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
   char entry_string[SAI_MAX_ENTRY_STRING_LEN];
   switch_handle_t mac_handle;
 
-  SAI_LOG_ENTER();
-
   if (!fdb_entry) {
     status = SAI_STATUS_INVALID_PARAMETER;
     VLOG_ERR("null fdb entry: %s", sai_status_to_string(status));
@@ -128,8 +126,6 @@ sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
     return status;
   }
 
-  SAI_LOG_EXIT();
-
   return (sai_status_t)SAI_STATUS_SUCCESS;
 }
 
@@ -149,8 +145,6 @@ sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry) {
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
   char entry_string[SAI_MAX_ENTRY_STRING_LEN];
-
-  SAI_LOG_ENTER();
 
   if (!fdb_entry) {
     status = SAI_STATUS_INVALID_PARAMETER;
@@ -172,8 +166,6 @@ sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry) {
                   entry_string,
                   sai_status_to_string(status));
   }
-
-  SAI_LOG_EXIT();
 
   return (sai_status_t)status;
 }

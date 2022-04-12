@@ -349,10 +349,10 @@ mac_learning_configure_kctrl(const struct eth_addr src_mac,
 
     memset(&mac_entry, 0, sizeof(mac_entry));
     memcpy(&mac_entry.dst_mac, &src_mac.ea, sizeof(switch_mac_addr_t));
-    mac_entry.rif_handle = *tnl_intf_h;
     mac_entry.type = SWITCH_L2_FWD_TX;
 
     if (entry_type == SWITCHLINK_FDB_ADD) {
+        mac_entry.rif_handle = *tnl_intf_h;
         switch_api_l2_forward_create(0, &mac_entry, &mac_handle);
     } else if (entry_type == SWITCHLINK_FDB_DEL) {
         switch_api_l2_forward_delete(0, &mac_entry);

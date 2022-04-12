@@ -60,21 +60,25 @@ bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
 
 bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
                                                 bf_rt_table_data_hdl *data_hdl_t,
-                                                bf_rt_session_hdl *session_t) {
+                                                bf_rt_session_hdl *session_t,
+                                                bool entry_type) {
 
   bf_status_t status;
 
   VLOG_INFO("%s", __func__);
 
+  if (entry_type) {
+      // Data handle is created only when entry is added to backend
+      status = bf_rt_table_data_deallocate(data_hdl_t);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Cannot deallocate data handler");
+          return status;
+      }
+  }
+
   status = bf_rt_table_key_deallocate(key_hdl_t);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Cannot deallocate key handler");
-      return status;
-  }
-
-  status = bf_rt_table_data_deallocate(data_hdl_t);
-  if(status != BF_SUCCESS) {
-      VLOG_ERR("Cannot deallocate data handler");
       return status;
   }
 

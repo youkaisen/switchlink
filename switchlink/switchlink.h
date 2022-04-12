@@ -26,17 +26,6 @@ limitations under the License.
 #define SWITCHLINK_LOG_INFO 3
 #define SWITCHLINK_LOG_DEBUG 4
 
-#define NL_LOG_DEBUG(_x) \
-  if (g_log_level >= SWITCHLINK_LOG_DEBUG) printf _x
-#define NL_LOG_INFO(_x) \
-  if (g_log_level >= SWITCHLINK_LOG_INFO) printf _x
-#define NL_LOG_WARN(_x) \
-  if (g_log_level >= SWITCHLINK_LOG_WARN) printf _x
-#define NL_LOG_ERROR(_x) \
-  if (g_log_level >= SWITCHLINK_LOG_ERR) printf _x
-
-//unsigned short device = 0;
-
 typedef uint64_t switchlink_handle_t;
 typedef uint8_t switchlink_mac_addr_t[6];
 typedef struct switchlink_ip_addr_ {
@@ -51,14 +40,14 @@ typedef struct switchlink_ip_addr_ {
 extern uint8_t g_log_level;
 extern switchlink_handle_t g_default_vrf_h;
 extern switchlink_handle_t g_default_bridge_h;
-extern switchlink_handle_t g_default_stp_h;
 extern switchlink_handle_t g_cpu_rx_nhop_h;
 
 struct nl_sock *switchlink_get_nl_sock(void);
 
 /* P4-OVS: Define a flag for P4-OVS ?*/
-void *switchlink_init(void *);
+int switchlink_init(void);
 int switchlink_stop(void);
+void *switchlink_main(void *);
 
 typedef enum switchlink_entry_type {
   SWITCHLINK_FDB_NONE = 0,

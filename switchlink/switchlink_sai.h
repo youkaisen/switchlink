@@ -22,49 +22,12 @@ extern int switchlink_vrf_create(uint16_t vrf_id, switchlink_handle_t *vrf_h);
 extern int switchlink_interface_create(switchlink_db_interface_info_t *intf,
                                        switchlink_handle_t *intf_h);
 
-extern int switchlink_interface_forwarding_update(switchlink_handle_t intf_h,
-                                                  int af,
-                                                  bool value);
-
-extern int switchlink_interface_mc_forwarding_update(switchlink_handle_t intf_h,
-                                                     int af,
-                                                     bool value);
-
-extern int switchlink_interface_urpf_mode_update(switchlink_handle_t intf_h,
-                                                 int af,
-                                                 bool value);
-
 extern int switchlink_interface_delete(switchlink_db_interface_info_t *intf,
                                        switchlink_handle_t intf_h);
-
-extern int switchlink_stp_state_update(switchlink_db_interface_info_t *intf);
-
-extern int switchlink_stp_group_create(switchlink_handle_t *stp_h);
-
-extern int switchlink_stp_group_delete(switchlink_handle_t stp_h);
-
-extern int switchlink_add_interface_to_bridge(
-    switchlink_db_interface_info_t *intf);
-
-extern int switchlink_del_interface_from_bridge(
-    switchlink_db_interface_info_t *intf, switchlink_handle_t old_bridge_h);
-
-extern int switchlink_bridge_create(
-    switchlink_db_bridge_info_t *bridge_db_info);
-
-extern int switchlink_bridge_update(
-    switchlink_db_bridge_info_t *bridge_db_info);
-
-extern int switchlink_bridge_delete(
-    switchlink_db_bridge_info_t *bridge_db_info);
 
 extern int switchlink_lag_create(switchlink_handle_t *lag_h);
 
 extern int switchlink_mac_create(switchlink_mac_addr_t mac_addr,
-                                 switchlink_handle_t bridge_h,
-                                 switchlink_handle_t intf_h);
-
-extern int switchlink_mac_update(switchlink_mac_addr_t mac_addr,
                                  switchlink_handle_t bridge_h,
                                  switchlink_handle_t intf_h);
 
@@ -86,18 +49,6 @@ extern int switchlink_ecmp_delete(switchlink_db_ecmp_info_t *ecmp_info);
 extern int switchlink_route_create(switchlink_db_route_info_t *route_info);
 
 extern int switchlink_route_delete(switchlink_db_route_info_t *route_info);
-
-extern int switchlink_mroute_create(switchlink_db_mroute_info_t *mroute_info);
-
-extern int switchlink_mroute_delete(switchlink_db_mroute_info_t *mroute_info);
-
-extern int switchlink_mdb_create(switchlink_db_mdb_info_t *mdb_info);
-
-extern int switchlink_mdb_delete(switchlink_db_mdb_info_t *mdb_info);
-
-extern int switchlink_send_packet(char *buf,
-                                  uint32_t buf_size,
-                                  uint16_t port_id);
 
 extern int switchlink_tunnel_interface_create(
                                 switchlink_db_tunnel_interface_info_t *tnl_intf,

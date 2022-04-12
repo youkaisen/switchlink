@@ -33,20 +33,4 @@ typedef enum {
   SWITCHLINK_LINK_TYPE_BOND,
 } switchlink_link_type_t;
 
-typedef enum {
-  SWITCHLINK_STP_STATE_NONE,
-  SWITCHLINK_STP_STATE_DISABLED,
-  SWITCHLINK_STP_STATE_LEARNING,
-  SWITCHLINK_STP_STATE_FORWARDING,
-  SWITCHLINK_STP_STATE_BLOCKING,
-} switchlink_stp_state_t;
-
-typedef enum {
-  SWITCHLINK_URPF_MODE_NONE,
-  SWITCHLINK_URPF_MODE_STRICT,
-  SWITCHLINK_URPF_MODE_LOOSE,
-} switchlink_urpf_mode_t;
-
-extern void interface_change_type(uint32_t ifindex,
-                                  switchlink_intf_type_t type);
 #endif /* __SWITCHLINK_LINK_H__ */

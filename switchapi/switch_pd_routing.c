@@ -141,7 +141,8 @@ switch_status_t switch_pd_nexthop_table_entry(
       }
   }
 
-  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session);
+  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
+                                               entry_add);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to deallocate session and handles");
       return switch_pd_status_to_status(status);
@@ -237,7 +238,8 @@ switch_status_t switch_pd_neighbor_table_entry(
         }
   }
 
-  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session);
+  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
+                                               entry_add);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to deallocate session and handles");
       return switch_pd_status_to_status(status);
@@ -332,7 +334,8 @@ switch_status_t switch_pd_rif_mod_start_entry(
     }
   }
 
-  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session);
+  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
+                                               entry_add);
   if(status != BF_SUCCESS) {
     VLOG_ERR("Unable to deallocate session and handles");
     return switch_pd_status_to_status(status);
@@ -427,7 +430,8 @@ switch_status_t switch_pd_rif_mod_mid_entry(
       }
   }
 
-  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session);
+  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
+                                               entry_add);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to deallocate session and handles");
       return switch_pd_status_to_status(status);
@@ -522,7 +526,8 @@ switch_status_t switch_pd_rif_mod_end_entry(
       }
   }
 
-  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session);
+  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
+                                               entry_add);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to deallocate session and handles");
       return switch_pd_status_to_status(status);
@@ -646,7 +651,8 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
       }
   }
 
-  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session);
+  status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
+                                               entry_add);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to deallocate session and handles");
       return switch_pd_status_to_status(status);

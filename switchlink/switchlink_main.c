@@ -35,9 +35,6 @@ static int cookie = 0;
 
 VLOG_DEFINE_THIS_MODULE(switchlink_main);
 
-//uint8_t g_log_level = SWITCHLINK_LOG_ERR;
-uint8_t g_log_level = SWITCHLINK_LOG_DEBUG;
-
 enum {
   SWITCHLINK_MSG_LINK,
   SWITCHLINK_MSG_ADDR,
@@ -169,15 +166,12 @@ static void process_nl_message(struct nlmsghdr *nlmsg) {
       process_neigh_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_NEWNETCONF:
-     // process_netconf_msg(nlmsg, nlmsg->nlmsg_type);
-      break;
     case RTM_GETMDB:
     case RTM_NEWMDB:
     case RTM_DELMDB:
-     // process_mdb_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case NLMSG_DONE:
-      nl_sync_state();
+      // P4-OVS comment nl_sync_state();
       break;
     default:
       VLOG_DBG("Unknown netlink message(%d). Ignoring\n", nlmsg->nlmsg_type);
@@ -235,16 +229,11 @@ static void switchlink_nl_sock_intf_init(void) {
   nl_socket_add_memberships(g_nlsk, RTNLGRP_NOTIFY, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_NEIGH, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_IFADDR, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_MROUTE, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_ROUTE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_RULE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_NETCONF, 0);
+  //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_RULE, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_IFADDR, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_MROUTE, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_ROUTE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_RULE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_NETCONF, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_MDB, 0);
+  //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_RULE, 0);
 
   // set socket to be non-blocking
   nlsk_fd = nl_socket_get_fd(g_nlsk);
@@ -261,7 +250,7 @@ static void switchlink_nl_sock_intf_init(void) {
   }
 
   // start building state from the kernel
-  nl_sync_state();
+  // P4-OVS comment nl_sync_state();
 }
 
 static void process_nl_event_loop(void) {
@@ -293,7 +282,9 @@ struct nl_sock *switchlink_get_nl_sock(void) {
   return g_nlsk;
 }
 
-static void *switchlink_main(void) {
+void *switchlink_main(void *args) {
+  pthread_mutex_init(&cookie_mutex, NULL);
+  pthread_cond_init(&cookie_cv, NULL);
     /* P4 OVS: Switchlink Database maintain (Cache Optimized Trie like struct)
      * 1. Obj map stores handle for other objects (intf, bridge, ecmp, etc)
      * 2. Seperate Interface and Bridge Object maps (Trie inplace)
@@ -374,14 +365,15 @@ static void *switchlink_main(void) {
   return NULL;
 }
 
-void *switchlink_init(void *args) {
+//void *switchlink_init(void *args) {
+int switchlink_init(void) {
 
   pthread_mutex_init(&cookie_mutex, NULL);
   pthread_cond_init(&cookie_cv, NULL);
   int status = pthread_create(&switchlink_thread, NULL, switchlink_main, NULL);
   if (status) {
     VLOG_ERR("Switchlink main creation failed, error %d", status);
-    return;
+    return 0;
   }
   pthread_mutex_lock(&cookie_mutex);
   while (!cookie) {

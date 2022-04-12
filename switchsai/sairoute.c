@@ -156,7 +156,6 @@ sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
 sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
                                     _In_ uint32_t attr_count,
                                     _In_ const sai_attribute_t *attr_list) {
-  SAI_LOG_ENTER();
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   char entry_string[SAI_MAX_ENTRY_STRING_LEN];
@@ -169,7 +168,6 @@ sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
                   entry_string,
                   sai_status_to_string(status));
   }
-  SAI_LOG_EXIT();
 
   return (sai_status_t)status;
 }
@@ -188,7 +186,6 @@ sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
 * Note: IP prefix/mask expected in Network Byte Order.
 */
 sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
-  SAI_LOG_ENTER();
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
@@ -217,8 +214,6 @@ sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
     VLOG_ERR("failed to remove route entry: %s",
                   sai_status_to_string(status));
   }
-
-  SAI_LOG_EXIT();
 
   return (sai_status_t)status;
 }

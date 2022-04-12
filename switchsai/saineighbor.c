@@ -109,7 +109,6 @@ sai_status_t sai_create_neighbor_entry(
     _In_ const sai_neighbor_entry_t *neighbor_entry,
     _In_ uint32_t attr_count,
     _In_ const sai_attribute_t *attr_list) {
-  SAI_LOG_ENTER();
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_handle_t neighbor_handle = SWITCH_API_INVALID_HANDLE;
@@ -145,8 +144,6 @@ sai_status_t sai_create_neighbor_entry(
                   sai_status_to_string(status));
   }
 
-  SAI_LOG_EXIT();
-
   return (sai_status_t)status;
 }
 
@@ -165,7 +162,6 @@ sai_status_t sai_create_neighbor_entry(
 */
 sai_status_t sai_remove_neighbor_entry(
     _In_ const sai_neighbor_entry_t *neighbor_entry) {
-  SAI_LOG_ENTER();
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
@@ -196,8 +192,6 @@ sai_status_t sai_remove_neighbor_entry(
                   sai_status_to_string(status));
     status = SAI_STATUS_SUCCESS;
   }
-
-  SAI_LOG_EXIT();
 
   return (sai_status_t)status;
 }

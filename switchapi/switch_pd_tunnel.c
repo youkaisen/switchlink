@@ -143,7 +143,8 @@ switch_status_t switch_pd_tunnel_entry(
         }
     }
 
-    status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session);
+    status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
+                                                 entry_add);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to deallocate session and handles");
         return switch_pd_status_to_status(status);
@@ -247,7 +248,8 @@ switch_status_t switch_pd_tunnel_term_entry(
         }
     }
 
-    status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session);
+    status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
+                                                 entry_add);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to deallocate session and handles");
         return switch_pd_status_to_status(status);

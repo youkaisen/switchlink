@@ -34,7 +34,7 @@ limitations under the License.
 extern "C" {
 #endif
 
-#define PROGRAM_NAME "linux_networking_control"
+#define PROGRAM_NAME "linux_networking"
 
 bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
                                               const char *pipeline_name,
@@ -43,7 +43,8 @@ bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
 
 bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
                                                 bf_rt_table_data_hdl *data_hdl_t,
-                                                bf_rt_session_hdl *session_t);
+                                                bf_rt_session_hdl *session_t,
+                                                bool entry_type);
 
 #ifdef  __cplusplus
 }

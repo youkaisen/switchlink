@@ -73,51 +73,6 @@ void sai_log(int level, sai_api_t api, char *fmt, ...);
             ##arg);                         \
   } while (0);
 
-#ifdef SAI_LOG_STDOUT_ENABLE
-#define SAI_LOG_ENTER() \
-  SAI_LOG(SAI_LOG_LEVEL_DEBUG, api_id, "Entering %s\n", __FUNCTION__)
-
-#define SAI_LOG_EXIT() \
-  SAI_LOG(SAI_LOG_LEVEL_DEBUG, api_id, "Exiting %s\n", __FUNCTION__)
-
-#define SAI_LOG_DEBUG(fmt, arg...) \
-  SAI_LOG(SAI_LOG_LEVEL_DEBUG, api_id, fmt, ##arg)
-
-#define SAI_LOG_INFO(fmt, arg...) \
-  SAI_LOG(SAI_LOG_LEVEL_INFO, api_id, fmt, ##arg)
-
-#define SAI_LOG_NOTICE(fmt, arg...) \
-  SAI_LOG(SAI_LOG_LEVEL_NOTICE, api_id, fmt, ##arg)
-
-#define SAI_LOG_WARN(fmt, arg...) \
-  SAI_LOG(SAI_LOG_LEVEL_WARN, api_id, fmt, ##arg)
-
-#define SAI_LOG_ERROR(fmt, arg...) \
-  SAI_LOG(SAI_LOG_LEVEL_ERROR, api_id, fmt, ##arg)
-
-#define SAI_LOG_CRITICAL(fmt, arg...) \
-  SAI_LOG(SAI_LOG_LEVEL_CRITICAL, api_id, fmt, ##arg)
-
-#else
-#define SAI_LOG_ENTER() (void) api_id;
-
-#define SAI_LOG_EXIT() (void) api_id;
-
-/*
-#define SAI_LOG_DEBUG(fmt, arg...) \
-  VLOG_DBG(fmt, ##arg)
-
-#define SAI_LOG_INFO(fmt, arg...) \
-  VLOG_INFO(fmt, ##arg)
-
-#define SAI_LOG_WARN(fmt, arg...) \
-  VLOG_WARN(fmt, ##arg)
-
-#define SAI_LOG_ERROR(fmt, arg...) \
-  VLOG_ERR(fmt, ##arg)
-*/
-#endif
-
 // L2 learn timeout in milliseconds
 #define SAI_L2_LEARN_TIMEOUT 100
 

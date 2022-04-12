@@ -56,6 +56,9 @@ static void mac_create(switchlink_mac_addr_t mac_addr,
   if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
     if (old_intf_h != intf_h) {
       mac_delete(mac_addr, bridge_h);
+    } else {
+      VLOG_DBG("FDB entry is already exist");
+      return;
     }
   }
   VLOG_INFO("Create a FDB entry: 0x%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1],

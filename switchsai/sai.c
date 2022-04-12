@@ -23,10 +23,7 @@ limitations under the License.
 #include "switch_base_types.h"
 
 VLOG_DEFINE_THIS_MODULE(sai);
-static int api_log_level[SAI_API_MAX + 1];
-static char log_buffer[SAI_LOG_BUFFER_SIZE + 1];
 static sai_api_service_t sai_api_service;
-static sai_api_t api_id = SAI_API_UNSPECIFIED;
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,8 +73,6 @@ static const char *module[SAI_API_MAX] = {"SAI_API_UNSPECIFIED",
 sai_status_t sai_api_query(_In_ sai_api_t sai_api_id,
                            _Out_ void **api_method_table) {
   sai_status_t status = SAI_STATUS_SUCCESS;
-
-  SAI_LOG_ENTER();
 
   if (!api_method_table) {
     status = SAI_STATUS_INVALID_PARAMETER;
@@ -220,8 +215,6 @@ sai_status_t sai_api_query(_In_ sai_api_t sai_api_id,
     VLOG_ERR("api query failed. api %s not implemented\n",
                   module[sai_api_id]);
   }
-
-  SAI_LOG_EXIT();
 
   return status;
 }
@@ -399,14 +392,6 @@ sai_status_t sai_object_type_get_availability(
 }
 
 sai_status_t sai_initialize() {
-  sai_api_t api = 0;
-
-  for (api = 0; api < SAI_API_MAX; api++) {
-    sai_log_set(api, SAI_LOG_LEVEL_ERROR);
-  }
-
-  SAI_LOG_ENTER();
-
   // Init Switch API
   switch_api_init(0);
 
@@ -440,35 +425,6 @@ sai_status_t sai_initialize() {
 //  sai_wred_initialize(&sai_api_service);
   sai_tunnel_initialize(&sai_api_service);
 
-  SAI_LOG_EXIT();
-
-  return SAI_STATUS_SUCCESS;
-}
-
-sai_status_t sai_log_set(_In_ sai_api_t sai_api_id,
-                         _In_ sai_log_level_t log_level) {
-  sai_status_t status = SAI_STATUS_SUCCESS;
-  api_log_level[sai_api_id] = log_level;
-  return status;
-}
-
-void sai_log(int level, sai_api_t api, char *fmt, ...) {
-  va_list args;
-  // compare if level of each API here?
-  if (level < api_log_level[api]) {
-    return;
-  }
-  va_start(args, fmt);
-  vsnprintf(log_buffer, SAI_LOG_BUFFER_SIZE, fmt, args);
-  va_end(args);
-  syslog(LOG_DEBUG - level, "%s: %s", module[api], log_buffer);
-}
-
-sai_object_id_t sai_switch_id_query(_In_ sai_object_id_t sai_object_id) {
-  return 0;
-}
-
-sai_status_t sai_dbg_generate_dump(_In_ const char *dump_file_name) {
   return SAI_STATUS_SUCCESS;
 }
 

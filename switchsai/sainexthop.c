@@ -67,7 +67,6 @@ sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id,
                                        _In_ sai_object_id_t switch_id,
                                        _In_ uint32_t attr_count,
                                        _In_ const sai_attribute_t *attr_list) {
-  SAI_LOG_ENTER();
 
   const sai_attribute_t *attribute;
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -125,7 +124,6 @@ sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id,
     VLOG_ERR("failed to create nexthop: %s", sai_status_to_string(status));
   }
   *next_hop_id = next_hop_handle;
-  SAI_LOG_EXIT();
 
   return (sai_status_t)status;
 }
@@ -142,7 +140,6 @@ sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id,
 *    Failure status code on error
 */
 sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
-  SAI_LOG_ENTER();
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
@@ -162,8 +159,6 @@ sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
                   next_hop_id,
                   sai_status_to_string(status));
   }
-
-  SAI_LOG_EXIT();
 
   return (sai_status_t)status;
 }

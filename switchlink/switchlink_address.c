@@ -110,9 +110,9 @@ void process_address_msg(struct nlmsghdr *nlmsg, int type) {
         // In case if earlier interface was an L2 and now IP address is
         // assigned, then go ahead and delete previous interface and create a
         // new interface.
-        if (intf_type == SWITCHLINK_INTF_TYPE_L2_ACCESS) {
-          interface_change_type(addrmsg->ifa_index, SWITCHLINK_INTF_TYPE_L3);
-        }
+        //if (intf_type == SWITCHLINK_INTF_TYPE_L2_ACCESS) {
+        //  interface_change_type(addrmsg->ifa_index, SWITCHLINK_INTF_TYPE_L3);
+        //}
     }
     if (addr_valid) {
       switchlink_ip_addr_t null_gateway;

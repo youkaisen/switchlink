@@ -389,13 +389,9 @@ switch_status_t switch_api_router_mac_add(
   SWITCH_MEMCPY(&rmac_entry->mac, mac, sizeof(switch_mac_addr_t));
 
   SWITCH_LIST_INSERT(&(rmac_info->rmac_list), &(rmac_entry->node), rmac_entry);
-  //SWITCH_LIST_SORT(&rmac_info->rmac_list, switch_rmac_address_compare); //TODO: do we need this?
-  //rmac_entry->resv = TRUE;
 
-  VLOG_INFO("tunnel rmac added on device %d rmac handle 0x%lx mac %s\n",
-                   device,
-                   rmac_handle,
-                   switch_macaddress_to_string(&rmac_entry->mac));
+  VLOG_INFO("RMAC added on device %d rmac handle 0x%lx mac %s\n", device,
+             rmac_handle, switch_macaddress_to_string(&rmac_entry->mac));
 
   return status;
 }
