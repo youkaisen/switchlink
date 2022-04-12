@@ -164,6 +164,7 @@ EXTRA_DIST = \
 	ptf_tests/common/lib/ovs_p4ctl.py \
 	ptf_tests/common/lib/exceptions.py \
 	ptf_tests/common/lib/port_config.py \
+	ptf_tests/common/lib/telnet_connection.py \
 	ptf_tests/common/utils/ovsp4ctl_utils.py \
 	ptf_tests/common/utils/__init__.py \
 	ptf_tests/common/utils/test_utils.py \

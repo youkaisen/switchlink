@@ -1,3 +1,7 @@
+"""
+Generic utility scripts for P4OVS PTF scripts.
+"""
+
 from ptf import *
 from ptf.testutils import *
 
@@ -5,8 +9,12 @@ import json
 import os
 
 from common.lib.local_connection import Local
+from common.lib.telnet_connection import connectionManager
 
 def add_port_to_dataplane(port_list):
+    """
+    To add device ports to dataplane database for ptf usage
+    """
     local = Local()
     r,_,_ = local.execute_command("ip -j link show")
     result = json.loads(r)
@@ -59,3 +67,82 @@ def gen_dep_files_p4c_ovs_pipeline_builder(config_data):
     print(f"PASS: {cmd}")
 
     return True
+
+
+def vm_create(vm_location_list, memory="512M"):
+    """
+    To create VMs. Will stop the execution if anyone of VM creation gets failed.
+    Usage eg : result, vm_name = vm_create(vm_location_list)
+
+    """
+    num_of_vms = len(vm_location_list)
+    vm_list = []
+    for i in range(num_of_vms):
+        vm_name = f"VM{i}"
+        vm_list.append(vm_name)
+
+        cmd = f"(qemu-kvm -smp 2 -m {memory} \
+-boot c -cpu host -enable-kvm -nographic \
+-L /root/pc-bios -name VM{i} \
+-hda {vm_location_list[i]} \
+-object memory-backend-file,id=mem,size={memory},mem-path=/dev/hugepages,share=on \
+-mem-prealloc \
+-numa node,memdev=mem \
+-chardev socket,id=char{i},path=/tmp/vhost-user-{i} \
+-netdev type=vhost-user,id=netdev{i},chardev=char{i},vhostforce \
+-device virtio-net-pci,netdev=netdev{i} \
+-serial telnet::655{i},server,nowait &)"
+
+        p  = subprocess.Popen([cmd], shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        try:
+            out, err = p.communicate(timeout=5)
+            return False, f"VM{i}"
+
+        except Exception as err:
+            print(f"VM creation successful : VM{i}")
+
+    return True,vm_list
+
+def configure_vm(conn, command_list):
+    """
+    To login to VM instance and configure the VMs.
+    """
+    for cmd in command_list:
+        status = conn.sendCmd(cmd)
+        if status:
+            print(f"Command: {cmd} executed ")
+        else:
+            print("Failed to execute command {cmd}")
+
+
+def ping_test_using_telnet(conn, dst_ip, count="4"):
+    """
+    To test if ping to a destination works without any drop
+    """
+    cmd = f"ping {dst_ip} -c {count}"
+    dummy_ping(conn, cmd)
+
+    conn.sendCmd(cmd)
+    result = conn.readResult()
+    pkt_loss = 100
+    if result != None:
+        match = re.search('(\d*)% packet loss', result)
+        if match !=None:
+            pkt_loss = match.group(1)
+
+    if f"{count} received, 0% packet loss" in result:
+        print(f"PASS: Ping successful to destination {dst_ip}")
+        return True
+    else:
+        print(f"FAIL: Ping Failed to destination {dst_ip} with {pkt_loss}% loss")
+        return False
+
+def dummy_ping(conn, cmd):
+    """
+    Dummy traffic to ignore traffic drops dueto ARP learning etc
+    """
+    conn.sendCmd(cmd)
+    conn.readResult()
+
+
