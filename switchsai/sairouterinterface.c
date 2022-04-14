@@ -181,6 +181,15 @@ sai_status_t sai_create_router_interface(
     }
     api_rif_info.rmac_handle = rmac_handle;
 
+    attribute = get_attr_from_list(SAI_ROUTER_INTERFACE_ATTR_PORT_ID,
+                                   attr_list, attr_count);
+    if (attribute == NULL) {
+      status = SAI_STATUS_INVALID_PARAMETER;
+      VLOG_ERR("missing attribute %s", sai_status_to_string(status));
+      return status;
+    }
+
+    api_rif_info.rif_ifindex = attribute->value.u32;
     VLOG_INFO("Calling switch api create router interface");
     switch_status = switch_api_rif_create(0, &api_rif_info, &rif_handle);
     status = sai_switch_status_to_sai_status(switch_status);

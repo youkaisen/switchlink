@@ -18,6 +18,7 @@ limitations under the License.
 #include "switch_rif.h"
 #include <openvswitch/util.h>
 #include <openvswitch/vlog.h>
+#include <net/if.h>
 
 /* Local header includes */
 #include "switch_internal.h"
@@ -26,16 +27,50 @@ limitations under the License.
 #include "switch_status.h"
 #include "switch_device.h"
 
+#include <bf_types/bf_types.h>
+#include <port_mgr/dpdk/bf_dpdk_port_if.h>
+#include <port_mgr/bf_port_if.h>
+#define MAX_NO_OF_PORTS 56
+
 VLOG_DEFINE_THIS_MODULE(switch_rif);
 
-int pd_to_get_port_id()
+int pd_to_get_port_id(uint32_t rif_ifindex)
 {
+    // CR: replace this with bf_pal_get_port_id_from_mac??
     VLOG_INFO("%s", __func__);
-    static int port_id = 0;
-    int val = port_id;
-    port_id++;
-    return val;
+    char if_name[16] = {0};
+    bf_status_t bf_status = BF_SUCCESS;
+    int i = 0;
+    bf_dev_id_t bf_dev_id = 0;
+    bf_dev_port_t bf_dev_port;
+
+    if (!if_indextoname(rif_ifindex, if_name)) {
+        VLOG_ERR("Cannot get ifname for the index: %d", rif_ifindex);
+        return -1;
+    }
+
+    for(i = 0; i < MAX_NO_OF_PORTS; i++) {
+        struct port_info_t *port_info = NULL;
+        bf_dev_port = (bf_dev_port_t)i;
+        bf_status = (bf_pal_port_info_get(bf_dev_id,
+                                          bf_dev_port,
+                                          &port_info));
+        if (port_info == NULL)
+            continue;
+
+        if (!strcmp((port_info)->port_attrib.port_name, if_name)) {
+            // With multi-pipeline support, return target dp index for both direction
+            VLOG_INFO("found the target dp index %d for sdk port id %d",
+                      port_info->port_attrib.port_in_id, i);
+            return (port_info->port_attrib.port_in_id);
+        }
+    }
+
+    VLOG_ERR("Cannot find the target dp index for ifname : %s", if_name);
+
+    return -1;
 }
+
 /*
  * Routine Description:
  *   @brief initialize rif context and structs
@@ -147,8 +182,10 @@ switch_status_t switch_api_rif_create(
   status = switch_rif_get(device, *rif_handle, &rif_info);
   CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
 
-  api_rif_info->port_id = pd_to_get_port_id(); //this is currently stubbed to return a static counter value. in future proper backend function should be implemented to 
-  //get the proper port_id 
+  // When multipipe support is available in P4-OVS, make port_id as 
+  // in_port_id and out_port_id. Use accordingly for respective pipelines.
+  api_rif_info->port_id = pd_to_get_port_id(api_rif_info->rif_ifindex);
+
   SWITCH_MEMCPY(&rif_info->api_rif_info,
                 api_rif_info,
                 sizeof(switch_api_rif_info_t));

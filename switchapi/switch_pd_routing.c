@@ -581,6 +581,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
       return switch_pd_status_to_status(status);
   }
 
+  // CR: remove field_id for DPDK, as it is not avaiable in lnw.p4
   field_id = 1;
   status = bf_rt_key_field_set_value(key_hdl, field_id, 0);
   if(status != BF_SUCCESS) {
@@ -588,6 +589,8 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
       return switch_pd_status_to_status(status);
   }
 
+  // CR: double check if api_route_entry->ip_address.ip.v4addr is actually a
+  // route, check how mask need to be passed
   field_id = 2;
   status = bf_rt_key_field_set_value_ptr(key_hdl, field_id, (const uint8_t *)&api_route_entry->ip_address.ip.v4addr,
                                             sizeof(uint32_t));

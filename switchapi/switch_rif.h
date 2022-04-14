@@ -36,6 +36,7 @@ typedef enum switch_rif_type_s {
 
 /** rif information */
 typedef struct switch_api_rif_info_s {
+  uint32_t rif_ifindex;
   switch_rif_type_t rif_type;
 
   switch_handle_t intf_handle;
@@ -51,7 +52,7 @@ switch_status_t switch_rif_init(switch_device_t device);
 
 switch_status_t switch_rif_free(switch_device_t device);
 
-int pd_to_get_port_id();
+int pd_to_get_port_id(uint32_t rif_ifindex);
 
 switch_status_t switch_api_rif_attribute_get(
     const switch_device_t device,

@@ -126,6 +126,10 @@ int switchlink_interface_create(switchlink_db_interface_info_t *intf,
     attr_list[ac].id = SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS;
     memcpy(attr_list[ac].value.mac, intf->mac_addr, sizeof(sai_mac_t));
     ac++;
+    attr_list[ac].id = SAI_ROUTER_INTERFACE_ATTR_PORT_ID;
+    attr_list[ac].value.u32 = intf->ifindex;
+    ac++;
+
     status =
         rintf_api->create_router_interface(intf_h, 0, ac++, attr_list);
   }
