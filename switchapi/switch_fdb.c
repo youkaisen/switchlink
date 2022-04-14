@@ -53,7 +53,16 @@ switch_status_t switch_l2_hash_key_init(void *args,
 switch_int32_t switch_l2_hash_compare(const void *key1, const void *key2) {
   VLOG_INFO("%s", __func__);
 
-  return SWITCH_MEMCMP(key1, key2, SWITCH_L2_HASH_KEY_SIZE);
+  switch_l2_info_t *l2_info = (switch_l2_info_t *) key2;
+  switch_mac_addr_t l2_mac;
+
+  SWITCH_MEMSET(&l2_mac, 0x0, sizeof(switch_mac_addr_t));
+
+  if (l2_info) {
+      SWITCH_MEMCPY(&l2_mac, &l2_info->api_l2_info.dst_mac,
+                    sizeof(switch_mac_addr_t));
+  }
+  return SWITCH_MEMCMP(key1, &l2_mac, SWITCH_L2_HASH_KEY_SIZE);
 }
 
 switch_status_t switch_l2_init(switch_device_t device)
@@ -186,7 +195,7 @@ switch_status_t switch_api_l2_handle_get(
     const switch_mac_addr_t *l2_key,
     switch_handle_t *l2_handle) {
   switch_l2_context_t *l2_ctx = NULL;
-  switch_api_l2_info_t *api_l2_info = NULL;
+  switch_l2_info_t *l2_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
   VLOG_INFO("%s", __func__);
@@ -205,9 +214,9 @@ switch_status_t switch_api_l2_handle_get(
   }
 
   status = SWITCH_HASHTABLE_SEARCH(
-      &l2_ctx->l2_hashtable, (void *)l2_key, (void **)&api_l2_info);
+      &l2_ctx->l2_hashtable, (void *)l2_key, (void **)&l2_info);
   if (status == SWITCH_STATUS_SUCCESS) {
-    *l2_handle = api_l2_info->l2_handle;
+    *l2_handle = l2_info->api_l2_info.l2_handle;
   }
 
   return status;
@@ -296,16 +305,6 @@ switch_status_t switch_api_l2_forward_create(
             switch_error_to_string(status));
         return status;
     }
-
-    status = switch_pd_tunnel_entry(device, api_tunnel_info, true);
-    if (status != SWITCH_STATUS_SUCCESS) {
-        VLOG_ERR(
-            "tunnel create failed on device %d: "
-            "tunnel pd create failed :(%s)\n",
-            device,
-            switch_error_to_string(status));
-        return status;
-    }
   }
   else if(api_l2_info->type == SWITCH_L2_FWD_RX)
   {
@@ -348,9 +347,9 @@ switch_status_t switch_api_l2_forward_create(
               sizeof(switch_api_l2_info_t));
 
   status = SWITCH_HASHTABLE_INSERT(&l2_ctx->l2_hashtable,
-                                   &(api_l2_info->node),
+                                   &(l2_info->node),
                                    (void *)&l2_mac,
-                                   (void *)api_l2_info);
+                                   (void *)l2_info);
   SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
 
   *l2_handle = handle;
@@ -365,6 +364,7 @@ switch_status_t switch_api_l2_forward_delete (
   switch_handle_t l2_handle;
   switch_l2_context_t *l2_ctx = NULL;
   switch_mac_addr_t l2_mac;
+  switch_l2_info_t *l2_info = NULL;
 
   VLOG_INFO("%s", __func__);
 
@@ -385,6 +385,9 @@ switch_status_t switch_api_l2_forward_delete (
         switch_error_to_string(status));
     return status;
   }
+  status = SWITCH_HASHTABLE_DELETE(&l2_ctx->l2_hashtable, (void *)(&l2_mac),
+                                   (void **)&l2_info);
+  SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
 
   if(api_l2_info->type == SWITCH_L2_FWD_TX)
   {
@@ -418,10 +421,6 @@ switch_status_t switch_api_l2_forward_delete (
       VLOG_ERR("Invalid L2 FWD type");
       return SWITCH_STATUS_NOT_SUPPORTED;
   }
-
-  status = SWITCH_HASHTABLE_DELETE(
-      &l2_ctx->l2_hashtable, (void *)(&l2_mac), (void **)&api_l2_info);
-  SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
 
   return status;
 }

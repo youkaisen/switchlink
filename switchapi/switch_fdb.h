@@ -78,15 +78,14 @@ typedef struct switch_api_l2_info_s {
 
     switch_l2_info_type_t type;
 
-    /** hashtable node */
-    switch_hashnode_t node;
-  
     switch_handle_t l2_handle; //VISHALA: to check if its needed
 
 } switch_api_l2_info_t;
 
 typedef struct switch_l2_info_s
 {
+    /** hashtable node */
+    switch_hashnode_t node;
     
     switch_api_l2_info_t api_l2_info;
 

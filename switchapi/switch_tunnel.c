@@ -130,6 +130,16 @@ switch_status_t switch_api_tunnel_create(
         return status;
     }
 
+    status = switch_pd_tunnel_entry(device, api_tunnel_info, true);
+    if (status != SWITCH_STATUS_SUCCESS) {
+        VLOG_ERR(
+            "tunnel create failed on device %d: "
+            "tunnel pd create failed :(%s)\n",
+            device,
+            switch_error_to_string(status));
+        return status;
+    }
+
     SWITCH_MEMCPY(&tunnel_info->api_tunnel_info,
                 api_tunnel_info,
                 sizeof(switch_api_tunnel_info_t));
