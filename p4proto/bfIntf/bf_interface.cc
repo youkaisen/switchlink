@@ -32,15 +32,6 @@ defined [-Wundef] #if !GOOGLE_BASE_HAS_INITGOOGLE
 #include "stratum/hal/lib/common/common.pb.h"
 #include "stratum/lib/utils.h"
 #include <string>
-extern "C" {
-#include "bf_types/bf_types.h"
-#include "bf_types/bf_types.h"
-#ifdef P4TOFINO
-#include "tofino/bf_pal/bf_pal_port_intf.h"
-#else
-#include "bf_pal/bf_pal_port_intf.h"
-#endif
-}
 
 #if 0
 DEFINE_string(chassis_config_file, "/root/dpdk_chassis_config.pb.txt",

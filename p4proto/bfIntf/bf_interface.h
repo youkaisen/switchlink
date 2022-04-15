@@ -12,6 +12,15 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stddef.h>
+
+#include "osdep/p4_sde_osdep.h"
+#include "bf_types/bf_types.h"
+#ifdef P4TOFINO
+#include "tofino/bf_pal/bf_pal_port_intf.h"
+#else
+#include "bf_pal/bf_pal_port_intf.h"
+#endif
+
 #define PORT_NAME_LEN 64
 #define MAC_STRING_LEN 32
 

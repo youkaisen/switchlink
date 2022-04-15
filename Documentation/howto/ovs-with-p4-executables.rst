@@ -548,3 +548,10 @@ previously configured CONFIG params.
     one key, and fetches value for that previously configured KEY.
     tdi-portin-id: Port ID for Pipeline in Input Direction
     tdi-portin-id: Port ID for Pipeline in Output Direction
+
+gnmi-cli limitations::
+
+    a) All the optional parameters(like mempool name , pipeline name, etc)
+    should be provided before the mandatory parameters (eg. port-type). The CLI
+    considers the parameters only till the last mandatory parameter; After the
+    last Mandatory parameter, rest all the optional parameters are ignored.

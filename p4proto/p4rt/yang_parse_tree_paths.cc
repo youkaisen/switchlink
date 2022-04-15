@@ -1004,8 +1004,8 @@ void SetUpInterfacesInterfaceStateLastChange(uint64 node_id, uint32 port_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/ifindex
-void SetUpInterfacesInterfaceStateIfindex(uint32 node_id, uint32 port_id,
+// /interfaces/virtual-interface[name=<name>]/config/ifindex
+void SetUpInterfacesInterfaceConfigIfindex(uint32 node_id, uint32 port_id,
                                           TreeNode* node, YangParseTree* tree) {
   // Returns the port ID for the interface to be used by P4Runtime.
   auto on_poll_functor = GetOnPollFunctor(
@@ -3082,8 +3082,8 @@ TreeNodeEventHandler GetPollCounterFunctor(uint64 node_id, uint32 port_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/in-octets
-void SetUpInterfacesInterfaceStateCountersInOctets(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/in-octets
+void SetUpInterfacesInterfaceConfigCountersInOctets(uint64 node_id,
                                                    uint32 port_id,
                                                    TreeNode* node,
                                                    YangParseTree* tree) {
@@ -3105,8 +3105,8 @@ void SetUpInterfacesInterfaceStateCountersInOctets(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/out-octets
-void SetUpInterfacesInterfaceStateCountersOutOctets(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/out-octets
+void SetUpInterfacesInterfaceConfigCountersOutOctets(uint64 node_id,
                                                     uint32 port_id,
                                                     TreeNode* node,
                                                     YangParseTree* tree) {
@@ -3128,8 +3128,8 @@ void SetUpInterfacesInterfaceStateCountersOutOctets(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/in-unicast-pkts
-void SetUpInterfacesInterfaceStateCountersInUnicastPkts(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/in-unicast-pkts
+void SetUpInterfacesInterfaceConfigCountersInUnicastPkts(uint64 node_id,
                                                         uint32 port_id,
                                                         TreeNode* node,
                                                         YangParseTree* tree) {
@@ -3151,8 +3151,8 @@ void SetUpInterfacesInterfaceStateCountersInUnicastPkts(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/out-unicast-pkts
-void SetUpInterfacesInterfaceStateCountersOutUnicastPkts(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/out-unicast-pkts
+void SetUpInterfacesInterfaceConfigCountersOutUnicastPkts(uint64 node_id,
                                                          uint32 port_id,
                                                          TreeNode* node,
                                                          YangParseTree* tree) {
@@ -3174,8 +3174,8 @@ void SetUpInterfacesInterfaceStateCountersOutUnicastPkts(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/in-broadcast-pkts
-void SetUpInterfacesInterfaceStateCountersInBroadcastPkts(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/in-broadcast-pkts
+void SetUpInterfacesInterfaceConfigCountersInBroadcastPkts(uint64 node_id,
                                                           uint32 port_id,
                                                           TreeNode* node,
                                                           YangParseTree* tree) {
@@ -3197,8 +3197,8 @@ void SetUpInterfacesInterfaceStateCountersInBroadcastPkts(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/out-broadcast-pkts
-void SetUpInterfacesInterfaceStateCountersOutBroadcastPkts(
+// /interfaces/virtual-interface[name=<name>]/config/counters/out-broadcast-pkts
+void SetUpInterfacesInterfaceConfigCountersOutBroadcastPkts(
     uint64 node_id, uint32 port_id, TreeNode* node, YangParseTree* tree) {
   auto poll_functor = GetPollCounterFunctor(
       node_id, port_id, &PortCounters::out_broadcast_pkts, tree);
@@ -3218,8 +3218,8 @@ void SetUpInterfacesInterfaceStateCountersOutBroadcastPkts(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/in-discards
-void SetUpInterfacesInterfaceStateCountersInDiscards(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/in-discards
+void SetUpInterfacesInterfaceConfigCountersInDiscards(uint64 node_id,
                                                      uint32 port_id,
                                                      TreeNode* node,
                                                      YangParseTree* tree) {
@@ -3241,8 +3241,8 @@ void SetUpInterfacesInterfaceStateCountersInDiscards(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/out-discards
-void SetUpInterfacesInterfaceStateCountersOutDiscards(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/out-discards
+void SetUpInterfacesInterfaceConfigCountersOutDiscards(uint64 node_id,
                                                       uint32 port_id,
                                                       TreeNode* node,
                                                       YangParseTree* tree) {
@@ -3264,8 +3264,8 @@ void SetUpInterfacesInterfaceStateCountersOutDiscards(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/in-unknown-protos
-void SetUpInterfacesInterfaceStateCountersInUnknownProtos(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/in-unknown-protos
+void SetUpInterfacesInterfaceConfigCountersInUnknownProtos(uint64 node_id,
                                                           uint32 port_id,
                                                           TreeNode* node,
                                                           YangParseTree* tree) {
@@ -3287,8 +3287,8 @@ void SetUpInterfacesInterfaceStateCountersInUnknownProtos(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/in-multicast-pkts
-void SetUpInterfacesInterfaceStateCountersInMulticastPkts(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/in-multicast-pkts
+void SetUpInterfacesInterfaceConfigCountersInMulticastPkts(uint64 node_id,
                                                           uint32 port_id,
                                                           TreeNode* node,
                                                           YangParseTree* tree) {
@@ -3310,8 +3310,8 @@ void SetUpInterfacesInterfaceStateCountersInMulticastPkts(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/in-errors
-void SetUpInterfacesInterfaceStateCountersInErrors(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/in-errors
+void SetUpInterfacesInterfaceConfigCountersInErrors(uint64 node_id,
                                                    uint32 port_id,
                                                    TreeNode* node,
                                                    YangParseTree* tree) {
@@ -3333,8 +3333,8 @@ void SetUpInterfacesInterfaceStateCountersInErrors(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/out-errors
-void SetUpInterfacesInterfaceStateCountersOutErrors(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/out-errors
+void SetUpInterfacesInterfaceConfigCountersOutErrors(uint64 node_id,
                                                     uint32 port_id,
                                                     TreeNode* node,
                                                     YangParseTree* tree) {
@@ -3356,8 +3356,8 @@ void SetUpInterfacesInterfaceStateCountersOutErrors(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/in-fcs-errors
-void SetUpInterfacesInterfaceStateCountersInFcsErrors(uint64 node_id,
+// /interfaces/virtual-interface[name=<name>]/config/counters/in-fcs-errors
+void SetUpInterfacesInterfaceConfigCountersInFcsErrors(uint64 node_id,
                                                       uint32 port_id,
                                                       TreeNode* node,
                                                       YangParseTree* tree) {
@@ -3379,8 +3379,8 @@ void SetUpInterfacesInterfaceStateCountersInFcsErrors(uint64 node_id,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// /interfaces/virtual-interface[name=<name>]/state/counters/out-multicast-pkts
-void SetUpInterfacesInterfaceStateCountersOutMulticastPkts(
+// /interfaces/virtual-interface[name=<name>]/config/counters/out-multicast-pkts
+void SetUpInterfacesInterfaceConfigCountersOutMulticastPkts(
     uint64 node_id, uint32 port_id, TreeNode* node, YangParseTree* tree) {
   auto poll_functor = GetPollCounterFunctor(
       node_id, port_id, &PortCounters::out_multicast_pkts, tree);
@@ -4694,8 +4694,8 @@ TreeNode* YangParseTreePaths::AddSubtreeInterface(
   SetUpInterfacesInterfaceStateLastChange(node_id, port_id, node, tree);
 
   node = tree->AddNode(
-      GetPath("interfaces")("virtual-interface", name)("state")("ifindex")());
-  SetUpInterfacesInterfaceStateIfindex(node_id, port_id, node, tree);
+      GetPath("interfaces")("virtual-interface", name)("config")("ifindex")());
+  SetUpInterfacesInterfaceConfigIfindex(node_id, port_id, node, tree);
 
   node = tree->AddNode(
       GetPath("interfaces")("virtual-interface", name)("state")("name")());
@@ -4731,72 +4731,72 @@ TreeNode* YangParseTreePaths::AddSubtreeInterface(
   // realistic it is changed to SAMPLE with the period of 10s.
   // TODO(tmadejski) remove/update this functor once the support for reading
   // counters is implemented.
-  tree->AddNode(GetPath("interfaces")("virtual-interface", name)("state")("counters")())
+  tree->AddNode(GetPath("interfaces")("virtual-interface", name)("config")("counters")())
       ->SetTargetDefinedMode(tree->GetStreamSampleModeFunc());
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("in-octets")());
-  SetUpInterfacesInterfaceStateCountersInOctets(node_id, port_id, node, tree);
+      "virtual-interface", name)("config")("counters")("in-octets")());
+  SetUpInterfacesInterfaceConfigCountersInOctets(node_id, port_id, node, tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("out-octets")());
-  SetUpInterfacesInterfaceStateCountersOutOctets(node_id, port_id, node, tree);
+      "virtual-interface", name)("config")("counters")("out-octets")());
+  SetUpInterfacesInterfaceConfigCountersOutOctets(node_id, port_id, node, tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("in-unicast-pkts")());
-  SetUpInterfacesInterfaceStateCountersInUnicastPkts(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("in-unicast-pkts")());
+  SetUpInterfacesInterfaceConfigCountersInUnicastPkts(node_id, port_id, node,
                                                      tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("out-unicast-pkts")());
-  SetUpInterfacesInterfaceStateCountersOutUnicastPkts(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("out-unicast-pkts")());
+  SetUpInterfacesInterfaceConfigCountersOutUnicastPkts(node_id, port_id, node,
                                                       tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("in-broadcast-pkts")());
-  SetUpInterfacesInterfaceStateCountersInBroadcastPkts(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("in-broadcast-pkts")());
+  SetUpInterfacesInterfaceConfigCountersInBroadcastPkts(node_id, port_id, node,
                                                        tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("out-broadcast-pkts")());
-  SetUpInterfacesInterfaceStateCountersOutBroadcastPkts(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("out-broadcast-pkts")());
+  SetUpInterfacesInterfaceConfigCountersOutBroadcastPkts(node_id, port_id, node,
                                                         tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("in-multicast-pkts")());
-  SetUpInterfacesInterfaceStateCountersInMulticastPkts(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("in-multicast-pkts")());
+  SetUpInterfacesInterfaceConfigCountersInMulticastPkts(node_id, port_id, node,
                                                        tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("out-multicast-pkts")());
-  SetUpInterfacesInterfaceStateCountersOutMulticastPkts(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("out-multicast-pkts")());
+  SetUpInterfacesInterfaceConfigCountersOutMulticastPkts(node_id, port_id, node,
                                                         tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("in-discards")());
-  SetUpInterfacesInterfaceStateCountersInDiscards(node_id, port_id, node, tree);
+      "virtual-interface", name)("config")("counters")("in-discards")());
+  SetUpInterfacesInterfaceConfigCountersInDiscards(node_id, port_id, node, tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("out-discards")());
-  SetUpInterfacesInterfaceStateCountersOutDiscards(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("out-discards")());
+  SetUpInterfacesInterfaceConfigCountersOutDiscards(node_id, port_id, node,
                                                    tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("in-unknown-protos")());
-  SetUpInterfacesInterfaceStateCountersInUnknownProtos(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("in-unknown-protos")());
+  SetUpInterfacesInterfaceConfigCountersInUnknownProtos(node_id, port_id, node,
                                                        tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("in-errors")());
-  SetUpInterfacesInterfaceStateCountersInErrors(node_id, port_id, node, tree);
+      "virtual-interface", name)("config")("counters")("in-errors")());
+  SetUpInterfacesInterfaceConfigCountersInErrors(node_id, port_id, node, tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("out-errors")());
-  SetUpInterfacesInterfaceStateCountersOutErrors(node_id, port_id, node, tree);
+      "virtual-interface", name)("config")("counters")("out-errors")());
+  SetUpInterfacesInterfaceConfigCountersOutErrors(node_id, port_id, node, tree);
 
   node = tree->AddNode(GetPath("interfaces")(
-      "virtual-interface", name)("state")("counters")("in-fcs-errors")());
-  SetUpInterfacesInterfaceStateCountersInFcsErrors(node_id, port_id, node,
+      "virtual-interface", name)("config")("counters")("in-fcs-errors")());
+  SetUpInterfacesInterfaceConfigCountersInFcsErrors(node_id, port_id, node,
                                                    tree);
 
   node = tree->AddNode(GetPath("lacp")("interfaces")(
