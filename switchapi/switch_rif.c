@@ -28,8 +28,7 @@ limitations under the License.
 #include "switch_device.h"
 
 #include <bf_types/bf_types.h>
-#include <port_mgr/dpdk/bf_dpdk_port_if.h>
-#include <port_mgr/bf_port_if.h>
+#include "bf_pal/bf_pal_port_intf.h"
 #define MAX_NO_OF_PORTS 56
 
 VLOG_DEFINE_THIS_MODULE(switch_rif);
@@ -39,10 +38,10 @@ int pd_to_get_port_id(uint32_t rif_ifindex)
     // CR: replace this with bf_pal_get_port_id_from_mac??
     VLOG_INFO("%s", __func__);
     char if_name[16] = {0};
-    bf_status_t bf_status = BF_SUCCESS;
     int i = 0;
     bf_dev_id_t bf_dev_id = 0;
     bf_dev_port_t bf_dev_port;
+    bf_status_t bf_status;
 
     if (!if_indextoname(rif_ifindex, if_name)) {
         VLOG_ERR("Cannot get ifname for the index: %d", rif_ifindex);

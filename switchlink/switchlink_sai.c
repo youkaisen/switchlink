@@ -22,16 +22,13 @@ limitations under the License.
 #include <netinet/in.h>
 #include <sai.h>
 #include "util.h"
-#include "switchlink.h"
-#include "switchlink_link.h"
-#include "switchlink_neigh.h"
-#include "switchlink_db.h"
+#include "switchlink_sai.h"
 #include <linux/if_ether.h>
 #include "openvswitch/vlog.h"
 
 VLOG_DEFINE_THIS_MODULE(switchlink_sai);
 
-extern sai_status_t sai_initialize();
+extern sai_status_t sai_initialize(void);
 
 static sai_port_api_t *port_api = NULL;
 static sai_virtual_router_api_t *vrf_api = NULL;
@@ -41,14 +38,13 @@ static sai_neighbor_api_t *neigh_api = NULL;
 static sai_next_hop_api_t *nhop_api = NULL;
 static sai_next_hop_group_api_t *nhop_group_api = NULL;
 static sai_route_api_t *route_api = NULL;
-static sai_l2mc_api_t *l2mc_api = NULL;
 static sai_hostif_api_t *host_intf_api = NULL;
 static sai_tunnel_api_t *tunnel_api = NULL;
 
 
 // This object ID is not used.
 // Introduced this variable to be inline with submodules/SAI declarations
-static sai_object_id_t obj_id = 0;
+//static sai_object_id_t obj_id = 0;
 
 static inline uint32_t ipv4_prefix_len_to_mask(uint32_t prefix_len) {
   return (prefix_len ? (((uint32_t)0xFFFFFFFF) << (32 - prefix_len)) : 0);

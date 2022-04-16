@@ -82,14 +82,6 @@ extern "C" {
 
 //#define SWITCH_TUNNEL_HANDLE_SIZE 16384
 
-switch_status_t switch_tunnel_init(switch_device_t device);
-
-switch_status_t switch_tunnel_free(switch_device_t device);
-
-switch_status_t switch_tunnel_default_entries_add(switch_device_t device);
-
-switch_status_t switch_tunnel_default_entries_delete(switch_device_t device);
-
 /** tunnel device context */
 typedef struct switch_tunnel_context_s {
   /** source ip rewrite hashtable */
@@ -437,6 +429,24 @@ switch_status_t switch_api_tunnel_term_get(
     const switch_device_t device,
     const switch_handle_t tunnel_term_handle,
     switch_api_tunnel_term_info_t *api_term_info);
+
+switch_status_t switch_tunnel_init(switch_device_t device);
+
+switch_status_t switch_tunnel_free(switch_device_t device);
+
+switch_status_t switch_tunnel_default_entries_add(switch_device_t device);
+
+switch_status_t switch_tunnel_default_entries_delete(switch_device_t device);
+
+switch_status_t switch_pd_tunnel_entry(
+    switch_device_t device,
+    const switch_api_tunnel_info_t *api_tunnel_info_t,
+    bool entry_add);
+
+switch_status_t switch_pd_tunnel_term_entry(
+    switch_device_t device,
+    const switch_api_tunnel_term_info_t *api_tunnel_term_info_t,
+    bool entry_add);
 
 #ifdef __cplusplus
 }

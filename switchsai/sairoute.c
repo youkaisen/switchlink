@@ -33,7 +33,7 @@
 
 VLOG_DEFINE_THIS_MODULE(sairoute);
 
-static sai_api_t api_id = SAI_API_ROUTE;
+//static sai_api_t api_id = SAI_API_ROUTE;
 
 static void sai_route_entry_to_string(_In_ const sai_route_entry_t *route_entry,
                                       _Out_ char *entry_string) {
@@ -87,7 +87,7 @@ static void sai_route_entry_attribute_parse(
   }
 }
 
-sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
+static sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
                                     uint32_t attr_count,
                                     const sai_attribute_t *attr_list) {
   switch_ip_addr_t ip_addr;
@@ -153,7 +153,7 @@ sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
 * Note: IP prefix/mask expected in Network Byte Order.
 *
 */
-sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
+static sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
                                     _In_ uint32_t attr_count,
                                     _In_ const sai_attribute_t *attr_list) {
 
@@ -185,14 +185,13 @@ sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
 *
 * Note: IP prefix/mask expected in Network Byte Order.
 */
-sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
+static sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
   switch_ip_addr_t ip_addr;
   switch_api_route_entry_t api_route_entry;
   switch_handle_t vrf_handle = 0;
-  switch_handle_t nhop_handle = 0;
 
   if (!route_entry) {
     status = SAI_STATUS_INVALID_PARAMETER;

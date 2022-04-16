@@ -23,7 +23,7 @@ limitations under the License.
 #include "switch_internal.h"
 
 #include <bf_types/bf_types.h>
-#include <port_mgr/dpdk/bf_dpdk_port_if.h>
+#include "bf_pal/bf_pal_port_intf.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_pd_port);
 

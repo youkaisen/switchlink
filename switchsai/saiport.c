@@ -41,7 +41,7 @@ extern switch_status_t switch_api_port_attribute_get(
     switch_handle_t port_handle,
     switch_uint64_t flags,
     switch_port_attribute_info_t *port_attr_info);
-*/
+
 static sai_api_t api_id = SAI_API_PORT;
 
 static char *port_attr_map[] = {
@@ -129,7 +129,7 @@ static char *port_attr_map[] = {
     "SAI_PORT_ATTR_EEE_WAKE_TIME",
     "SAI_PORT_ATTR_PORT_POOL_LIST",
 };
-/*
+
 switch_status_t sai_port_counter_to_switch_port_counter(
     sai_stat_id_t port_stat_id, switch_port_counter_id_t *counter_id) {
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -553,9 +553,9 @@ switch_status_t sai_port_counter_to_switch_port_counter(
 //      return SWITCH_PACKET_TYPE_MULTICAST;
 //
 //    case SAI_PORT_ATTR_FLOOD_STORM_CONTROL_POLICER_ID:
-//      /*
-//       * TODO: Need to include unknown multicast as well.
-//       */
+//
+//       // TODO: Need to include unknown multicast as well.
+//
 //      return SWITCH_PACKET_TYPE_UNICAST;
 //
 //    default:
@@ -681,7 +681,7 @@ static void sai_port_convert_cos_bmap_icos_map(switch_uint32_t cos_bmap,
 *    Failure status code on error
 */
 
-sai_status_t sai_set_port_attribute(_In_ sai_object_id_t port_id,
+static sai_status_t sai_set_port_attribute(_In_ sai_object_id_t port_id,
                                     _In_ const sai_attribute_t *attr) {
     sai_status_t status = SAI_STATUS_SUCCESS;
     return status;
@@ -730,7 +730,7 @@ sai_status_t sai_set_port_attribute(_In_ sai_object_id_t port_id,
 //                      sai_status_to_string(status));
 //        return status;
 //      }
-//      /* TBD: Default BD */
+//      // TBD: Default BD
 //      break;
 //
 //    case SAI_PORT_ATTR_QOS_DEFAULT_TC:
@@ -1110,9 +1110,7 @@ sai_status_t sai_set_port_attribute(_In_ sai_object_id_t port_id,
 //      break;
 //
 //    case SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE:
-//      /*
-//       * To attach sflow session to the port, switchApi uses ACL.
-//       */
+//       // To attach sflow session to the port, switchApi uses ACL.
 //      sflow_handle = ((attr->value.oid == SAI_NULL_OBJECT_ID)
 //                          ? SWITCH_API_INVALID_HANDLE
 //                          : (switch_handle_t)attr->value.oid);
@@ -1392,7 +1390,7 @@ sai_status_t sai_set_port_attribute(_In_ sai_object_id_t port_id,
 *    Failure status code on error
 */
 
-sai_status_t sai_get_port_attribute(_In_ sai_object_id_t port_id,
+static sai_status_t sai_get_port_attribute(_In_ sai_object_id_t port_id,
                                     _In_ uint32_t attr_count,
                                     _Inout_ sai_attribute_t *attr_list) {
     sai_status_t status = SAI_STATUS_SUCCESS;
@@ -2066,7 +2064,7 @@ sai_status_t sai_get_port_attribute(_In_ sai_object_id_t port_id,
  * *
  * * @return #SAI_STATUS_SUCCESS on success Failure status code on error
  * */
-sai_status_t sai_create_port(_Out_ sai_object_id_t *port_id,
+static sai_status_t sai_create_port(_Out_ sai_object_id_t *port_id,
                              _In_ sai_object_id_t switch_id,
                              _In_ uint32_t attr_count,
                              _In_ const sai_attribute_t *attr_list) {
@@ -2196,7 +2194,7 @@ sai_status_t sai_create_port(_Out_ sai_object_id_t *port_id,
 //  return status;
 //}
 
-sai_status_t sai_remove_port(_In_ sai_object_id_t port_id) {
+static sai_status_t sai_remove_port(_In_ sai_object_id_t port_id) {
     sai_status_t status = SAI_STATUS_SUCCESS;
     return status;
 }
@@ -2230,7 +2228,7 @@ sai_status_t sai_remove_port(_In_ sai_object_id_t port_id) {
 */
 
 
-sai_status_t sai_get_port_stats(_In_ sai_object_id_t port_id,
+static sai_status_t sai_get_port_stats(_In_ sai_object_id_t port_id,
                                 _In_ uint32_t number_of_counters,
                                 _In_ const sai_stat_id_t *counter_ids,
                                 _Out_ uint64_t *counters) {
@@ -2339,7 +2337,7 @@ sai_status_t sai_get_port_stats(_In_ sai_object_id_t port_id,
  * @return #SAI_STATUS_SUCCESS on success, failure status code on error
  */
 
-sai_status_t sai_clear_port_stats(_In_ sai_object_id_t port_id,
+static sai_status_t sai_clear_port_stats(_In_ sai_object_id_t port_id,
                                   _In_ uint32_t number_of_counters,
                                   _In_ const sai_stat_id_t *counter_ids) {
     sai_status_t status = SAI_STATUS_SUCCESS;
@@ -2443,7 +2441,7 @@ sai_status_t sai_clear_port_stats(_In_ sai_object_id_t port_id,
  * @return #SAI_STATUS_SUCCESS on success, failure status code on error
  */
 
-sai_status_t sai_clear_port_all_stats(_In_ sai_object_id_t port_id) {
+static sai_status_t sai_clear_port_all_stats(_In_ sai_object_id_t port_id) {
     sai_status_t status = SAI_STATUS_SUCCESS;
     return status;
 }

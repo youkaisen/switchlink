@@ -29,7 +29,7 @@
 #include <openvswitch/vlog.h>
 #include "switch_base_types.h"
 
-static sai_api_t api_id = SAI_API_VIRTUAL_ROUTER;
+//static sai_api_t api_id = SAI_API_VIRTUAL_ROUTER;
 
 VLOG_DEFINE_THIS_MODULE(saivirtualrouter);
 
@@ -67,7 +67,7 @@ static void sai_vrf_entry_attribute_parse(uint32_t attr_count,
 *  - SAI_STATUS_ADDR_NOT_FOUND if neither SAI_SWITCH_ATTR_SRC_MAC_ADDRESS nor
 *    SAI_VIRTUAL_ROUTER_ATTR_SRC_MAC_ADDRESS is set.
 */
-sai_status_t sai_create_virtual_router_entry(
+static sai_status_t sai_create_virtual_router_entry(
     _Out_ sai_object_id_t *vr_id,
     _In_ sai_object_id_t switch_id,
     _In_ uint32_t attr_count,
@@ -103,7 +103,7 @@ sai_status_t sai_create_virtual_router_entry(
 *    SAI_STATUS_SUCCESS on success
 *    Failure status code on error
 */
-sai_status_t sai_remove_virtual_router_entry(_In_ sai_object_id_t vr_id) {
+static sai_status_t sai_remove_virtual_router_entry(_In_ sai_object_id_t vr_id) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;

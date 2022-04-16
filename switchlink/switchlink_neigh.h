@@ -19,6 +19,7 @@ limitations under the License.
 
 #include <stdbool.h>
 
+struct nlmsghdr;
 extern void neigh_create(switchlink_handle_t vrf_h,
                          switchlink_ip_addr_t *ipaddr,
                          switchlink_mac_addr_t mac_addr,
@@ -28,5 +29,7 @@ extern void switchlink_linux_mac_update(switchlink_mac_addr_t mac_addr,
                                         switchlink_handle_t bridge_h,
                                         switchlink_handle_t intf_h,
                                         bool create);
+
+void process_neigh_msg(struct nlmsghdr *nlmsg, int type);
 
 #endif /* __SWITCHLINK_NEIGH_H__ */

@@ -179,7 +179,7 @@ switch_status_t switch_handle_type_free(switch_device_t device,
   return status;
 }
 
-switch_handle_t __switch_handle_create(switch_device_t device,
+static switch_handle_t __switch_handle_create(switch_device_t device,
                                        switch_handle_type_t type,
                                        unsigned int count) {
   switch_device_context_t *device_ctx = NULL;
@@ -240,7 +240,7 @@ switch_handle_t __switch_handle_create(switch_device_t device,
   return handle;
 }
 
-switch_status_t _switch_handle_delete_contiguous(switch_device_t device,
+static switch_status_t _switch_handle_delete_contiguous(switch_device_t device,
                                                  switch_handle_t handle,
                                                  uint32_t count) {
   switch_device_context_t *device_ctx = NULL;
@@ -281,12 +281,12 @@ switch_status_t _switch_handle_delete_contiguous(switch_device_t device,
   return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t _switch_handle_delete(switch_device_t device,
+static switch_status_t _switch_handle_delete(switch_device_t device,
                                       switch_handle_t handle) {
   return _switch_handle_delete_contiguous(device, handle, 1);
 }
 
-switch_handle_t _switch_handle_create(switch_device_t device,
+static switch_handle_t _switch_handle_create(switch_device_t device,
                                       switch_handle_type_t type,
                                       switch_uint32_t size,
                                       unsigned int count) {

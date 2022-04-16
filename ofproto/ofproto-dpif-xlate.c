@@ -2590,7 +2590,7 @@ is_admissible(struct xlate_ctx *ctx, struct xport *in_port,
 }
 
 #if P4SAI
-uint32_t
+static uint32_t
 get_tunnel_ifindex(struct xport *port)
 {
     if (!port || !port->netdev) {

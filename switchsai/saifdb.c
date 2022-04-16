@@ -33,7 +33,7 @@
 
 VLOG_DEFINE_THIS_MODULE(saifdb);
 
-static sai_api_t api_id = SAI_API_FDB;
+//static sai_api_t api_id = SAI_API_FDB;
 
 static void sai_fdb_entry_to_string(_In_ const sai_fdb_entry_t *fdb_entry,
                                     _Out_ char *entry_string) {
@@ -50,7 +50,6 @@ static void sai_fdb_entry_to_string(_In_ const sai_fdb_entry_t *fdb_entry,
 
 static sai_status_t sai_fdb_entry_parse(const sai_fdb_entry_t *fdb_entry,
                                         switch_api_l2_info_t *mac_entry) {
-  sai_object_type_t obj_type;
 
   memcpy(mac_entry->dst_mac.mac_addr, fdb_entry->mac_address, ETH_ALEN);
   return SWITCH_STATUS_SUCCESS;
@@ -61,7 +60,6 @@ static void sai_fdb_entry_attribute_parse(uint32_t attr_count,
                                           switch_api_l2_info_t *mac_entry) {
   const sai_attribute_t *attribute;
   uint32_t i = 0;
-  sai_packet_action_t action = 0;
 
   for (i = 0; i < attr_count; i++) {
     attribute = &attr_list[i];
@@ -86,7 +84,7 @@ static void sai_fdb_entry_attribute_parse(uint32_t attr_count,
 *    SAI_STATUS_SUCCESS on success
 *    Failure status code on error
 */
-sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
+static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
                                   _In_ uint32_t attr_count,
                                   _In_ const sai_attribute_t *attr_list) {
   switch_api_l2_info_t mac_entry;
@@ -140,7 +138,7 @@ sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
 *    SAI_STATUS_SUCCESS on success
 *    Failure status code on error
 */
-sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry) {
+static sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry) {
   switch_api_l2_info_t mac_entry;
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;

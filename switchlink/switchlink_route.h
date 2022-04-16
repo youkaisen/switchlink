@@ -25,4 +25,6 @@ extern void route_create(switchlink_handle_t vrf_h,
 
 extern void route_delete(switchlink_handle_t vrf_h, switchlink_ip_addr_t *dst);
 
+void process_route_msg(struct nlmsghdr *nlmsg, int type);
+
 #endif /* __SWITCHLINK_ROUTE_H__ */

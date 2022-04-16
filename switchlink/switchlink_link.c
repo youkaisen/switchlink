@@ -192,7 +192,6 @@ void process_link_msg(struct nlmsghdr *nlmsg, int type) {
   int nest_attr_type;
 
   switchlink_db_interface_info_t intf_info;
-  switchlink_db_tuntap_info_t tunp;
   switchlink_db_tunnel_interface_info_t tnl_intf_info;
   switchlink_link_type_t link_type = SWITCHLINK_LINK_TYPE_NONE;
 
@@ -321,6 +320,7 @@ void process_link_msg(struct nlmsghdr *nlmsg, int type) {
 */
       case SWITCHLINK_LINK_TYPE_BRIDGE:
       case SWITCHLINK_LINK_TYPE_BOND:
+      case SWITCHLINK_LINK_TYPE_NONE:
       case SWITCHLINK_LINK_TYPE_ETH:
         break;
 
@@ -333,7 +333,6 @@ void process_link_msg(struct nlmsghdr *nlmsg, int type) {
         break;
 
       case SWITCHLINK_LINK_TYPE_VXLAN: {
-        switchlink_db_status_t status;
         ovs_strzcpy(tnl_intf_info.ifname, intf_info.ifname,
                     SWITCHLINK_INTERFACE_NAME_LEN_MAX);
         tnl_intf_info.dst_ip = remote_ip_addr;
@@ -406,7 +405,7 @@ vxlan_dump_cache(struct unixctl_conn *conn, int argc OVS_UNUSED,
 }
 #endif
 
-void switchlink_link_init() {
+void switchlink_link_init(void) {
   /* P4OVS: create default vrf*/
   switchlink_vrf_create(SWITCHLINK_DEFAULT_VRF_ID, &g_default_vrf_h);
 

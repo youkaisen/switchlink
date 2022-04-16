@@ -21,6 +21,7 @@ limitations under the License.
 #include <netlink/netlink.h>
 #include <netlink/msg.h>
 #include <netlink/route/neighbour.h>
+#include <net/if.h>
 #include "util.h"
 #include "switchlink.h"
 #include "switchlink_link.h"
@@ -160,15 +161,14 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
     return;
   }
 
-  VLOG_DBG(
-      ("%sneigh: family = %d, ifindex = %d, state = 0x%x, "
-       "flags = 0x%x, type = %d\n",
+  VLOG_DBG("%sneigh: family = %d, ifindex = %d, state = 0x%x, \
+       flags = 0x%x, type = %u\n",
        ((type == RTM_NEWNEIGH) ? "new" : "del"),
        nbh->ndm_family,
        nbh->ndm_ifindex,
        nbh->ndm_state,
        nbh->ndm_flags,
-       nbh->ndm_type));
+       nbh->ndm_type);
 
   switchlink_db_interface_info_t ifinfo;
   if (switchlink_db_interface_get_info(nbh->ndm_ifindex, &ifinfo) !=
@@ -200,7 +200,8 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
               ipaddr.prefix_len = 128;
             }
         } else {
-            VLOG_DBG(("Ignoring un-used neighbor states\n", attr_type));
+            VLOG_DBG("Ignoring unused neighbor states for attribute type %d\n",
+                     attr_type);
             return;
         }
         break;
@@ -211,7 +212,7 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
         break;
       }
       default:
-        VLOG_DBG(("neigh: skipping attr(%d)\n", attr_type));
+        VLOG_DBG("neigh: skipping attr %d\n", attr_type);
         break;
     }
     attr = nla_next(attr, &attrlen);

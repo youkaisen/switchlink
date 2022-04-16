@@ -194,6 +194,12 @@ switch_status_t switch_table_init(switch_device_t device,
 
 switch_status_t switch_table_free(switch_device_t device);
 
+switch_status_t switch_api_table_size_get_internal(switch_device_t device,
+                                                   switch_table_id_t table_id,
+                                                   switch_size_t *table_size);
+
+switch_status_t switch_table_default_sizes_get(switch_size_t *table_sizes);
+
 #ifdef __cplusplus
 }
 #endif

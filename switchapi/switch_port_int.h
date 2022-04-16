@@ -179,6 +179,7 @@ static inline char *switch_port_oper_status_to_string(
     case SWITCH_PORT_OPER_STATUS_DOWN:
       return "DOWN";
     case SWITCH_PORT_OPER_STATUS_MAX:
+    case SWITCH_PORT_OPER_STATUS_NONE:
     default:
       return "NONE";
   }

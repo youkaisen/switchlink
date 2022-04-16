@@ -4,6 +4,7 @@ Copyright 2013-present Barefoot Networks, Inc.
 */
 
 #include "switch_internal.h"
+#include "switch_table.h"
 #include <openvswitch/vlog.h>
 #include <config.h>
 
@@ -14,7 +15,7 @@ extern "C" {
 #define __FILE_ID__ SWITCH_TABLE
 VLOG_DEFINE_THIS_MODULE(switch_table);
 
-char *switch_table_id_to_string(switch_table_id_t table_id) {
+static char *switch_table_id_to_string(switch_table_id_t table_id) {
   switch (table_id) {
     case SWITCH_TABLE_INGRESS_PORT_MAPPING:
       return "ingress port mapping";
@@ -90,7 +91,34 @@ char *switch_table_id_to_string(switch_table_id_t table_id) {
       return "tunnel dip v6 rewrite";
     case SWITCH_TABLE_TUNNEL_MPLS:
       return "mpls";
-
+    case SWITCH_TABLE_IPV4_VTEP:
+          return "ipv4 vtep";
+    case SWITCH_TABLE_IPV6_VTEP:
+          return "ipv4 vtep";
+    case SWITCH_TABLE_TUNNEL_TERM:
+          return "tunnel term";
+    case SWITCH_TABLE_EGRESS_IPV4_ACL:
+          return "egress ipv4 acl";
+    case SWITCH_TABLE_EGRESS_IPV6_ACL:
+          return "egress ipv6 acl";
+    case SWITCH_TABLE_ECN_ACL:
+          return "ecn acl";
+    case SWITCH_TABLE_PFC_ACL:
+          return "pfc acl";
+    case SWITCH_TABLE_EGRESS_PFC_ACL:
+          return "egress pfc acl";
+    case SWITCH_TABLE_MAX_ACL:
+          return "max acl";
+    case SWITCH_TABLE_INGRESS_QOS_MAP:
+          return "ingress qos map";
+    case SWITCH_TABLE_WRED:
+          return "wred";
+    case SWITCH_TABLE_NEIGHBOR:
+          return "neighbor";
+    case SWITCH_TABLE_TUNNEL_SIP_REWRITE:
+          return "tunnel sip rewrite";
+    case SWITCH_TABLE_MAX:
+          return "none";
     /* BD */
     case SWITCH_TABLE_PORT_VLAN_TO_BD_MAPPING:
       return "port vlan bd mapping";
@@ -236,6 +264,7 @@ char *switch_table_id_to_string(switch_table_id_t table_id) {
     case SWITCH_TABLE_METER_COLOR_ACTION:
       return "meter color action";
 
+    case SWITCH_TABLE_NONE:
     default:
       return "unknown";
   }
@@ -770,5 +799,5 @@ switch_status_t switch_table_default_sizes_get(switch_size_t *table_sizes) {
 switch_status_t switch_api_table_size_get(switch_device_t device,
                                           switch_table_id_t table_id,
                                           switch_size_t *table_size) {
-    switch_api_table_size_get_internal(device, table_id, table_size);
+    return switch_api_table_size_get_internal(device, table_id, table_size);
 }

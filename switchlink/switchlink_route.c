@@ -102,8 +102,8 @@ void route_create(switchlink_handle_t vrf_h,
   route_info.intf_h = intf_h;
 
   // add the route
-  VLOG_INFO("Create route: 0x%x/%d", dst ? dst->ip.v4addr.s_addr : "NULL",
-                                     dst->prefix_len);
+  VLOG_INFO("Create route: 0x%x/%d", dst->ip.v4addr.s_addr,
+             dst->prefix_len);
   if (switchlink_route_create(&route_info) == -1) {
     if (route_info.ecmp) {
       ecmp_delete(route_info.nhop_h);
@@ -134,8 +134,8 @@ void route_delete(switchlink_handle_t vrf_h, switchlink_ip_addr_t *dst) {
     return;
   }
 
-  VLOG_INFO("Delete route: 0x%x/%d", dst ? dst->ip.v4addr.s_addr : "NULL",
-                                     dst->prefix_len);
+  VLOG_INFO("Delete route: 0x%x/%d", dst->ip.v4addr.s_addr,
+             dst->prefix_len);
   if (switchlink_route_delete(&route_info) == -1) {
     return;
   }
@@ -230,7 +230,6 @@ void process_route_msg(struct nlmsghdr *nlmsg, int type) {
   bool oif_valid = false;
   uint32_t oif = 0;
 
-  switchlink_handle_t oifl_h = 0;
   bool iif_valid = false;
   uint32_t iif = 0;
 
@@ -326,7 +325,7 @@ void process_route_msg(struct nlmsghdr *nlmsg, int type) {
         iif = nla_get_u32(attr);
         break;
       default:
-        VLOG_DBG(("route: skipping attr(%d)\n", attr_type));
+        VLOG_DBG("route: skipping attribute type %d \n", attr_type);
         break;
     }
     attr = nla_next(attr, &attrlen);

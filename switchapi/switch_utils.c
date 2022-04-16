@@ -35,7 +35,7 @@ extern "C" {
 
 VLOG_DEFINE_THIS_MODULE(switch_utils);
 
-switch_uint32_t MurmurHash(const void *key,
+static switch_uint32_t MurmurHash(const void *key,
                            switch_uint32_t length,
                            switch_uint32_t seed) {
 // 'm' and 'r' are mixing constants generated offline.
@@ -608,12 +608,63 @@ char *switch_handle_type_to_string(switch_handle_type_t handle_type) {
       return "pktdriver rx filter";
     case SWITCH_HANDLE_TYPE_PKTDRIVER_TX_FILTER:
       return "pktdriver tx filter";
+   case SWITCH_HANDLE_TYPE_ROUTE:
+      return "route";
+    case SWITCH_HANDLE_TYPE_DEVICE:
+      return "device";
+    case SWITCH_HANDLE_TYPE_MTU:
+      return "mtu";
+    case SWITCH_HANDLE_TYPE_ACL_GROUP:
+      return "acl group";
+    case SWITCH_HANDLE_TYPE_ACL_GROUP_MEMBER:
+      return "acl group member";
+    case SWITCH_HANDLE_TYPE_WRED_COUNTER:
+      return "wred counter";
+    case SWITCH_HANDLE_TYPE_SCHEDULER_GROUP:
+      return "scheduler group";
+    case SWITCH_HANDLE_TYPE_WRED_PROFILE:
+      return "wred profile";
+    case SWITCH_HANDLE_TYPE_DTEL:
+      return "dtel";
+    case SWITCH_HANDLE_TYPE_DTEL_QUEUE_ALERT:
+      return "dtel queue alert";
+    case SWITCH_HANDLE_TYPE_DTEL_INT_SESSION:
+      return "dtel int session";
+    case SWITCH_HANDLE_TYPE_DTEL_REPORT_SESSION:
+      return "dtel report session";
+    case SWITCH_HANDLE_TYPE_DTEL_EVENT:
+      return "dtel event";
+    case SWITCH_HANDLE_TYPE_TUNNEL:
+      return "tunnel";
+    case SWITCH_HANDLE_TYPE_TUNNEL_ENCAP:
+      return "tunnel encap";
+    case SWITCH_HANDLE_TYPE_TUNNEL_TERM:
+      return "tunnel term";
+    case SWITCH_HANDLE_TYPE_TUNNEL_MAPPER_ENTRY:
+      return "tunnel mapper entry";
+    case SWITCH_HANDLE_TYPE_MPLS:
+      return "mpls";
+    case SWITCH_HANDLE_TYPE_MPLS_LABEL_STACK:
+      return "mpls label stack";
+    case SWITCH_HANDLE_TYPE_SR_SIDLIST:
+      return "sr sidlist";
+    case SWITCH_HANDLE_TYPE_METER_COLOR_ACTION:
+      return "meter color action";
+    case SWITCH_HANDLE_TYPE_ECMP_GROUP:
+      return "ecmp group";
+    case SWITCH_HANDLE_TYPE_L2_FWD_RX:
+      return "l2 fwd rx";
+    case SWITCH_HANDLE_TYPE_L2_FWD_TX:
+      return "l2 fwd tx";
+    case SWITCH_HANDLE_TYPE_MAC:
+      return "mac";
+    case SWITCH_HANDLE_TYPE_MAX:
     default:
       return "invalid";
   }
 }
 
-char *switch_direction_to_string(switch_direction_t direction) {
+static char *switch_direction_to_string(switch_direction_t direction) {
   switch (direction) {
     case SWITCH_API_DIRECTION_INGRESS:
       return "ingress";
@@ -674,7 +725,7 @@ switch_status_t switch_pd_status_to_status(bf_status_t pd_status) {
 }
 
 
-bool switch_l3_host_entry(const switch_ip_addr_t *ip_addr) {
+static bool switch_l3_host_entry(const switch_ip_addr_t *ip_addr) {
   SWITCH_ASSERT(ip_addr != NULL);
 
   if (ip_addr->type == SWITCH_API_IP_ADDR_V4) {
@@ -735,7 +786,7 @@ switch_status_t switch_mac_to_string(switch_mac_addr_t *mac,
   return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t switch_ipv4_prefix_to_mask(switch_uint32_t prefix,
+static switch_status_t switch_ipv4_prefix_to_mask(switch_uint32_t prefix,
                                            switch_uint32_t *mask) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
@@ -752,7 +803,7 @@ switch_status_t switch_ipv4_prefix_to_mask(switch_uint32_t prefix,
   return status;
 }
 
-switch_status_t switch_ipv6_prefix_to_mask(switch_uint32_t prefix,
+static switch_status_t switch_ipv6_prefix_to_mask(switch_uint32_t prefix,
                                            switch_uint8_t *mask) {
   switch_uint32_t prefix_bytes = 0;
   switch_uint32_t index = 0;
@@ -837,6 +888,9 @@ switch_direction_t switch_table_id_to_direction(switch_table_id_t table_id) {
     case SWITCH_TABLE_METER_INDEX:
     case SWITCH_TABLE_METER_ACTION:
     case SWITCH_TABLE_DROP_STATS:
+    case SWITCH_TABLE_INGRESS_QOS_MAP:
+    case SWITCH_TABLE_INGRESS_QOS_MAP_DSCP:
+    case SWITCH_TABLE_INGRESS_QOS_MAP_PCP:
       return SWITCH_API_DIRECTION_INGRESS;
 
     case SWITCH_TABLE_EGRESS_PORT_MAPPING:
@@ -863,6 +917,8 @@ switch_direction_t switch_table_id_to_direction(switch_table_id_t table_id) {
     case SWITCH_TABLE_REPLICA_TYPE:
     case SWITCH_TABLE_EGRESS_METER_INDEX:
     case SWITCH_TABLE_EGRESS_METER_ACTION:
+    case SWITCH_TABLE_EGRESS_PFC_ACL:
+    case SWITCH_TABLE_EGRESS_QOS_MAP:
       return SWITCH_API_DIRECTION_EGRESS;
 
     default:
@@ -946,12 +1002,13 @@ char *switch_api_type_to_string(switch_api_type_t api_type) {
       return "scheduler";
     case SWITCH_API_TYPE_MPLS:
       return "mpls";
+    case SWITCH_API_TYPE_NONE:
     default:
       return "unknown";
   }
 }
 
-char *switch_packet_type_to_string(switch_packet_type_t packet_type) {
+static char *switch_packet_type_to_string(switch_packet_type_t packet_type) {
   switch (packet_type) {
     case SWITCH_PACKET_TYPE_UNICAST:
       return "unicast";
@@ -959,6 +1016,7 @@ char *switch_packet_type_to_string(switch_packet_type_t packet_type) {
       return "multicast";
     case SWITCH_PACKET_TYPE_BROADCAST:
       return "broadcast";
+    case SWITCH_PACKET_TYPE_MAX:
     default:
       return "unknown";
   }

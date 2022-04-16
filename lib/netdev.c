@@ -543,7 +543,7 @@ netdev_get_config(const struct netdev *netdev, struct smap *args)
     return error;
 }
 
-const struct netdev_tunnel_config *
+struct netdev_tunnel_config *
 netdev_get_tunnel_config(const struct netdev *netdev)
     OVS_EXCLUDED(netdev_mutex)
 {

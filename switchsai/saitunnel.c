@@ -358,7 +358,6 @@ static sai_status_t sai_create_tunnel_term_table_entry(
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
   switch_api_tunnel_term_info_t api_term_info = {0};
   sai_status_t status = SAI_STATUS_SUCCESS;
-  unsigned int index = 0;
 
   SAI_MEMSET(&api_term_info, 0, sizeof(switch_api_tunnel_term_info_t));
 

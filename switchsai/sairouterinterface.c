@@ -23,7 +23,6 @@
  ******************************************************************************/
 
 #include <sairouterinterface.h>
-#include "saiinternal.h"
 #include <config.h>
 #include <switchapi/switch_rif.h>
 #include <switchapi/switch_rmac.h>
@@ -31,9 +30,12 @@
 #include <switchapi/switch_l3.h>
 #include <openvswitch/vlog.h>
 
+#include "saiinternal.h"
+#include "switch_device.h"
+
 VLOG_DEFINE_THIS_MODULE(sairouterinterface);
 
-sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
+static sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
                                       uint32_t attr_count,
                                       const sai_attribute_t *attr_list,
                                       switch_handle_t *rmac_h) {
@@ -78,7 +80,7 @@ sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
   return status;
 }
 
-sai_status_t sai_delete_rmac_internal(switch_handle_t rmac_handle) {
+static sai_status_t sai_delete_rmac_internal(switch_handle_t rmac_handle) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
@@ -111,7 +113,7 @@ sai_status_t sai_delete_rmac_internal(switch_handle_t rmac_handle) {
 *    SAI_STATUS_SUCCESS on success
 *    Failure status code on error
 */
-sai_status_t sai_create_router_interface(
+static sai_status_t sai_create_router_interface(
     _Out_ sai_object_id_t *rif_id,
     _In_ sai_object_id_t switch_id,
     _In_ uint32_t attr_count,
@@ -120,15 +122,11 @@ sai_status_t sai_create_router_interface(
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_api_rif_info_t api_rif_info = {0};
-  switch_api_interface_info_t intf_api_info = {0};
 
   const sai_attribute_t *attribute;
   switch_handle_t rmac_handle = 0;
   switch_handle_t intf_handle = SWITCH_API_INVALID_HANDLE;
   switch_handle_t rif_handle = SWITCH_API_INVALID_HANDLE;
-  switch_handle_t mtu_handle = SWITCH_API_INVALID_HANDLE;
-  switch_mtu_t mtu_size = 0;
-
 
   if (!attr_list) {
     status = SAI_STATUS_INVALID_PARAMETER;
@@ -205,7 +203,7 @@ sai_status_t sai_create_router_interface(
   return (sai_status_t)status;
 }
 
-sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
+static sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_api_rif_info_t api_rif_info;

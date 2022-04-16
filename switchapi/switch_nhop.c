@@ -548,7 +548,6 @@ switch_status_t switch_api_ecmp_member_delete(
     const switch_uint32_t num_nhops,
     const switch_handle_t *nhop_handles) {
   switch_nhop_info_t *nhop_info = NULL;
-  switch_api_nhop_info_t *api_nhop_info = NULL;
   switch_ecmp_info_t *ecmp_info = NULL;
   switch_ecmp_member_t *ecmp_member = NULL;
   switch_handle_t nhop_handle = 0;
@@ -778,7 +777,6 @@ switch_status_t switch_api_nhop_create(
   switch_spath_info_t *spath_info = NULL;
   switch_nhop_key_t nhop_key = {0};
   switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
-  switch_handle_t rif_handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_pd_routing_info_t pd_routing_info; //TODO
 

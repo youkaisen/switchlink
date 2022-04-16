@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "switch_types_int.h"
 #include "switch_pd_routing.h"
+#include "switch_nhop.h"
 
 #ifdef __cplusplus
 extern "C" {

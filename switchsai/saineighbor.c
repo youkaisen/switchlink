@@ -34,7 +34,7 @@
 
 VLOG_DEFINE_THIS_MODULE(saineighbor);
 
-static sai_api_t api_id = SAI_API_NEIGHBOR;
+//static sai_api_t api_id = SAI_API_NEIGHBOR;
 
 static void sai_neighbor_entry_to_string(
     _In_ const sai_neighbor_entry_t *neighbor_entry, _Out_ char *entry_string) {
@@ -105,7 +105,7 @@ static void sai_neighbor_entry_nexthop_get(
 *
 * Note: IP address expected in Network Byte Order.
 */
-sai_status_t sai_create_neighbor_entry(
+static sai_status_t sai_create_neighbor_entry(
     _In_ const sai_neighbor_entry_t *neighbor_entry,
     _In_ uint32_t attr_count,
     _In_ const sai_attribute_t *attr_list) {
@@ -114,8 +114,6 @@ sai_status_t sai_create_neighbor_entry(
   switch_handle_t neighbor_handle = SWITCH_API_INVALID_HANDLE;
   char entry_string[SAI_MAX_ENTRY_STRING_LEN];
   switch_api_neighbor_info_t api_neighbor = {0};
-  switch_api_route_entry_t api_route_entry = {0};
-  switch_handle_t vrf_handle = SWITCH_API_INVALID_HANDLE;
 
   if (!neighbor_entry) {
     status = SAI_STATUS_INVALID_PARAMETER;
@@ -160,15 +158,13 @@ sai_status_t sai_create_neighbor_entry(
 *
 * Note: IP address expected in Network Byte Order.
 */
-sai_status_t sai_remove_neighbor_entry(
+static sai_status_t sai_remove_neighbor_entry(
     _In_ const sai_neighbor_entry_t *neighbor_entry) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
   switch_api_neighbor_info_t api_neighbor = {0};
   switch_handle_t neighbor_handle = SWITCH_API_INVALID_HANDLE;
-  switch_handle_t vrf_handle = SWITCH_API_INVALID_HANDLE;
-  switch_api_route_entry_t api_route_entry = {0};
 
   if (!neighbor_entry) {
     status = SAI_STATUS_INVALID_PARAMETER;

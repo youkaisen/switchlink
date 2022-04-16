@@ -32,7 +32,7 @@
 
 VLOG_DEFINE_THIS_MODULE(sainexthop);
 
-static sai_api_t api_id = SAI_API_NEXT_HOP;
+//static sai_api_t api_id = SAI_API_NEXT_HOP;
 
 static switch_nhop_type_t sai_nhop_type_to_switch_nhop_type(
     sai_next_hop_type_t sai_type) {
@@ -43,6 +43,7 @@ static switch_nhop_type_t sai_nhop_type_to_switch_nhop_type(
       return SWITCH_NHOP_TYPE_TUNNEL;
     case SAI_NEXT_HOP_TYPE_MPLS:
       return SWITCH_NHOP_TYPE_MPLS;
+    case SAI_NEXT_HOP_TYPE_SRV6_SIDLIST:
     default:
       return SWITCH_NHOP_TYPE_NONE;
   }
@@ -63,7 +64,7 @@ static switch_nhop_type_t sai_nhop_type_to_switch_nhop_type(
 *
 * Note: IP address expected in Network Byte Order.
 */
-sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id,
+static sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id,
                                        _In_ sai_object_id_t switch_id,
                                        _In_ uint32_t attr_count,
                                        _In_ const sai_attribute_t *attr_list) {
@@ -139,7 +140,7 @@ sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id,
 *    SAI_STATUS_SUCCESS on success
 *    Failure status code on error
 */
-sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
+static sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;

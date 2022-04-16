@@ -29,7 +29,6 @@ VLOG_DEFINE_THIS_MODULE(switch_vrf);
 switch_status_t switch_vrf_init(switch_device_t device) {
   switch_vrf_context_t *vrf_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-  switch_uint16_t max_vrf = 0;
 
   VLOG_INFO("%s", __func__);
 

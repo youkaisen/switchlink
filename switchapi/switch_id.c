@@ -21,7 +21,7 @@
  * $Id: $
  *
  ******************************************************************************/
-#include "switchapi/switch_id.h"
+#include "switch_id.h"
 #include "switch_internal.h"
 #include <openvswitch/vlog.h>
 #include <config.h>
@@ -33,7 +33,7 @@ extern "C" {
 #define __FILE_ID__ SWITCH_ID
 VLOG_DEFINE_THIS_MODULE(switch_id);
 
-switch_status_t switch_api_id_allocator_new_internal(
+static switch_status_t switch_api_id_allocator_new_internal(
     switch_device_t device,
     switch_uint32_t initial_size,
     bool zero_based,
@@ -62,7 +62,7 @@ switch_status_t switch_api_id_allocator_new_internal(
   return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t switch_api_id_allocator_destroy_internal(
+static switch_status_t switch_api_id_allocator_destroy_internal(
     switch_device_t device, switch_id_allocator_t *allocator) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
@@ -94,7 +94,7 @@ static inline switch_int32_t switch_api_id_fit_width(switch_uint32_t val,
   return -1;
 }
 
-switch_status_t switch_api_id_allocator_allocate_contiguous_internal(
+static switch_status_t switch_api_id_allocator_allocate_contiguous_internal(
     switch_device_t device,
     switch_id_allocator_t *allocator,
     switch_uint8_t count,
@@ -134,7 +134,7 @@ switch_status_t switch_api_id_allocator_allocate_contiguous_internal(
   return status;
 }
 
-switch_status_t switch_api_id_allocator_allocate_internal(
+static switch_status_t switch_api_id_allocator_allocate_internal(
     switch_device_t device, switch_id_allocator_t *allocator, switch_id_t *id) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
@@ -147,7 +147,7 @@ switch_status_t switch_api_id_allocator_allocate_internal(
   return switch_api_id_allocator_allocate_contiguous(device, allocator, 1, id);
 }
 
-switch_status_t switch_api_id_allocator_release_internal(
+static switch_status_t switch_api_id_allocator_release_internal(
     switch_device_t device, switch_id_allocator_t *allocator, switch_id_t id) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
@@ -166,25 +166,25 @@ switch_status_t switch_api_id_allocator_release_internal(
 
 switch_status_t switch_api_id_allocator_destroy(
     switch_device_t device, switch_id_allocator_t *allocator) {
-  switch_api_id_allocator_destroy_internal(device, allocator);
+  return switch_api_id_allocator_destroy_internal(device, allocator);
 }
 
 switch_status_t switch_api_id_allocator_new(switch_device_t device,
                                             switch_uint32_t initial_size,
                                             bool zero_based,
                                             switch_id_allocator_t **allocator) {
-  switch_api_id_allocator_new_internal(device, initial_size, zero_based,
+  return switch_api_id_allocator_new_internal(device, initial_size, zero_based,
                                        allocator);
 }
 
 switch_status_t switch_api_id_allocator_allocate(
     switch_device_t device, switch_id_allocator_t *allocator, switch_id_t *id) {
-    switch_api_id_allocator_allocate_internal(device, allocator, id);
+    return switch_api_id_allocator_allocate_internal(device, allocator, id);
 }
 
 switch_status_t switch_api_id_allocator_release(
     switch_device_t device, switch_id_allocator_t *allocator, switch_id_t id) {
-    switch_api_id_allocator_release_internal(device, allocator, id);
+    return switch_api_id_allocator_release_internal(device, allocator, id);
 }
 
 switch_status_t switch_api_id_allocator_allocate_contiguous(
@@ -192,6 +192,6 @@ switch_status_t switch_api_id_allocator_allocate_contiguous(
     switch_id_allocator_t *allocator,
     switch_uint8_t count,
     switch_id_t *id) {
-  switch_api_id_allocator_allocate_contiguous_internal(device, allocator,
+  return switch_api_id_allocator_allocate_contiguous_internal(device, allocator,
                                                        count, id);
 }

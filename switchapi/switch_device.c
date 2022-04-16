@@ -9,7 +9,11 @@ Copyright 2013-present Barefoot Networks, Inc.
 #include "switch_port.h"
 #include "switch_config_int.h"
 #include "switch_table.h"
-#include "switch_rmac.h"
+#include "switch_rmac_int.h"
+#include "switch_neighbor_int.h"
+#include "switch_nhop_int.h"
+#include "switch_fdb.h"
+#include "switch_vrf.h"
 
 #undef __MODULE__
 #define __MODULE__ SWITCH_API_TYPE_DEVICE
@@ -159,6 +163,7 @@ switch_status_t switch_device_api_init(switch_device_t device) {
       case SWITCH_API_TYPE_SCHEDULER:
       case SWITCH_API_TYPE_MPLS:
       case SWITCH_API_TYPE_MAX:
+      case SWITCH_API_TYPE_NONE:
         break;
 
       default:
@@ -269,6 +274,7 @@ switch_status_t switch_device_api_free(switch_device_t device) {
       case SWITCH_API_TYPE_SCHEDULER:
       case SWITCH_API_TYPE_MPLS:
       case SWITCH_API_TYPE_MAX:
+      case SWITCH_API_TYPE_NONE:
         break;
 
       default:
@@ -538,7 +544,7 @@ switch_status_t switch_api_device_add(switch_device_t device) {
   return status;
 }
 
-switch_status_t switch_api_device_remove_internal(switch_device_t device) {
+static switch_status_t switch_api_device_remove_internal(switch_device_t device) {
   switch_device_context_t *device_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 

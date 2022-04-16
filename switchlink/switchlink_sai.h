@@ -17,6 +17,14 @@ limitations under the License.
 #ifndef __SWITCHLINK_SAI_H__
 #define __SWITCHLINK_SAI_H__
 
+#include <saitypes.h>
+#include "switchlink.h"
+#include "switchlink_link.h"
+#include "switchlink_neigh.h"
+#include "switchlink_db.h"
+
+extern void switchlink_api_init(void);
+
 extern int switchlink_vrf_create(uint16_t vrf_id, switchlink_handle_t *vrf_h);
 
 extern int switchlink_interface_create(switchlink_db_interface_info_t *intf,
@@ -56,5 +64,24 @@ extern int switchlink_tunnel_interface_create(
                                 switchlink_handle_t *tnl_term_h);
 extern int switchlink_tunnel_interface_delete(
                               switchlink_db_tunnel_interface_info_t *tnl_intf);
+
+extern int switchlink_tuntap_create(switchlink_db_tuntap_info_t *tunp,
+                                switchlink_handle_t *tunp_h);
+
+extern int switchlink_vrf_create(uint16_t vrf_id, switchlink_handle_t *vrf_h);
+
+extern sai_status_t switchlink_create_tunnel(
+                                switchlink_db_tunnel_interface_info_t *tnl_intf,
+                                switchlink_handle_t *tnl_intf_h);
+
+extern sai_status_t switchlink_remove_tunnel_term_table_entry(
+                        switchlink_db_tunnel_interface_info_t *tnl_intf);
+
+extern sai_status_t switchlink_remove_tunnel(
+                        switchlink_db_tunnel_interface_info_t *tnl_intf);
+
+extern sai_status_t switchlink_create_term_table_entry(
+                            switchlink_db_tunnel_interface_info_t *tnl_intf,
+                            switchlink_handle_t *tnl_term_intf_h);
 
 #endif /* __SWITCHLINK_SAI_H__ */

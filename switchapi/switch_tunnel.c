@@ -55,7 +55,7 @@ switch_status_t switch_api_tunnel_delete(
     return status;
   }
 
-  status = switch_pd_tunnel_entry(device, tunnel_info->api_tunnel_info, false);
+  status = switch_pd_tunnel_entry(device, &tunnel_info->api_tunnel_info, false);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
           "tunnel delete failed on device %d: "
@@ -153,9 +153,8 @@ switch_status_t switch_api_tunnel_term_create(
     const switch_api_tunnel_term_info_t *api_tunnel_term_info,
     switch_handle_t *tunnel_term_handle) {
     switch_status_t status = SWITCH_STATUS_SUCCESS;
-    switch_handle_t *tunnel_handle;
+    switch_handle_t tunnel_handle;
     switch_tunnel_term_info_t *tunnel_term_info = NULL;
-    switch_tunnel_info_t *tunnel_info = NULL;
 
     switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
 

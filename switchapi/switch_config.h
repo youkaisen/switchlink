@@ -56,7 +56,7 @@ typedef struct switch_config_s {
 
 switch_status_t switch_config_init(switch_config_t *switch_config);
 
-switch_status_t switch_config_free();
+switch_status_t switch_config_free(void);
 
 #ifdef __cplusplus
 }

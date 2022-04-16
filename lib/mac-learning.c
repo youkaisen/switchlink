@@ -337,7 +337,7 @@ mac_learning_may_learn(const struct mac_learning *ml,
 }
 
 #if P4SAI
-void
+static void
 mac_learning_configure_kctrl(const struct eth_addr src_mac,
                              switchlink_handle_t *tnl_intf_h,
                              switchlink_entry_type_e entry_type) {

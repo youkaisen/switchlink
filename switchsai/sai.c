@@ -202,6 +202,26 @@ sai_status_t sai_api_query(_In_ sai_api_t sai_api_id,
       *api_method_table = &sai_api_service.tunnel_api;
       break;
 
+    case SAI_API_UNSPECIFIED:
+      VLOG_ERR(" SAI API unspecified");
+      break;
+
+    case SAI_API_RPF_GROUP:
+    case SAI_API_L2MC_GROUP:
+    case SAI_API_IPMC_GROUP:
+    case SAI_API_MCAST_FDB:
+    case SAI_API_TAM:
+    case SAI_API_SRV6:
+    case SAI_API_MPLS:
+    case SAI_API_BFD:
+    case SAI_API_ISOLATION_GROUP:
+    case SAI_API_NAT:
+    case SAI_API_COUNTER:
+    case SAI_API_DEBUG_COUNTER:
+    case SAI_API_MACSEC:
+    case SAI_API_SYSTEM_PORT:
+    case SAI_API_MY_MAC:
+    case SAI_API_MAX:
     default:
       *api_method_table = NULL;
       status = SAI_STATUS_INVALID_PARAMETER;
@@ -372,6 +392,39 @@ sai_object_type_t sai_object_type_query(_In_ sai_object_id_t sai_object_id) {
     case SWITCH_HANDLE_TYPE_HASH:
       object_type = SAI_OBJECT_TYPE_HASH;
       break;
+    case SWITCH_HANDLE_TYPE_BD:
+    case SWITCH_HANDLE_TYPE_NEIGHBOR:
+    case SWITCH_HANDLE_TYPE_RMAC:
+    case SWITCH_HANDLE_TYPE_MGID_ECMP:
+    case SWITCH_HANDLE_TYPE_URPF:
+    case SWITCH_HANDLE_TYPE_SFLOW:
+    case SWITCH_HANDLE_TYPE_SFLOW_ACE:
+    case SWITCH_HANDLE_TYPE_LABEL:
+    case SWITCH_HANDLE_TYPE_BFD:
+    case SWITCH_HANDLE_TYPE_WRED:
+    case SWITCH_HANDLE_TYPE_RPF_GROUP:
+    case SWITCH_HANDLE_TYPE_MAC:
+    case SWITCH_HANDLE_TYPE_ROUTE:
+    case SWITCH_HANDLE_TYPE_MTU:
+    case SWITCH_HANDLE_TYPE_HOSTIF_RX_FILTER:
+    case SWITCH_HANDLE_TYPE_HOSTIF_TX_FILTER:
+    case SWITCH_HANDLE_TYPE_PKTDRIVER_RX_FILTER:
+    case SWITCH_HANDLE_TYPE_PKTDRIVER_TX_FILTER:
+    case SWITCH_HANDLE_TYPE_RACL_COUNTER:
+    case SWITCH_HANDLE_TYPE_EGRESS_ACL_COUNTER:
+    case SWITCH_HANDLE_TYPE_WRED_COUNTER:
+    case SWITCH_HANDLE_TYPE_WRED_PROFILE:
+    case SWITCH_HANDLE_TYPE_TUNNEL_ENCAP:
+    case SWITCH_HANDLE_TYPE_MPLS:
+    case SWITCH_HANDLE_TYPE_MPLS_LABEL_STACK:
+    case SWITCH_HANDLE_TYPE_SR_SIDLIST:
+    case SWITCH_HANDLE_TYPE_EGRESS_METER:
+    case SWITCH_HANDLE_TYPE_METER_COLOR_ACTION:
+    case SWITCH_HANDLE_TYPE_ECMP_GROUP:
+    case SWITCH_HANDLE_TYPE_L2_FWD_RX:
+    case SWITCH_HANDLE_TYPE_L2_FWD_TX:
+    case SWITCH_HANDLE_TYPE_MAX:
+    case SWITCH_HANDLE_TYPE_NONE:
     default:
       object_type = SAI_OBJECT_TYPE_NULL;
       break;
@@ -391,7 +444,7 @@ sai_status_t sai_object_type_get_availability(
   return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t sai_initialize() {
+sai_status_t sai_initialize(void) {
   // Init Switch API
   switch_api_init(0);
 

@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#ifndef __SWITCH_PD_ROUTING_H__
+#define __SWITCH_PD_ROUTING_H__
+
 #include "switch_base_types.h"
 #include "switch_handle.h"
 #include "switch_l3.h"
-
-#ifndef __SWITCH_PD_ROUTING_H__
-#define __SWITCH_PD_ROUTING_H__
 
 #ifdef  __cplusplus
 extern "C" {
