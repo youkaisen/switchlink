@@ -327,11 +327,22 @@ switch_status_t switch_api_l2_forward_create(
         return status;
     }
 
-    status = switch_pd_l2_rx_forward_table_entry (device, api_l2_info, true);
+    status = switch_pd_l2_rx_forward_table_entry(device, api_l2_info, true);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
           "l2 create failed on device %d: "
-          "l2 pd create failed :(%s)\n",
+          "l2 forward pd create failed :(%s)\n",
+          device,
+          switch_error_to_string(status));
+      return status;
+    }
+
+    status = switch_pd_l2_rx_forward_with_tunnel_table_entry(device,
+                                                             api_l2_info, true);
+    if (status != SWITCH_STATUS_SUCCESS) {
+      VLOG_ERR(
+          "l2 create failed on device %d: "
+          "l2 forward tunnel pd create failed :(%s)\n",
           device,
           switch_error_to_string(status));
       return status;
@@ -415,6 +426,19 @@ switch_status_t switch_api_l2_forward_delete (
           switch_error_to_string(status));
       return status;
     }
+
+    status = switch_pd_l2_rx_forward_with_tunnel_table_entry(device,
+                                                             api_l2_info,
+                                                             false);
+    if (status != SWITCH_STATUS_SUCCESS) {
+      VLOG_ERR(
+          "l2 rx forward delete failed on device %d: "
+          "l2 rx forward tunnel pd table delete failed :(%s)\n",
+          device,
+          switch_error_to_string(status));
+      return status;
+    }
+
     status = switch_l2_rx_handle_delete(device, l2_handle, 1);
     SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
   } else {
@@ -424,4 +448,3 @@ switch_status_t switch_api_l2_forward_delete (
 
   return status;
 }
-

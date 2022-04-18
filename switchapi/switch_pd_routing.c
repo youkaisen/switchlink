@@ -79,7 +79,7 @@ switch_status_t switch_pd_nexthop_table_entry(
       return switch_pd_status_to_status(status);
   }
 
-  field_id = 1;
+  field_id = 1; // Match key nexthop_id
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (api_nexthop_pd_info->nexthop_handle &
                                       ~(SWITCH_HANDLE_TYPE_NHOP<<25)));
@@ -98,26 +98,26 @@ switch_status_t switch_pd_nexthop_table_entry(
           return switch_pd_status_to_status(status);
       }
 
-      data_field_id = 1;
+      data_field_id = 1; // Action value router_interface_id
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
-                                          (api_nexthop_pd_info->neighbor_handle &
-                                          ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
+                                          (api_nexthop_pd_info->rif_handle &
+                                           ~(SWITCH_HANDLE_TYPE_RIF << 25)));
                                             
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
           return switch_pd_status_to_status(status);
       }
 
-      data_field_id = 2;
+      data_field_id = 2; // Action value neighbor_id
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
-                                          (api_nexthop_pd_info->rif_handle &
-                                           ~(SWITCH_HANDLE_TYPE_RIF << 25)));
+                                          (api_nexthop_pd_info->neighbor_handle &
+                                          ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
           return switch_pd_status_to_status(status);
       }
 
-      data_field_id = 3;
+      data_field_id = 3; // Action value egress_port
       status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
                                           (const uint8_t *)&api_nexthop_pd_info->port_id,
                                           sizeof(uint32_t));
@@ -198,7 +198,9 @@ switch_status_t switch_pd_neighbor_table_entry(
   }
 
   field_id = 1;
-  status = bf_rt_key_field_set_value(key_hdl, field_id, api_neighbor_pd_info->neighbor_handle);
+  status = bf_rt_key_field_set_value(key_hdl, field_id,
+                                     (api_neighbor_pd_info->neighbor_handle &
+                                      ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
       return switch_pd_status_to_status(status);
@@ -294,7 +296,9 @@ switch_status_t switch_pd_rif_mod_start_entry(
   }
 
   field_id = 1;
-  status = bf_rt_key_field_set_value(key_hdl, field_id, api_rif_mod_start_pd_info->rif_handle);
+  status = bf_rt_key_field_set_value(key_hdl, field_id,
+                                     (api_rif_mod_start_pd_info->rif_handle &
+                                     ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
       return switch_pd_status_to_status(status);
@@ -390,7 +394,9 @@ switch_status_t switch_pd_rif_mod_mid_entry(
   }
 
   field_id = 1;
-  status = bf_rt_key_field_set_value(key_hdl, field_id, api_rif_mod_mid_pd_info->rif_handle);
+  status = bf_rt_key_field_set_value(key_hdl, field_id,
+                                     (api_rif_mod_mid_pd_info->rif_handle &
+                                     ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
     VLOG_ERR("Unable to set value for key ID: %d", field_id);
     return switch_pd_status_to_status(status);
@@ -472,7 +478,7 @@ switch_status_t switch_pd_rif_mod_end_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, "rif_mod_table_end",
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, "rif_mod_table_last",
                                      &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle");
@@ -486,7 +492,9 @@ switch_status_t switch_pd_rif_mod_end_entry(
   }
 
   field_id = 1;
-  status = bf_rt_key_field_set_value(key_hdl, field_id, api_rif_mod_end_pd_info->rif_handle);
+  status = bf_rt_key_field_set_value(key_hdl, field_id,
+                                     (api_rif_mod_end_pd_info->rif_handle &
+                                     ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
       return switch_pd_status_to_status(status);
@@ -581,18 +589,14 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
       return switch_pd_status_to_status(status);
   }
 
-  // CR: remove field_id for DPDK, as it is not avaiable in lnw.p4
-  field_id = 1;
-  status = bf_rt_key_field_set_value(key_hdl, field_id, 0);
-  if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to set value for key ID: %d", field_id);
-      return switch_pd_status_to_status(status);
-  }
-
   // CR: double check if api_route_entry->ip_address.ip.v4addr is actually a
   // route, check how mask need to be passed
-  field_id = 2;
-  status = bf_rt_key_field_set_value_ptr(key_hdl, field_id, (const uint8_t *)&api_route_entry->ip_address.ip.v4addr,
+  field_id = 1; // Match type ipv4_dst_match
+  // Use LPM API for LPM match type
+  // status = bf_rt_key_field_set_value_ptr(key_hdl, field_id, (const uint8_t *)&api_route_entry->ip_address.ip.v4addr,
+  //                                          sizeof(uint32_t));
+  status = bf_rt_key_field_set_value_lpm_ptr(key_hdl, field_id, (const uint8_t *)&api_route_entry->ip_address.ip.v4addr,
+                                            (const uint16_t)api_route_entry->ip_address.prefix_len,
                                             sizeof(uint32_t));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
@@ -611,9 +615,10 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
           return switch_pd_status_to_status(status);
       }
 
-      data_field_id = 1;
+      data_field_id = 1; // Action value nexthop_id
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
-                                          api_route_entry->nhop_handle);
+                                          (api_route_entry->nhop_handle &
+                                           ~(SWITCH_HANDLE_TYPE_NHOP<<25)));
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
           return switch_pd_status_to_status(status);
@@ -630,7 +635,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
           return switch_pd_status_to_status(status);
       }
 
-      data_field_id = 1;
+      data_field_id = 1; // Action value ecmp_group_id
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           api_route_entry->ecmp_group_id);
       if(status != BF_SUCCESS) {
@@ -667,94 +672,45 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
 switch_status_t switch_routing_table_entry (
         switch_device_t device,
         const switch_pd_routing_info_t *api_routing_info,
-        bool flag)
+        bool entry_type)
 {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
   VLOG_INFO("%s", __func__);
 
-  if(flag == true)
-  {
-    //update nexthop table
-    status = switch_pd_nexthop_table_entry(device, api_routing_info, true);
-    if(status != SWITCH_STATUS_SUCCESS){
-       VLOG_ERR("nexthop table update failed \n");
-       return status;
-    }
-
-    //update neighbor mod table
-    status = switch_pd_neighbor_table_entry(device, api_routing_info, true);
-    if(status != SWITCH_STATUS_SUCCESS){
-        VLOG_ERR( "neighbor table update failed \n");
-        return status;
-    }
-
-    //update rif mod tables start, mid, end
-    status = switch_pd_rif_mod_start_entry(device, api_routing_info, true);
-    if(status != SWITCH_STATUS_SUCCESS){
-        VLOG_ERR("rid mod start table entry failed \n");
-        return status;
-    }
-
-    status = switch_pd_rif_mod_mid_entry(device, api_routing_info, true);
-    if(status != SWITCH_STATUS_SUCCESS){
-        VLOG_ERR("rid mod mid table entry failed \n");
-        return status;
-    }
-
-    status = switch_pd_rif_mod_end_entry(device, api_routing_info, true);
-    if(status != SWITCH_STATUS_SUCCESS){
-        VLOG_ERR("rid mod end table entry failed \n");
-        return status;
-    }
+  //update nexthop table
+  status = switch_pd_nexthop_table_entry(device, api_routing_info, entry_type);
+  if(status != SWITCH_STATUS_SUCCESS){
+     VLOG_ERR("nexthop table update failed \n");
+     return status;
   }
-  else
-  {
-    status = switch_pd_nexthop_table_entry(device, api_routing_info, false);
-     if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "nexthop pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
+
+  //update neighbor mod table
+  status = switch_pd_neighbor_table_entry(device, api_routing_info, entry_type);
+  if(status != SWITCH_STATUS_SUCCESS){
+      VLOG_ERR( "neighbor table update failed \n");
       return status;
-    }
+  }
 
-    status = switch_pd_neighbor_table_entry(device, api_routing_info, false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "neighbor pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-    }
+  //update rif mod tables start
+  status = switch_pd_rif_mod_start_entry(device, api_routing_info, entry_type);
+  if(status != SWITCH_STATUS_SUCCESS){
+      VLOG_ERR("rid mod start table entry failed \n");
+      return status;
+  }
 
-    status = switch_pd_rif_mod_start_entry(device, api_routing_info, false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "rif mod start pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-    }
+  //update rif mod tables mid
+  status = switch_pd_rif_mod_mid_entry(device, api_routing_info, entry_type);
+  if(status != SWITCH_STATUS_SUCCESS){
+      VLOG_ERR("rid mod mid table entry failed \n");
+      return status;
+  }
 
-    status = switch_pd_rif_mod_mid_entry(device, api_routing_info, false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "rif mod mid pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-    }
-
-    status = switch_pd_rif_mod_end_entry(device, api_routing_info, false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "rif mod end pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-    }
+  //update rif mod tables end
+  status = switch_pd_rif_mod_end_entry(device, api_routing_info, entry_type);
+  if(status != SWITCH_STATUS_SUCCESS){
+      VLOG_ERR("rid mod end table entry failed \n");
+      return status;
   }
   return status;
 }

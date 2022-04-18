@@ -86,7 +86,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
 switch_status_t switch_routing_table_entry (
         switch_device_t device,
         const switch_pd_routing_info_t *api_routing_info,
-        bool flag);
+        bool entry_type);
 
 #ifdef  __cplusplus
 }

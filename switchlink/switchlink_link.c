@@ -407,7 +407,7 @@ vxlan_dump_cache(struct unixctl_conn *conn, int argc OVS_UNUSED,
 
 void switchlink_link_init(void) {
   /* P4OVS: create default vrf*/
-  switchlink_vrf_create(SWITCHLINK_DEFAULT_VRF_ID, &g_default_vrf_h);
+  switchlink_vrf_create(&g_default_vrf_h);
 
   //unixctl_command_register("p4vxlan/dump-cache", "[kernel-intf-name/all]", 1, 1,
   //                           vxlan_dump_cache, NULL);

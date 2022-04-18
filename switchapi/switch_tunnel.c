@@ -65,6 +65,16 @@ switch_status_t switch_api_tunnel_delete(
       return status;
   }
 
+  status = switch_tunnel_handle_delete(device, tunnel_handle);
+  if (status != SWITCH_STATUS_SUCCESS) {
+      VLOG_ERR(
+          "tunnel delete failed on device %d: "
+          "tunnel handle delete failed :(%s)\n",
+          device,
+          switch_error_to_string(status));
+      return status;
+  }
+
   return status;
 }
 
@@ -94,6 +104,15 @@ switch_status_t switch_api_tunnel_term_delete (
       VLOG_ERR(
           "tunnel term delete failed on device %d: "
           "tunnel term pd delete failed :(%s)\n",
+          device,
+          switch_error_to_string(status));
+      return status;
+  }
+  status = switch_tunnel_term_handle_delete(device, tunnel_term_handle);
+  if (status != SWITCH_STATUS_SUCCESS) {
+      VLOG_ERR(
+          "tunnel term delete failed on device %d: "
+          "tunnel term handle delete failed:(%s)\n",
           device,
           switch_error_to_string(status));
       return status;

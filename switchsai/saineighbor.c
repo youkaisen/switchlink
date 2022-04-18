@@ -135,8 +135,6 @@ static sai_status_t sai_create_neighbor_entry(
 
   VLOG_INFO("Calling Switch API neighbor create for: %s", entry_string);
   status = switch_api_neighbor_create(0, &api_neighbor, &neighbor_handle);
-  // status = (neighbor_handle == SWITCH_API_INVALID_HANDLE) ? SAI_STATUS_FAILURE
-  //                                                        : SAI_STATUS_SUCCESS;
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR("failed to create neighbor entry: %s",
                   sai_status_to_string(status));

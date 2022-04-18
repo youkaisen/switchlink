@@ -47,7 +47,7 @@ static sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
   VLOG_INFO("Get default RMAC handle");
-  switch_status = switch_api_device_default_rmac_handle_get(0, rmac_h);
+  switch_status = switch_api_device_default_rmac_handle_get(switch_id, rmac_h);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR("failed to get default RMAC handle: %s",
@@ -62,14 +62,14 @@ static sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
 
         VLOG_INFO("RMAC group create");
         switch_status = switch_api_router_mac_group_create(
-            0, SWITCH_RMAC_TYPE_ALL, rmac_h);
+            switch_id, SWITCH_RMAC_TYPE_ALL, rmac_h);
 
         if (switch_status == SWITCH_STATUS_SUCCESS) {
           memcpy(&mac.mac_addr, &attribute->value.mac, 6);
           VLOG_INFO("MAC: %02x:%02x:%02x:%02x:%02x:%02x, add to group",
                      mac.mac_addr[0], mac.mac_addr[1], mac.mac_addr[2],
                      mac.mac_addr[3], mac.mac_addr[4], mac.mac_addr[5]);
-          switch_status = switch_api_router_mac_add(0, *rmac_h, &mac);
+          switch_status = switch_api_router_mac_add(switch_id, *rmac_h, &mac);
         }
         break;
 
@@ -146,7 +146,7 @@ static sai_status_t sai_create_router_interface(
 
   // This means interface already created, adding RMAC now
   if (intf_handle) {
-    switch_api_rif_attribute_get(0, intf_handle, (switch_uint64_t)UINT64_MAX,
+    switch_api_rif_attribute_get(switch_id, intf_handle, (switch_uint64_t)UINT64_MAX,
                                  &api_rif_info);
     if ((status = sai_switch_status_to_sai_status(switch_status)) !=
         SAI_STATUS_SUCCESS) {
@@ -164,7 +164,7 @@ static sai_status_t sai_create_router_interface(
       return status;
     }
 
-    status = sai_create_rmac_internal(0, attr_count, attr_list, &rmac_handle);
+    status = sai_create_rmac_internal(switch_id, attr_count, attr_list, &rmac_handle);
     if (status != SAI_STATUS_SUCCESS) {
       VLOG_ERR("failed to create RMAC: %s", sai_status_to_string(status));
       return status;
@@ -189,7 +189,7 @@ static sai_status_t sai_create_router_interface(
 
     api_rif_info.rif_ifindex = attribute->value.u32;
     VLOG_INFO("Calling switch api create router interface");
-    switch_status = switch_api_rif_create(0, &api_rif_info, &rif_handle);
+    switch_status = switch_api_rif_create(switch_id, &api_rif_info, &rif_handle);
     status = sai_switch_status_to_sai_status(switch_status);
     if (status != SAI_STATUS_SUCCESS) {
       VLOG_ERR("failed to create router interface: %s",

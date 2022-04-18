@@ -68,7 +68,7 @@ static inline struct in6_addr ipv6_prefix_len_to_mask(uint32_t prefix_len) {
   return mask;
 }
 
-int switchlink_vrf_create(uint16_t vrf_id, switchlink_handle_t *vrf_h) {
+int switchlink_vrf_create(switchlink_handle_t *vrf_h) {
   sai_status_t status = SAI_STATUS_SUCCESS;
   sai_attribute_t attr_list[2];
 

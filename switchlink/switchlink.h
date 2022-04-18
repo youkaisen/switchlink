@@ -56,6 +56,4 @@ typedef enum switchlink_entry_type {
   SWITCHLINK_FDB_MAX = 3,
 }switchlink_entry_type_e;
 
-#define SWITCHLINK_DEFAULT_VRF_ID 1
-
 #endif /* __SWITCHLINK_H__ */

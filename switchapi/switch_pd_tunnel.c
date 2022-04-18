@@ -76,7 +76,7 @@ switch_status_t switch_pd_tunnel_entry(
         return switch_pd_status_to_status(status);
     }
 
-    field_id = 1;
+    field_id = 1; // vendormeta_mod_data_ptr which is tunnel ID
     status = bf_rt_key_field_set_value(key_hdl, field_id, 0 /*vni value*/);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d", field_id);
@@ -85,7 +85,7 @@ switch_status_t switch_pd_tunnel_entry(
 
     if (entry_add) {
         /* Add an entry to target */
-        action_id = 20733968;
+        action_id = 20733968; // Action is vxlan_encap
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -93,7 +93,7 @@ switch_status_t switch_pd_tunnel_entry(
             return switch_pd_status_to_status(status);
         }
 
-        data_field_id = 1;
+        data_field_id = 1; // Action value src_addr
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
                                             (const uint8_t *)&api_tunnel_info_t->src_ip.ip.v4addr,
                                             sizeof(uint32_t));
@@ -102,7 +102,7 @@ switch_status_t switch_pd_tunnel_entry(
             return switch_pd_status_to_status(status);
         }
 
-        data_field_id = 2;
+        data_field_id = 2; // Action value dst_addr
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
                                             (const uint8_t *)&api_tunnel_info_t->dst_ip.ip.v4addr,
                                             sizeof(uint32_t));
@@ -111,7 +111,7 @@ switch_status_t switch_pd_tunnel_entry(
             return switch_pd_status_to_status(status);
         }
 
-        data_field_id = 3;
+        data_field_id = 3; // Action value dst_port
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
                                             (const uint8_t *)&api_tunnel_info_t->udp_port,
                                             sizeof(uint16_t));
@@ -120,7 +120,7 @@ switch_status_t switch_pd_tunnel_entry(
             return switch_pd_status_to_status(status);
         }
 
-        data_field_id = 4;
+        data_field_id = 4; // // Action value vni
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id, 0,
                                             sizeof(uint32_t));
         if(status != BF_SUCCESS) {
@@ -197,7 +197,7 @@ switch_status_t switch_pd_tunnel_term_entry(
         return switch_pd_status_to_status(status);
     }
 
-    field_id = 1;
+    field_id = 1; // Match key ipv4_src
     status = bf_rt_key_field_set_value_ptr(key_hdl, field_id,
                                            (const uint8_t *)&api_tunnel_term_info_t->src_ip.ip.v4addr,
                                            sizeof(uint32_t));
@@ -206,7 +206,7 @@ switch_status_t switch_pd_tunnel_term_entry(
         return switch_pd_status_to_status(status);
     }
 
-    field_id = 2;
+    field_id = 2; // Match key ipv4_dst
     status = bf_rt_key_field_set_value_ptr(key_hdl, field_id,
                                            (const uint8_t *)&api_tunnel_term_info_t->dst_ip.ip.v4addr,
                                            sizeof(uint32_t));
@@ -217,7 +217,7 @@ switch_status_t switch_pd_tunnel_term_entry(
 
     if (entry_add) {
         /* Add an entry to target */
-        action_id = 32579284;
+        action_id = 32579284; // Action is decap_outer_ipv4
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -225,7 +225,7 @@ switch_status_t switch_pd_tunnel_term_entry(
             return switch_pd_status_to_status(status);
         }
 
-        data_field_id = 1;
+        data_field_id = 1; // Action value tunnel_id
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                             api_tunnel_term_info_t->tunnel_id);
         if(status != BF_SUCCESS) {

@@ -25,7 +25,7 @@ limitations under the License.
 
 extern void switchlink_api_init(void);
 
-extern int switchlink_vrf_create(uint16_t vrf_id, switchlink_handle_t *vrf_h);
+extern int switchlink_vrf_create(switchlink_handle_t *vrf_h);
 
 extern int switchlink_interface_create(switchlink_db_interface_info_t *intf,
                                        switchlink_handle_t *intf_h);
@@ -67,8 +67,6 @@ extern int switchlink_tunnel_interface_delete(
 
 extern int switchlink_tuntap_create(switchlink_db_tuntap_info_t *tunp,
                                 switchlink_handle_t *tunp_h);
-
-extern int switchlink_vrf_create(uint16_t vrf_id, switchlink_handle_t *vrf_h);
 
 extern sai_status_t switchlink_create_tunnel(
                                 switchlink_db_tunnel_interface_info_t *tnl_intf,

@@ -64,14 +64,12 @@ void process_address_msg(struct nlmsghdr *nlmsg, int type) {
   }
 
   switchlink_db_status_t status;
-  switchlink_intf_type_t intf_type = SWITCHLINK_INTF_TYPE_NONE;
   switchlink_handle_t intf_h = 0;
 
   switchlink_db_interface_info_t ifinfo;
   status = switchlink_db_interface_get_info(addrmsg->ifa_index, &ifinfo);
   if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
     VLOG_DBG("Found interface cache for: %s", ifinfo.ifname);
-    intf_type = ifinfo.intf_type;
     intf_h = ifinfo.intf_h;
   } else {
     // TODO P4-OVS, for now we ignore these notifications.
@@ -104,16 +102,6 @@ void process_address_msg(struct nlmsghdr *nlmsg, int type) {
   }
 
   if (type == RTM_NEWADDR) {
-    if ((addrmsg->ifa_family == AF_INET) ||
-        ((addrmsg->ifa_family == AF_INET6) &&
-         !IN6_IS_ADDR_LINKLOCAL(&(addr.ip.v6addr)))) {
-        // In case if earlier interface was an L2 and now IP address is
-        // assigned, then go ahead and delete previous interface and create a
-        // new interface.
-        //if (intf_type == SWITCHLINK_INTF_TYPE_L2_ACCESS) {
-        //  interface_change_type(addrmsg->ifa_index, SWITCHLINK_INTF_TYPE_L3);
-        //}
-    }
     if (addr_valid) {
       switchlink_ip_addr_t null_gateway;
       memset(&null_gateway, 0, sizeof(null_gateway));

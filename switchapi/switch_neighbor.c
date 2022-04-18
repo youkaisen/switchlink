@@ -256,75 +256,32 @@ switch_status_t switch_api_neighbor_delete(
   api_neighbor_info = &neighbor_info->api_neighbor_info;
 
   if (SWITCH_NHOP_HANDLE(nhop_handle)) {
-    status = switch_routing_table_entry(device, &neighbor_info->switch_device_pd_routing_info, false);
+    status = switch_routing_table_entry(device,
+                                        &neighbor_info->switch_device_pd_routing_info,
+                                        false);
     if(status != SWITCH_STATUS_SUCCESS)
       VLOG_ERR("routing tables update failed \n");
   }
-     status = switch_pd_nexthop_table_entry(device, &neighbor_info->switch_device_pd_routing_info, false);
-     if (status != SWITCH_STATUS_SUCCESS) {
+
+  if (api_neighbor_info->neighbor_type == SWITCH_NEIGHBOR_TYPE_IP) {
+    status = switch_api_nhop_delete(device, nhop_handle);
+    if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "nexthop pd delete failed :(%s)\n",
+          "neighbor delete failed on device %d neighbor handle 0x%lx: "
+          "nhop delete failed:(%s)\n",
           device,
+          neighbor_handle,
           switch_error_to_string(status));
       return status;
     }
-
-    status = switch_pd_neighbor_table_entry(device, &neighbor_info->switch_device_pd_routing_info, false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "neighbor pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-    }
-
-    status = switch_pd_rif_mod_start_entry(device, &neighbor_info->switch_device_pd_routing_info, false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "rif mod start pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-    }
-
-    status = switch_pd_rif_mod_mid_entry(device, &neighbor_info->switch_device_pd_routing_info, false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "rif mod mid pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-    }
-
-    status = switch_pd_rif_mod_end_entry(device, &neighbor_info->switch_device_pd_routing_info, false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d: "
-          "rif mod end pd delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-    }
-
-    if (api_neighbor_info->neighbor_type == SWITCH_NEIGHBOR_TYPE_IP) {
-      status = switch_api_nhop_delete(device, nhop_handle);
-      if (status != SWITCH_STATUS_SUCCESS) {
-        VLOG_ERR(
-            "neighbor delete failed on device %d neighbor handle 0x%lx: "
-            "nhop delete failed:(%s)\n",
-            device,
-            neighbor_handle,
-            switch_error_to_string(status));
-        return status;
-      }
-    }
+  }
 
   status = switch_neighbor_handle_delete(device, neighbor_handle);
   SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
 
   VLOG_INFO("neighbor deleted on device %d neighbor handle 0x%lx\n",
-                   device,
-                   neighbor_handle);
+             device,
+             neighbor_handle);
 
   return status;
 }

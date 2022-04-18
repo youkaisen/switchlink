@@ -51,6 +51,8 @@ enum {
   SWITCHLINK_MSG_MAX,
 } switchlink_msg_t;
 
+// Currently we dont want to dump any existing kernel data when target is DPDK
+#if 0
 static void nl_sync_state(void) {
   static uint8_t msg_idx = SWITCHLINK_MSG_LINK;
   if (msg_idx == SWITCHLINK_MSG_MAX) {
@@ -127,6 +129,7 @@ static void nl_sync_state(void) {
     msg_idx++;
   }
 }
+#endif
 
 static void process_nl_message(struct nlmsghdr *nlmsg) {
   /* TODO: P4OVS: Enabling callback for link msg type only and prints for

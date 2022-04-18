@@ -91,3 +91,40 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
   return status;
 }
 
+int switch_pd_to_get_port_id(uint32_t rif_ifindex)
+{
+    VLOG_INFO("%s", __func__);
+    char if_name[16] = {0};
+    int i = 0;
+    bf_dev_id_t bf_dev_id = 0;
+    bf_dev_port_t bf_dev_port;
+    bf_status_t bf_status;
+
+    if (!if_indextoname(rif_ifindex, if_name)) {
+        VLOG_ERR("Cannot get ifname for the index: %d", rif_ifindex);
+        return -1;
+    }
+
+    for(i = 0; i < MAX_NO_OF_PORTS; i++) {
+        struct port_info_t *port_info = NULL;
+        bf_dev_port = (bf_dev_port_t)i;
+        bf_status = (bf_pal_port_info_get(bf_dev_id,
+                                          bf_dev_port,
+                                          &port_info));
+        if (port_info == NULL)
+            continue;
+
+        if (!strcmp((port_info)->port_attrib.port_name, if_name)) {
+            // With multi-pipeline support, return target dp index
+            // for both direction
+            VLOG_INFO("found the target dp index %d for sdk port id %d",
+                      port_info->port_attrib.port_in_id, i);
+            return (port_info->port_attrib.port_in_id);
+        }
+    }
+
+    VLOG_ERR("Cannot find the target dp index for ifname : %s", if_name);
+
+    return -1;
+}
+
