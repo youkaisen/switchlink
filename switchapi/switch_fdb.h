@@ -64,11 +64,19 @@ extern "C" {
 
 typedef enum switch_l2_info_type_s
 {
+    SWITCH_L2_FWD_NONE,
     SWITCH_L2_FWD_TX,
     SWITCH_L2_FWD_RX,
-    SWITCH_L2_FWD_NONE
-
+    SWITCH_L2_FWD_MAX
 }switch_l2_info_type_t;
+
+typedef enum switch_l2_learn_from_t
+{
+    SWITCH_L2_FWD_LEARN_NONE,
+    SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE,
+    SWITCH_L2_FWD_LEARN_VLAN_INTERFACE,
+    SWITCH_L2_FWD_LEARN_MAX
+}switch_l2_learn_from_t;
 
 typedef struct switch_api_l2_info_s {
 
@@ -78,7 +86,11 @@ typedef struct switch_api_l2_info_s {
 
     switch_l2_info_type_t type;
 
-    switch_handle_t l2_handle; //VISHALA: to check if its needed
+    switch_port_t port_id;
+
+    switch_l2_learn_from_t learn_from;
+
+    switch_handle_t l2_handle;
 
 } switch_api_l2_info_t;
 
@@ -131,6 +143,12 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
     switch_device_t device,
     const switch_api_l2_info_t *api_l2_rx_info,
     bool entry_add);
+
+switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
+    switch_device_t device,
+    const switch_api_l2_info_t *api_l2_rx_info,
+    bool entry_add);
+
 #ifdef __cplusplus
 }
 #endif

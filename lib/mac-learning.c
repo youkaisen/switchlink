@@ -338,24 +338,42 @@ mac_learning_may_learn(const struct mac_learning *ml,
 
 #if P4SAI
 static void
-mac_learning_configure_kctrl(const struct eth_addr src_mac,
+mac_learning_configure_target(const struct eth_addr src_mac,
+                             mac_info_t *value,
                              switchlink_handle_t *tnl_intf_h,
                              switchlink_entry_type_e entry_type) {
-    switch_api_l2_info_t mac_entry;
-    switch_handle_t mac_handle;
+    uint16_t device_id = 0;
+    switch_api_l2_info_t mac_target_entry;
+    switch_handle_t mac_handle = SWITCH_API_INVALID_HANDLE;
+    switch_mac_addr_t l2_mac;
 
     if (entry_type >= SWITCHLINK_FDB_MAX)
         return;
 
-    memset(&mac_entry, 0, sizeof(mac_entry));
-    memcpy(&mac_entry.dst_mac, &src_mac.ea, sizeof(switch_mac_addr_t));
-    mac_entry.type = SWITCH_L2_FWD_TX;
+    memcpy(&l2_mac, &src_mac.ea, sizeof(switch_mac_addr_t));
 
-    if (entry_type == SWITCHLINK_FDB_ADD) {
-        mac_entry.rif_handle = *tnl_intf_h;
-        switch_api_l2_forward_create(0, &mac_entry, &mac_handle);
+    switch_api_l2_handle_get(device_id, &l2_mac, &mac_handle);
+
+    if (entry_type == SWITCHLINK_FDB_ADD &&
+        mac_handle != SWITCH_API_INVALID_HANDLE) {
+        // MAC is already programmed, no need to re-add again
+        return;
+    }
+
+    memset(&mac_target_entry, 0, sizeof(switch_api_l2_info_t));
+    memcpy(&mac_target_entry.dst_mac, &src_mac.ea, sizeof(switch_mac_addr_t));
+    mac_target_entry.type = SWITCH_L2_FWD_TX;
+
+    if (entry_type == SWITCHLINK_FDB_ADD && value && value->is_tunnel_port) {
+        mac_target_entry.rif_handle = *tnl_intf_h;
+        mac_target_entry.learn_from = SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE;
+        switch_api_l2_forward_create(device_id, &mac_target_entry, &mac_handle);
+    } else if (entry_type == SWITCHLINK_FDB_ADD && value) {
+        mac_target_entry.port_id = value->data.port_id - 1;
+        mac_target_entry.learn_from = SWITCH_L2_FWD_LEARN_VLAN_INTERFACE;
+        switch_api_l2_forward_create(device_id, &mac_target_entry, &mac_handle);
     } else if (entry_type == SWITCHLINK_FDB_DEL) {
-        switch_api_l2_forward_delete(0, &mac_entry);
+        switch_api_l2_forward_delete(device_id, &mac_target_entry);
     } else {
         return;
     }
@@ -377,7 +395,7 @@ mac_learning_configure_kctrl(const struct eth_addr src_mac,
 #if P4SAI
 static struct mac_entry *
 mac_learning_insert__(struct mac_learning *ml, const struct eth_addr src_mac,
-                      uint16_t vlan, bool is_static, uint32_t *ifindex)
+                      uint16_t vlan, bool is_static, mac_info_t *value)
     OVS_REQ_WRLOCK(ml->rwlock)
 #else
 static struct mac_entry *
@@ -430,16 +448,21 @@ mac_learning_insert__(struct mac_learning *ml, const struct eth_addr src_mac,
     }
 
 #if P4SAI
-    if (*ifindex != 0) {
-        switchlink_db_tunnel_interface_info_t tnl_intf;
-        //int if_index = if_nametoindex(((struct ofbundle*)(e->mlport)->port)->name);
-        if (switchlink_db_tunnel_interface_get_info(*ifindex, &tnl_intf) != 
+    switchlink_db_tunnel_interface_info_t tnl_intf;
+
+    if (!value) {
+        return e;
+    }
+
+    if (value->is_tunnel_port) {
+        if (switchlink_db_tunnel_interface_get_info(value->data.ifindex,
+                                                    &tnl_intf) ==
             SWITCHLINK_DB_STATUS_SUCCESS) {
-           // VLOG_ERR("Couldnt get interface data from DB");
-            return e;
+            mac_learning_configure_target(src_mac, value, &tnl_intf.orif_h,
+                                         SWITCHLINK_FDB_ADD);
         }
-        mac_learning_configure_kctrl(src_mac, &tnl_intf.orif_h,
-                                     SWITCHLINK_FDB_ADD);
+    } else {
+        mac_learning_configure_target(src_mac, value, 0, SWITCHLINK_FDB_ADD);
     }
 #endif
 
@@ -451,10 +474,10 @@ mac_learning_insert__(struct mac_learning *ml, const struct eth_addr src_mac,
 struct mac_entry *
 mac_learning_insert(struct mac_learning *ml,
                     const struct eth_addr src_mac, uint16_t vlan,
-                    uint32_t *ifindex)
+                    mac_info_t *value)
     OVS_REQ_WRLOCK(ml->rwlock)
 {
-    return mac_learning_insert__(ml, src_mac, vlan, false, ifindex);
+    return mac_learning_insert__(ml, src_mac, vlan, false, value);
 }
 #else
 struct mac_entry *
@@ -473,7 +496,7 @@ mac_learning_insert(struct mac_learning *ml,
 bool
 mac_learning_add_static_entry(struct mac_learning *ml,
                               const struct eth_addr src_mac, uint16_t vlan,
-                              void *in_port, uint32_t *ifindex)
+                              void *in_port, mac_info_t *value)
     OVS_EXCLUDED(ml->rwlock)
 #else
 bool
@@ -488,7 +511,7 @@ mac_learning_add_static_entry(struct mac_learning *ml,
 
     ovs_rwlock_wrlock(&ml->rwlock);
 #if P4SAI
-    mac = mac_learning_insert__(ml, src_mac, vlan, true, ifindex);
+    mac = mac_learning_insert__(ml, src_mac, vlan, true, value);
 #else
     mac = mac_learning_insert__(ml, src_mac, vlan, true);
 #endif
@@ -602,7 +625,7 @@ is_mac_learning_update_needed(const struct mac_learning *ml,
 static bool
 update_learning_table__(struct mac_learning *ml, struct eth_addr src,
                         int vlan, bool is_gratuitous_arp, bool is_bond,
-                        void *in_port, uint32_t *ifindex)
+                        void *in_port, mac_info_t *value)
     OVS_REQ_WRLOCK(ml->rwlock)
 #else
 static bool
@@ -619,7 +642,7 @@ update_learning_table__(struct mac_learning *ml, struct eth_addr src,
     }
 
 #if P4SAI
-    mac = mac_learning_insert(ml, src, vlan, ifindex);
+    mac = mac_learning_insert(ml, src, vlan, value);
 #else
     mac = mac_learning_insert(ml, src, vlan);
 #endif
@@ -661,7 +684,7 @@ update_learning_table__(struct mac_learning *ml, struct eth_addr src,
 bool
 mac_learning_update(struct mac_learning *ml, struct eth_addr src,
                     int vlan, bool is_gratuitous_arp, bool is_bond,
-                    void *in_port, uint32_t *ifindex)
+                    void *in_port, mac_info_t *value)
     OVS_EXCLUDED(ml->rwlock)
 #else
 bool
@@ -688,7 +711,7 @@ mac_learning_update(struct mac_learning *ml, struct eth_addr src,
             ovs_rwlock_wrlock(&ml->rwlock);
 #if P4SAI
             updated = update_learning_table__(ml, src, vlan, is_gratuitous_arp,
-                                              is_bond, in_port, ifindex);
+                                              is_bond, in_port, value);
 #else
             updated = update_learning_table__(ml, src, vlan, is_gratuitous_arp,
                                               is_bond, in_port);
@@ -726,7 +749,7 @@ mac_learning_expire(struct mac_learning *ml, struct mac_entry *e)
     hmap_remove(&ml->table, &e->hmap_node);
     ovs_list_remove(&e->lru_node);
 #if P4SAI
-    mac_learning_configure_kctrl(e->mac, 0, SWITCHLINK_FDB_DEL);
+    mac_learning_configure_target(e->mac, NULL, 0, SWITCHLINK_FDB_DEL);
 #endif
 
     free(e);

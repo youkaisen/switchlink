@@ -90,8 +90,10 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         return switch_pd_status_to_status(status);
     }
 
-    if (entry_add) {
-        /* Add an entry to target */
+    if (entry_add &&
+        api_l2_tx_info->learn_from == SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE) {
+        VLOG_INFO("Populate set_tunnel action for tunnel interface %x",
+                   api_l2_tx_info->rif_handle);
         action_id = 22384992; //action id for l2_fwd_tx_table, action: set_tunnel
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
@@ -112,6 +114,33 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         status = bf_rt_data_field_set_value_ptr (data_hdl, data_field_id,
                                             (const uint8_t *)&api_tunnel_info->dst_ip.ip.v4addr,
                                             sizeof(uint32_t));
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
+            return switch_pd_status_to_status(status);
+        }
+
+        status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
+                                       data_hdl);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to add table entry");
+            return switch_pd_status_to_status(status);
+        }
+    } else if (entry_add &&
+               api_l2_tx_info->learn_from == SWITCH_L2_FWD_LEARN_VLAN_INTERFACE) {
+
+        VLOG_INFO("Populate l2_fwd action for VLAN netdev: vlan%d",
+                  api_l2_tx_info->port_id+1);
+        action_id = 19169916; //action id for l2_fwd_rx_table, action: l2_fwd
+        status = bf_rt_table_action_data_allocate(table_hdl, action_id,
+                                                  &data_hdl);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
+            return switch_pd_status_to_status(status);
+        }
+
+        data_field_id = 1; // Action type port
+        status = bf_rt_data_field_set_value(data_hdl, data_field_id,
+                                            api_l2_tx_info->port_id);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
             return switch_pd_status_to_status(status);

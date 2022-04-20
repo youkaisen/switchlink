@@ -286,16 +286,18 @@ switch_status_t switch_api_l2_forward_create(
         return status;
     }
 
-    switch_tunnel_info_t *tunnel_info = NULL;
     switch_api_tunnel_info_t *api_tunnel_info = NULL;
 
-    tnl_handle = api_l2_info->rif_handle;
-    status = switch_tunnel_get(device, tnl_handle, &tunnel_info);
-    CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
+    // Only when the learn is from TUNNEL port we have corresponding RIF handle
+    if (api_l2_info->learn_from == SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE) {
+        switch_tunnel_info_t *tunnel_info = NULL;
+        tnl_handle = api_l2_info->rif_handle;
+        status = switch_tunnel_get(device, tnl_handle, &tunnel_info);
+        CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
 
-    api_tunnel_info = &tunnel_info->api_tunnel_info;
-
-    status = switch_pd_l2_tx_forward_table_entry (device, api_l2_info,
+        api_tunnel_info = &tunnel_info->api_tunnel_info;
+    }
+    status = switch_pd_l2_tx_forward_table_entry(device, api_l2_info,
                                                   api_tunnel_info,  true);
     if (status != SWITCH_STATUS_SUCCESS) {
         VLOG_ERR(
