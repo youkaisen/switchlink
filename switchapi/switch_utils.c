@@ -920,7 +920,25 @@ switch_direction_t switch_table_id_to_direction(switch_table_id_t table_id) {
     case SWITCH_TABLE_EGRESS_PFC_ACL:
     case SWITCH_TABLE_EGRESS_QOS_MAP:
       return SWITCH_API_DIRECTION_EGRESS;
-
+    // TODO: Handle cases below
+    case SWITCH_TABLE_TUNNEL_SIP_REWRITE:
+    case SWITCH_TABLE_TUNNEL_TERM:
+    case SWITCH_TABLE_ECN_ACL:
+    case SWITCH_TABLE_PFC_ACL:
+    case SWITCH_TABLE_MAX_ACL:
+    case SWITCH_TABLE_IPV4_BRIDGE_MCAST_S_G:
+    case SWITCH_TABLE_IPV4_BRIDGE_MCAST_STAR_G:
+    case SWITCH_TABLE_IPV6_BRIDGE_MCAST_S_G:
+    case SWITCH_TABLE_IPV6_BRIDGE_MCAST_STAR_G:
+    case SWITCH_TABLE_NAT_DST:
+    case SWITCH_TABLE_NAT_SRC:
+    case SWITCH_TABLE_NAT_TWICE:
+    case SWITCH_TABLE_NAT_FLOW:
+    case SWITCH_TABLE_QUEUE:
+    case SWITCH_TABLE_WRED:
+    case SWITCH_TABLE_METER_COLOR_ACTION:
+    case SWITCH_TABLE_NEIGHBOR:
+    case SWITCH_TABLE_MAX:
     default:
       return 0;
   }

@@ -276,6 +276,8 @@ sai_object_type_t sai_object_type_query(_In_ sai_object_id_t sai_object_id) {
       object_type = SAI_OBJECT_TYPE_VIRTUAL_ROUTER;
       break;
     case SWITCH_HANDLE_TYPE_NHOP:
+      switch_api_nhop_id_type_get(0, sai_object_id,
+                                  &nhop_type);
       if (nhop_type == SWITCH_NHOP_ID_TYPE_ONE_PATH) {
         object_type = SAI_OBJECT_TYPE_NEXT_HOP;
       } else if (nhop_type == SWITCH_NHOP_ID_TYPE_ECMP) {

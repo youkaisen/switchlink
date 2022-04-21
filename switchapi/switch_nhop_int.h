@@ -175,9 +175,6 @@ typedef struct switch_spath_info_s {
   /** interface ifindex */
   switch_ifindex_t ifindex;
 
-  /** hashtable node */
-  switch_hashnode_t node;
-  
   /** replication ID */
   switch_rid_t rid;
 
@@ -187,6 +184,9 @@ typedef struct switch_spath_info_s {
 } switch_spath_info_t;
 
 typedef struct switch_nhop_info_s {
+  /** hashtable node */
+  switch_hashnode_t node;
+
   /** nhop type - nhop/wcmp/ecmp */
   switch_nhop_id_type_t id_type;
 

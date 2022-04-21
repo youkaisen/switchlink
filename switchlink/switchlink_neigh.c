@@ -87,7 +87,7 @@ static void neigh_delete(switchlink_handle_t vrf_h,
 
   VLOG_INFO("Delete a neighbor entry: 0x%x", ipaddr->ip.v4addr.s_addr);
   switchlink_neighbor_delete(&neigh_info);
-  switchlink_nexthop_delete(&neigh_info);
+//  switchlink_nexthop_delete(&neigh_info);
   switchlink_db_neighbor_delete(&neigh_info);
 
   // delete the host route
@@ -157,7 +157,7 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
   hdrlen = sizeof(struct ndmsg);
 
   if (nbh->ndm_family == AF_INET6) {
-    VLOG_DBG("Ignoring IPv6 neighbors, as supported is not available");
+    VLOG_DBG("Ignoring IPv6 neighbors, as IPv6 support is not available");
     return;
   }
 
@@ -174,6 +174,10 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
   if (switchlink_db_interface_get_info(nbh->ndm_ifindex, &ifinfo) !=
       SWITCHLINK_DB_STATUS_SUCCESS) {
     char intf_name[16] = {0};
+    if (!if_indextoname(nbh->ndm_ifindex, intf_name)) {
+        VLOG_ERR("Cannot get ifname for the index: %d", nbh->ndm_ifindex);
+        return;
+    }
     if_indextoname(nbh->ndm_ifindex, intf_name);
     VLOG_DBG("neigh: switchlink_db_interface_get_info failed " \
              "for :%s\n", intf_name);
@@ -206,8 +210,8 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
         }
         break;
       case NDA_LLADDR: {
-        mac_addr_valid = true;
         ovs_assert(nla_len(attr) == sizeof(switchlink_mac_addr_t));
+        mac_addr_valid = true;
         memcpy(mac_addr, nla_data(attr), nla_len(attr));
         break;
       }

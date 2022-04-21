@@ -24,7 +24,7 @@
 
 #include "switchapi/switch_handle.h"
 #include "switchapi/switch_status.h"
-
+#include "switch_nhop_int.h"
 #include "switch_internal.h"
 #include <openvswitch/vlog.h>
 #include <config.h>

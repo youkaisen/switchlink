@@ -114,7 +114,17 @@ switch_status_t switch_nhop_hash_key_init(void *args,
 switch_int32_t switch_nhop_hash_compare(const void *key1, const void *key2) {
   VLOG_INFO("%s", __func__);
 
-  return SWITCH_MEMCMP(key1, key2, SWITCH_NHOP_HASH_KEY_SIZE);
+  switch_nhop_info_t *nhop_info = (switch_nhop_info_t *) key2;
+  switch_nhop_key_t nhop_key;
+
+  SWITCH_MEMSET(&nhop_key, 0x0, sizeof(switch_nhop_key_t));
+
+  if (nhop_info) {
+      SWITCH_MEMCPY(&nhop_key, &nhop_info->spath.nhop_key,
+                    sizeof(switch_nhop_key_t));
+  }
+
+  return SWITCH_MEMCMP(key1, &nhop_key, SWITCH_NHOP_HASH_KEY_SIZE);
 }
 
 switch_status_t switch_nhop_init(switch_device_t device) {
@@ -217,7 +227,7 @@ switch_status_t switch_api_nhop_handle_get(
     const switch_nhop_key_t *nhop_key,
     switch_handle_t *nhop_handle) {
   switch_nhop_context_t *nhop_ctx = NULL;
-  switch_spath_info_t *spath_info = NULL;
+  switch_nhop_info_t *nhop_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
   VLOG_INFO("%s", __func__);
@@ -236,9 +246,11 @@ switch_status_t switch_api_nhop_handle_get(
   }
 
   status = SWITCH_HASHTABLE_SEARCH(
-      &nhop_ctx->nhop_hashtable, (void *)nhop_key, (void **)&spath_info);
+      &nhop_ctx->nhop_hashtable, (void *)nhop_key, (void **)&nhop_info);
   if (status == SWITCH_STATUS_SUCCESS) {
-    *nhop_handle = spath_info->nhop_handle;
+    *nhop_handle = nhop_info->nhop_handle;
+  } else {
+    VLOG_ERR("Unable to find the entry in hashtable");
   }
 
   return status;
@@ -883,9 +895,9 @@ switch_status_t switch_api_nhop_create(
                 sizeof(switch_pd_routing_info_t));
 
   status = SWITCH_HASHTABLE_INSERT(&nhop_ctx->nhop_hashtable,
-                                   &(spath_info->node),
+                                   &(nhop_info->node),
                                    (void *)&nhop_key,
-                                   (void *)spath_info);
+                                   (void *)nhop_info);
   SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
 
   *nhop_handle = handle;
@@ -1061,7 +1073,7 @@ switch_status_t switch_api_nhop_delete(
   }
 
   status = SWITCH_HASHTABLE_DELETE(
-      &nhop_ctx->nhop_hashtable, (void *)(&nhop_key), (void **)&spath_info);
+      &nhop_ctx->nhop_hashtable, (void *)(&nhop_key), (void **)&nhop_info);
   SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
 
   status = switch_nhop_handle_delete(device, nhop_handle, 1);
@@ -1073,42 +1085,52 @@ switch_status_t switch_api_nhop_delete(
   return status;
 }
 
-#if 0
-switch_status_t switch_api_nhop_id_type_get_internal(
+switch_status_t switch_api_nhop_id_type_get(
     const switch_device_t device,
     const switch_handle_t nhop_handle,
     switch_nhop_id_type_t *nhop_type) {
   switch_nhop_info_t *nhop_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  SWITCH_ASSERT(SWITCH_NHOP_HANDLE(nhop_handle));
-  SWITCH_ASSERT(nhop_type != NULL);
+  VLOG_INFO("%s", __func__);
+
+  if (!nhop_type || !nhop_handle) {
+    status = SWITCH_STATUS_INVALID_PARAMETER;
+    VLOG_ERR("nhop id type find failed due to invalid parameters \n");
+    return status;
+  }
 
   *nhop_type = SWITCH_NHOP_ID_TYPE_NONE;
 
   if (!SWITCH_NHOP_HANDLE(nhop_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
-    VLOG_ERR("failed to get nhop type on device %d: %s\n",
-                     device,
-                     switch_error_to_string(status));
+    VLOG_ERR(
+        "nhop id type get failed for "
+        "device %d handle 0x%lx: %s\n",
+        device,
+        nhop_handle,
+        switch_error_to_string(status));
     return status;
   }
 
   status = switch_nhop_get(device, nhop_handle, &nhop_info);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("failed to get nhop type on device %d: %s\n",
-                     device,
-                     switch_error_to_string(status));
+    VLOG_ERR("failed to get nhop info on handle 0x%x: %s\n",
+             nhop_handle,
+             switch_error_to_string(status));
     return status;
   }
 
-  *nhop_type = nhop_info->id_type;
-
-  SWITCH_LOG_EXIT();
+  if(nhop_info) {
+     *nhop_type = nhop_info->id_type;
+  } else {
+     VLOG_ERR("nhop info was null, status = %d", status);
+  }
 
   return status;
 }
 
+#if 0
 switch_status_t switch_api_nhop_get(
     switch_device_t device,
     switch_handle_t nhop_handle,

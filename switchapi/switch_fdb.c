@@ -202,14 +202,14 @@ switch_status_t switch_api_l2_handle_get(
 
   if (!l2_key || !l2_handle) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("l2 key find failed \n");
+    VLOG_ERR("Failed to find l2 handle due to invalid parameters \n");
     return status;
   }
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L2, (void **)&l2_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("l2_key find failed \n");
+    VLOG_ERR("Failed to get device api context \n");
     return status;
   }
 
@@ -243,6 +243,7 @@ switch_status_t switch_api_l2_forward_create(
     return status;
   }
 
+  SWITCH_MEMSET(&l2_mac, 0, sizeof(switch_mac_addr_t));
   SWITCH_MEMCPY(&l2_mac, &api_l2_info->dst_mac, sizeof(switch_mac_addr_t));
   status = switch_api_l2_handle_get(device, &l2_mac, &handle);
   if (status != SWITCH_STATUS_SUCCESS &&

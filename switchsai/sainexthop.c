@@ -123,8 +123,9 @@ static sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id
   status = switch_api_nhop_create(0, &api_nhop_info, &next_hop_handle);
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR("failed to create nexthop: %s", sai_status_to_string(status));
+  } else {
+    *next_hop_id = next_hop_handle;
   }
-  *next_hop_id = next_hop_handle;
 
   return (sai_status_t)status;
 }
