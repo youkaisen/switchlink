@@ -16,6 +16,7 @@ limitations under the License.
 
 #include <config.h>
 #include "switch_rmac.h"
+#include "switch_pd_routing.h"
 #include "switch_rmac_int.h"
 #include <openvswitch/util.h>
 #include <openvswitch/vlog.h>
@@ -171,7 +172,8 @@ switch_status_t switch_api_router_mac_group_create(
 }
 
 switch_status_t switch_api_router_mac_group_delete(
-    const switch_device_t device, const switch_handle_t rmac_handle) {
+    const switch_device_t device, const switch_handle_t rif_handle,
+    const switch_handle_t rmac_handle) {
   switch_rmac_info_t *rmac_info = NULL;
   switch_rmac_entry_t *rmac_entry = NULL;
   switch_node_t *node = NULL;
@@ -205,7 +207,8 @@ switch_status_t switch_api_router_mac_group_delete(
   FOR_EACH_IN_LIST(rmac_info->rmac_list, node) {
     rmac_entry = node->data;
     status =
-        switch_api_router_mac_delete(device, rmac_handle, &rmac_entry->mac);
+        switch_api_router_mac_delete(device, rif_handle, rmac_handle,
+                                     &rmac_entry->mac);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
           "rmac group delete failed on device %d rmac handle 0x%lx: "
@@ -239,6 +242,7 @@ switch_status_t switch_api_router_mac_group_delete(
 
 switch_status_t switch_api_router_mac_delete(
     const switch_device_t device,
+    const switch_handle_t rif_handle,
     const switch_handle_t rmac_handle,
     const switch_mac_addr_t *mac) {
   switch_rmac_info_t *rmac_info = NULL;
@@ -292,6 +296,21 @@ switch_status_t switch_api_router_mac_delete(
         switch_macaddress_to_string(mac),
         switch_error_to_string(status));
     return status;
+  }
+
+  if (rmac_entry->is_rmac_pd_programmed) {
+    status = switch_pd_rmac_table_entry(device, rmac_entry, rif_handle, false);
+    if (status != SWITCH_STATUS_SUCCESS) {
+      VLOG_ERR(
+        "router mac PD entry delete failed on device %d "
+        "rmac handle 0x%lx mac %s: "
+        "rmac list delete failed(%s)\n",
+        device,
+        rmac_handle,
+        switch_macaddress_to_string(mac),
+        switch_error_to_string(status));
+      return status;
+    }
   }
 
   status = SWITCH_LIST_DELETE(&(rmac_info->rmac_list), node);
@@ -387,6 +406,7 @@ switch_status_t switch_api_router_mac_add(
 
   SWITCH_MEMSET(rmac_entry, 0x0, sizeof(switch_rmac_entry_t));
   SWITCH_MEMCPY(&rmac_entry->mac, mac, sizeof(switch_mac_addr_t));
+  rmac_entry->is_rmac_pd_programmed = false;
 
   SWITCH_LIST_INSERT(&(rmac_info->rmac_list), &(rmac_entry->node), rmac_entry);
 

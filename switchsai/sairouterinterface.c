@@ -80,7 +80,8 @@ static sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
   return status;
 }
 
-static sai_status_t sai_delete_rmac_internal(switch_handle_t rmac_handle) {
+static sai_status_t sai_delete_rmac_internal(switch_handle_t rif_handle,
+                                             switch_handle_t rmac_handle) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
@@ -89,7 +90,8 @@ static sai_status_t sai_delete_rmac_internal(switch_handle_t rmac_handle) {
   switch_api_device_default_rmac_handle_get(0, &tmp_rmac_handle);
   if (tmp_rmac_handle != rmac_handle) {
       VLOG_INFO("Delete router MAC");
-      switch_status = switch_api_router_mac_group_delete(0, rmac_handle);
+      switch_status = switch_api_router_mac_group_delete(0, rif_handle,
+                                                         rmac_handle);
       status = sai_switch_status_to_sai_status(switch_status);
       if (status != SAI_STATUS_SUCCESS) {
         VLOG_ERR("failed to remove router interface: %s",
@@ -159,7 +161,7 @@ static sai_status_t sai_create_router_interface(
       return status;
     }
 
-    status = sai_delete_rmac_internal(api_rif_info.rmac_handle);
+    status = sai_delete_rmac_internal(intf_handle, api_rif_info.rmac_handle);
     if (status != SAI_STATUS_SUCCESS) {
       return status;
     }
@@ -221,7 +223,7 @@ static sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
   }
 
   rmac_handle = api_rif_info.rmac_handle;
-  status = sai_delete_rmac_internal(rmac_handle);
+  status = sai_delete_rmac_internal((switch_handle_t)rif_id, rmac_handle);
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR("failed to remove RMAC: %s",
                   sai_status_to_string(status));

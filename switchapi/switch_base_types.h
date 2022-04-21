@@ -122,12 +122,6 @@ extern "C" {
 /** Mac address length */
 #define SWITCH_MAC_LENGTH 6
 
-#define SWITCH_MAC_LENGTH_START 2
-
-#define SWITCH_MAC_LENGTH_MID 2
-
-#define SWITCH_MAC_LENGTH_END 2
-
 #define _In_
 
 #define _Out_
@@ -389,17 +383,6 @@ typedef struct switch_mac_addr_s {
   /** mac address array */
   switch_uint8_t mac_addr[SWITCH_MAC_LENGTH];
 } switch_mac_addr_t;
-
-
-/** MAC address split **/
-typedef struct switch_mac_s {
-  /** mac address array */
-  switch_uint8_t mac_addr_start[SWITCH_MAC_LENGTH_START];
-
-  switch_uint8_t mac_addr_mid[SWITCH_MAC_LENGTH_MID];
-
-  switch_uint8_t mac_addr_end[SWITCH_MAC_LENGTH_END];
-} switch_mac_t;
 
 /** IP address */
 typedef struct switch_ip_addr_s {

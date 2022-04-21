@@ -70,13 +70,15 @@ switch_status_t switch_api_router_mac_group_create(
  * @brief Delete a router mac group
  *
  * @param[in] device device id
+ * @param[in] rif_handle RIF  handle
  * @param[in] rmac_handle router mac handle
  *
  * @return #SWITCH_STATUS_SUCCESS if success otherwise error code is
  * returned.
  */
 switch_status_t switch_api_router_mac_group_delete(
-    const switch_device_t device, const switch_handle_t rmac_handle);
+    const switch_device_t device, const switch_handle_t rif_handle,
+    const switch_handle_t rmac_handle);
 
 /**
  * @brief Create a router mac group with rmacs
@@ -125,6 +127,7 @@ switch_status_t switch_api_vrrp_rmac_add(const switch_device_t device,
  * returned.
  */
 switch_status_t switch_api_router_mac_delete(const switch_device_t device,
+                                             const switch_handle_t rif_handle,
                                              const switch_handle_t rmac_handle,
                                              const switch_mac_addr_t *mac);
 

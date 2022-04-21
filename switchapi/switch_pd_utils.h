@@ -40,6 +40,13 @@ extern "C" {
 // Currently this value is picked from dpdk_port_config.pb.txt
 #define MAX_NO_OF_PORTS 56
 
+#define RMAC_BASE 0
+#define RMAC_BYTES_OFFSET 2
+#define RMAC_START_OFFSET RMAC_BASE
+#define RMAC_MID_OFFSET RMAC_START_OFFSET+RMAC_BYTES_OFFSET
+#define RMAC_END_OFFSET RMAC_MID_OFFSET+RMAC_BYTES_OFFSET
+
+
 bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
                                               const char *pipeline_name,
                                               bf_rt_info_hdl **bfrt_info_hdl_t,

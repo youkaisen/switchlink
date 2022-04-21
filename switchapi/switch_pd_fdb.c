@@ -244,15 +244,15 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
         rif_handle = api_l2_rx_info->rif_handle;
         status = switch_rif_get(device, rif_handle, &rif_info);
         CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
-        if (rif_info->api_rif_info.port_id == -1) {
+        port_id = rif_info->api_rif_info.port_id;
+        if (port_id == -1) {
           port_id = switch_pd_to_get_port_id(rif_info->api_rif_info.rif_ifindex);
           rif_info->api_rif_info.port_id = port_id;
         }
 
         data_field_id = 1; // Action type port
-        status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                            (const uint8_t *)&port_id,
-                                            sizeof(uint32_t));
+        status = bf_rt_data_field_set_value(data_hdl, data_field_id,
+                                            port_id);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
             return switch_pd_status_to_status(status);
@@ -356,15 +356,15 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
         rif_handle = api_l2_rx_info->rif_handle;
         status = switch_rif_get(device, rif_handle, &rif_info);
         CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
-        if (rif_info->api_rif_info.port_id == -1) {
+        port_id = rif_info->api_rif_info.port_id;
+        if (port_id == -1) {
           port_id = switch_pd_to_get_port_id(rif_info->api_rif_info.rif_ifindex);
           rif_info->api_rif_info.port_id = port_id;
         }
 
         data_field_id = 1; // Action type port
-        status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                            (const uint8_t *)&port_id,
-                                            sizeof(uint32_t));
+        status = bf_rt_data_field_set_value(data_hdl, data_field_id,
+                                            port_id);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
             return switch_pd_status_to_status(status);

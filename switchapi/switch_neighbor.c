@@ -22,9 +22,7 @@ limitations under the License.
 #include "switch_rif_int.h"
 #include "switch_rmac_int.h"
 #include "switch_internal.h"
-
-/* Local header includes */
-#include "switch_internal.h"
+#include "switch_pd_utils.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_neighbor);
 
@@ -116,7 +114,6 @@ switch_status_t switch_api_neighbor_create(
   switch_rmac_info_t *rmac_info;
   switch_rmac_entry_t *rmac_entry = NULL;
   switch_node_t *node = NULL;
-  int i;
 
   VLOG_INFO("%s", __func__);
 
@@ -190,25 +187,29 @@ switch_status_t switch_api_neighbor_create(
 
       SWITCH_MEMCPY(&pd_neighbor_info.dst_mac_addr, &api_neighbor_info->mac_addr, sizeof(switch_mac_addr_t));
 
-      //rmac_handle will have source mac info. get rmac_info from rmac_handle      
+      status = switch_routing_table_entry(device, &pd_neighbor_info, true);
+      if (status != SWITCH_STATUS_SUCCESS) {
+        VLOG_ERR("routing tables update failed \n");
+        return status;
+      }
+
+      //rmac_handle will have source mac info. get rmac_info from rmac_handle
       rmac_handle = rif_info->api_rif_info.rmac_handle;
       status = switch_rmac_get(device, rmac_handle, &rmac_info);
       CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
       SWITCH_LIST_GET_HEAD(rmac_info->rmac_list, node);
       rmac_entry = (switch_rmac_entry_t *)node->data;
-      //split source mac address into start, mid and end
-      SWITCH_MEMCPY(src_rmac.mac_addr, rmac_entry->mac.mac_addr, sizeof(switch_mac_addr_t));
-      i=0;
-      SWITCH_MEMCPY(pd_neighbor_info.src_mac_addr.mac_addr_start, src_rmac.mac_addr, 2);
-      i += 2;
-      SWITCH_MEMCPY(pd_neighbor_info.src_mac_addr.mac_addr_mid, src_rmac.mac_addr+i, 2);
-      i += 2;
-      SWITCH_MEMCPY(pd_neighbor_info.src_mac_addr.mac_addr_end, src_rmac.mac_addr+i, 2);
 
-      status = switch_routing_table_entry(device, &pd_neighbor_info, true);
-      if(status != SWITCH_STATUS_SUCCESS) {
-        VLOG_ERR("routing tables update failed \n");
-        return status;
+      // SRC MAC is picked from RMAC of RIF entry. This needs to be programmed
+      // only once, even though many neighbors learnt on same RIF.
+      if (rmac_entry && !rmac_entry->is_rmac_pd_programmed) {
+          status = switch_pd_rmac_table_entry(device, rmac_entry,
+                                           api_neighbor_info->rif_handle, true);
+          if (status != SWITCH_STATUS_SUCCESS) {
+              VLOG_ERR("routing tables update failed \n");
+              return status;
+          }
+          rmac_entry->is_rmac_pd_programmed = true;
       }
   }
 

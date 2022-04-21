@@ -252,7 +252,8 @@ switch_status_t switch_pd_neighbor_table_entry(
 
 switch_status_t switch_pd_rif_mod_start_entry(
   switch_device_t device,
-  const switch_pd_routing_info_t  *api_rif_mod_start_pd_info,
+  switch_rmac_entry_t *rmac_entry,
+  switch_handle_t rif_handle,
   bool entry_add) {
   bf_status_t status;
 
@@ -297,7 +298,7 @@ switch_status_t switch_pd_rif_mod_start_entry(
 
   field_id = 1;
   status = bf_rt_key_field_set_value(key_hdl, field_id,
-                                     (api_rif_mod_start_pd_info->rif_handle &
+                                     (rif_handle &
                                      ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
@@ -316,8 +317,8 @@ switch_status_t switch_pd_rif_mod_start_entry(
 
    data_field_id = 1;
    status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                      (const uint8_t *)&api_rif_mod_start_pd_info->src_mac_addr.mac_addr_start,
-                                      SWITCH_MAC_LENGTH_START);
+                                      (const uint8_t *)&rmac_entry->mac.mac_addr+RMAC_START_OFFSET,
+                                      RMAC_BYTES_OFFSET);
     if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
       return switch_pd_status_to_status(status);
@@ -350,7 +351,8 @@ switch_status_t switch_pd_rif_mod_start_entry(
 
 switch_status_t switch_pd_rif_mod_mid_entry(
   switch_device_t device,
-  const switch_pd_routing_info_t  *api_rif_mod_mid_pd_info,
+  switch_rmac_entry_t *rmac_entry,
+  switch_handle_t rif_handle,
   bool entry_add) {
   bf_status_t status;
 
@@ -395,7 +397,7 @@ switch_status_t switch_pd_rif_mod_mid_entry(
 
   field_id = 1;
   status = bf_rt_key_field_set_value(key_hdl, field_id,
-                                     (api_rif_mod_mid_pd_info->rif_handle &
+                                     (rif_handle &
                                      ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
     VLOG_ERR("Unable to set value for key ID: %d", field_id);
@@ -414,8 +416,8 @@ switch_status_t switch_pd_rif_mod_mid_entry(
 
     data_field_id = 1;
     status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                        (const uint8_t *)&api_rif_mod_mid_pd_info->src_mac_addr.mac_addr_mid,
-                                        SWITCH_MAC_LENGTH_MID);
+                                        (const uint8_t *)&rmac_entry->mac.mac_addr+RMAC_MID_OFFSET,
+                                        RMAC_BYTES_OFFSET);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
         return switch_pd_status_to_status(status);
@@ -448,7 +450,8 @@ switch_status_t switch_pd_rif_mod_mid_entry(
 
 switch_status_t switch_pd_rif_mod_end_entry(
   switch_device_t device,
-  const switch_pd_routing_info_t  *api_rif_mod_end_pd_info,
+  switch_rmac_entry_t *rmac_entry,
+  switch_handle_t rif_handle,
   bool entry_add) {
   bf_status_t status;
 
@@ -493,7 +496,7 @@ switch_status_t switch_pd_rif_mod_end_entry(
 
   field_id = 1;
   status = bf_rt_key_field_set_value(key_hdl, field_id,
-                                     (api_rif_mod_end_pd_info->rif_handle &
+                                     (rif_handle &
                                      ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
@@ -512,8 +515,8 @@ switch_status_t switch_pd_rif_mod_end_entry(
 
       data_field_id = 1;
       status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                          (const uint8_t *)&api_rif_mod_end_pd_info->src_mac_addr.mac_addr_end,
-                                          SWITCH_MAC_LENGTH_END);
+                                              (const uint8_t *)&rmac_entry->mac.mac_addr+RMAC_END_OFFSET,
+                                               RMAC_BYTES_OFFSET);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
           return switch_pd_status_to_status(status);
@@ -560,6 +563,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
   bf_rt_table_key_hdl *key_hdl;
   bf_rt_table_data_hdl *data_hdl;
   const bf_rt_table_hdl *table_hdl;
+  uint32_t network_byte_order;
 
   dev_tgt.dev_id = device;
   dev_tgt.pipe_id = 0;
@@ -593,9 +597,8 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
   // route, check how mask need to be passed
   field_id = 1; // Match type ipv4_dst_match
   // Use LPM API for LPM match type
-  // status = bf_rt_key_field_set_value_ptr(key_hdl, field_id, (const uint8_t *)&api_route_entry->ip_address.ip.v4addr,
-  //                                          sizeof(uint32_t));
-  status = bf_rt_key_field_set_value_lpm_ptr(key_hdl, field_id, (const uint8_t *)&api_route_entry->ip_address.ip.v4addr,
+  network_byte_order = ntohl(api_route_entry->ip_address.ip.v4addr);
+  status = bf_rt_key_field_set_value_lpm_ptr(key_hdl, field_id, (const uint8_t *)&network_byte_order,
                                             (const uint16_t)api_route_entry->ip_address.prefix_len,
                                             sizeof(uint32_t));
   if(status != BF_SUCCESS) {
@@ -691,24 +694,43 @@ switch_status_t switch_routing_table_entry (
       VLOG_ERR( "neighbor table update failed \n");
       return status;
   }
+  return status;
+}
 
+switch_status_t switch_pd_rmac_table_entry (
+        switch_device_t device,
+        switch_rmac_entry_t *rmac_entry,
+        switch_handle_t rif_handle,
+        bool entry_type)
+{
+  switch_status_t status = SWITCH_STATUS_SUCCESS;
+
+  VLOG_INFO("%s", __func__);
+
+  if (!rmac_entry) {
+      VLOG_ERR("Empty router_mac entry \n");
+      return status;
+  }
   //update rif mod tables start
-  status = switch_pd_rif_mod_start_entry(device, api_routing_info, entry_type);
-  if(status != SWITCH_STATUS_SUCCESS){
+  status = switch_pd_rif_mod_start_entry(device, rmac_entry, rif_handle,
+                                             entry_type);
+  if (status != SWITCH_STATUS_SUCCESS){
       VLOG_ERR("rid mod start table entry failed \n");
       return status;
   }
 
   //update rif mod tables mid
-  status = switch_pd_rif_mod_mid_entry(device, api_routing_info, entry_type);
+  status = switch_pd_rif_mod_mid_entry(device, rmac_entry, rif_handle,
+                                       entry_type);
   if(status != SWITCH_STATUS_SUCCESS){
       VLOG_ERR("rid mod mid table entry failed \n");
       return status;
   }
 
   //update rif mod tables end
-  status = switch_pd_rif_mod_end_entry(device, api_routing_info, entry_type);
-  if(status != SWITCH_STATUS_SUCCESS){
+  status = switch_pd_rif_mod_end_entry(device, rmac_entry, rif_handle,
+                                       entry_type);
+  if (status != SWITCH_STATUS_SUCCESS){
       VLOG_ERR("rid mod end table entry failed \n");
       return status;
   }

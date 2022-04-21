@@ -20,6 +20,7 @@ limitations under the License.
 #include "switch_base_types.h"
 #include "switch_handle.h"
 #include "switch_l3.h"
+#include "switch_rmac_int.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -50,8 +51,6 @@ typedef struct switch_pd_routing_info_s
 
   switch_port_t port_id;
 
-  switch_mac_t src_mac_addr;
-
 } switch_pd_routing_info_t;
 
 switch_status_t switch_pd_nexthop_table_entry(
@@ -64,19 +63,28 @@ switch_status_t switch_pd_neighbor_table_entry(
     const switch_pd_routing_info_t  *api_neighbor_pd_info,
     bool entry_add);
 
+switch_status_t switch_pd_rmac_table_entry (
+    switch_device_t device,
+    switch_rmac_entry_t *rmac_entry,
+    switch_handle_t rif_handle,
+    bool entry_type);
+
 switch_status_t switch_pd_rif_mod_start_entry(
     switch_device_t device,
-    const switch_pd_routing_info_t  *api_rif_mod_start_pd_info,
+    switch_rmac_entry_t *rmac_entry,
+    switch_handle_t rif_handle,
     bool entry_add);
 
 switch_status_t switch_pd_rif_mod_mid_entry(
     switch_device_t device,
-    const switch_pd_routing_info_t  *api_rif_mod_mid_pd_info,
+    switch_rmac_entry_t *rmac_entry,
+    switch_handle_t rif_handle,
     bool entry_add);
 
 switch_status_t switch_pd_rif_mod_end_entry(
     switch_device_t device,
-    const switch_pd_routing_info_t  *api_rif_mod_end_pd_info,
+    switch_rmac_entry_t *rmac_entry,
+    switch_handle_t rif_handle,
     bool entry_add);
 
 switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,

@@ -48,6 +48,9 @@ typedef struct switch_rmac_entry_s {
   /** list node */
   switch_node_t node;
 
+  /** RMAC to be programmed or not */
+  bool is_rmac_pd_programmed;
+
 } switch_rmac_entry_t;
 
 /** rmac group info */
