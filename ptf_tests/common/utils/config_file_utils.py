@@ -5,7 +5,7 @@ import json
 import os
 
 
-def get_config_dict(config_json):
+def get_config_dict(config_json, pci_bdf=""):
     """
     util function to convert json config file to dictionary
     expected directory structure:
@@ -37,6 +37,22 @@ def get_config_dict(config_json):
         port_list.sort()
 
         data['port_list'] = port_list
+
+        if pci_bdf:
+            pci_bdf = [x.strip() for x in pci_bdf.split(',')]
+            if len(pci_bdf)>len(data['port_list']):
+                print(f"No of pci bdf must be equal to or less than the no of ports defined in the config json file: {len(data['port_list'])}")
+                return None
+
+            for port in data['port']:
+                for pci in pci_bdf:
+                    if pci and \
+                            str(pci_bdf.index(pci)+1) == port['id']:
+                                if port['device']=='physical-device':
+                                    port['pci_bdf'] = pci
+                                else:
+                                    print(f"Port no {port['id']} expected device type as physical-device found {port['device']} instead")
+                                    return None
 
         for table in data['table']:
             if 'match_action' in table.keys():
