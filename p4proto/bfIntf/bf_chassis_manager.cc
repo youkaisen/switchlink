@@ -111,6 +111,24 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       }
       break;
 
+    case SetRequest::Request::Port::ValueCase::kPipelineName:
+      if (validate & GNMI_CONFIG_PIPELINE_NAME) {
+          return true;
+      }
+      break;
+
+    case SetRequest::Request::Port::ValueCase::kMempoolName:
+      if (validate &  GNMI_CONFIG_MEMPOOL_NAME) {
+          return true;
+      }
+      break;
+
+    case SetRequest::Request::Port::ValueCase::kMtuValue:
+      if (validate & GNMI_CONFIG_MTU_VALUE) {
+          return true;
+      }
+      break;
+
     default:
       break;
   }
@@ -158,17 +176,63 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       LOG(INFO) << "ValidateAndAdd::kHostConfig = " << config_params.host_name();
       break;
 
+    case SetRequest::Request::Port::ValueCase::kPipelineName:
+      validate |= GNMI_CONFIG_PIPELINE_NAME;
+      config.pipeline_name = config_params.pipeline();
+      LOG(INFO) << "ValidateAndAdd::kPipelineName= " << config_params.pipeline();
+      break;
+
+    case SetRequest::Request::Port::ValueCase::kMempoolName:
+      validate |= GNMI_CONFIG_MEMPOOL_NAME;
+      config.mempool_name = config_params.mempool();
+      LOG(INFO) << "ValidateAndAdd::kMempoolName= " << config_params.mempool();
+      break;
+
+    case SetRequest::Request::Port::ValueCase::kMtuValue:
+      validate |= GNMI_CONFIG_MTU_VALUE;
+      config.mtu = config_params.mtu();
+      LOG(INFO) << "ValidateAndAdd::kMtuValue= " << config_params.mtu();
+      break;
+
     default:
       break;
   }
 
   node_id_port_id_to_backend_[node_id][port_id] = validate;
-  if (validate == GNMI_CONFIG_TDI) {
-      // Required parameters are configured
-      LOG(INFO) << "Required parameters are configured, configure port via TDI";
-      LOG(INFO) << "SDK_PORT ID while validating = " << sdk_port_id;
-      RETURN_IF_ERROR(AddPortHelper(node_id, unit, sdk_port_id, singleton_port, &config));
-  }
+    if ((validate & GNMI_CONFIG_PORT_TYPE) == GNMI_CONFIG_PORT_TYPE) {
+      if (((config.port_type == PORT_TYPE_VHOST) &&
+         ((validate & GNMI_CONFIG_VHOST) == GNMI_CONFIG_VHOST)) ||
+         ((config.port_type == PORT_TYPE_TAP) &&
+         ((validate & GNMI_CONFIG_TAP) == GNMI_CONFIG_TAP))) {
+        // Check if Mandatory parameters are configured
+        LOG(INFO) << "Required parameters are configured, configure port via TDI";
+        LOG(INFO) << "SDK_PORT ID while validating = " << sdk_port_id;
+        if (!(validate & GNMI_CONFIG_PIPELINE_NAME)) {
+          // configure the default Pipeline name, if its not given in GNMI CLI.
+          config.pipeline_name = DEFAULT_PIPELINE;
+        }
+        if (!(validate & GNMI_CONFIG_MEMPOOL_NAME)) {
+          // configure the default Mempool  name, if its not given in GNMI CLI.
+          config.mempool_name = DEFAULT_MEMPOOL;
+        }
+        if (!(validate & GNMI_CONFIG_MTU_VALUE)) {
+          // configure the default MTU, if its not given in GNMI CLI.
+          config.mtu = DEFAULT_MTU;
+        }
+        if ((config.port_type == PORT_TYPE_TAP) &&
+           (validate & GNMI_CONFIG_UNSUPPORTED_MASK_TAP)) {
+          LOG(INFO) << "Inside invalidate condition";
+          // Unsupported list of Params, clear the validate field.
+          validate = 0;
+          node_id_port_id_to_backend_[node_id][port_id] = validate;
+          return MAKE_ERROR(ERR_INVALID_PARAM)
+               << "Unsupported parameter list for given Port Type \n";
+        }
+        RETURN_IF_ERROR(AddPortHelper(node_id, unit, sdk_port_id, singleton_port, &config));
+        node_id_port_id_to_backend_[node_id][port_id] = validate;
+      }
+    }
+
   google::FlushLogFiles(google::INFO);
   return ::util::OkStatus();
 }
@@ -203,9 +267,12 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   BfSdeInterface::PortConfigParams bf_sde_wrapper_config = {config->port_type,
                                                             config->device_type,
                                                             config->queues,
+                                                            *config->mtu,
                                                             config->socket_path,
                                                             config->host_name,
-                                                            port_name};
+                                                            port_name,
+                                                            config->pipeline_name,
+                                                            config->mempool_name};
 
   RETURN_IF_ERROR(bf_sde_interface_->AddPort(
 #ifdef P4TOFINO
@@ -215,11 +282,17 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
 #endif
       config_params.fec_mode()));
 
-  if (config_params.mtu() != 0) {
+  if(config->mtu) {
+    LOG(INFO) << "MTU value - config->mtu= " << *config->mtu;
+    RETURN_IF_ERROR(
+        bf_sde_interface_->SetPortMtu(unit, sdk_port_id, *config->mtu));
+  } else if (config_params.mtu() != 0) {
+    LOG(INFO) << "MTU value - config_params.mtu= " << config_params.mtu();
     RETURN_IF_ERROR(
         bf_sde_interface_->SetPortMtu(unit, sdk_port_id, config_params.mtu()));
+    config->mtu = config_params.mtu();
   }
-  config->mtu = config_params.mtu();
+
   if (config_params.autoneg() != TRI_STATE_UNKNOWN) {
     RETURN_IF_ERROR(bf_sde_interface_->SetPortAutonegPolicy(
         unit, sdk_port_id, config_params.autoneg()));

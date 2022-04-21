@@ -25,10 +25,24 @@
 #define GNMI_CONFIG_QUEUE_COUNT 0x04
 #define GNMI_CONFIG_SOCKET_PATH 0x08
 #define GNMI_CONFIG_HOST_NAME 0x10
+#define GNMI_CONFIG_PIPELINE_NAME 0x20
+#define GNMI_CONFIG_MEMPOOL_NAME 0x40
+#define GNMI_CONFIG_MTU_VALUE 0x80
 
-#define GNMI_CONFIG_TDI (GNMI_CONFIG_PORT_TYPE | GNMI_CONFIG_DEVICE_TYPE | \
-                         GNMI_CONFIG_QUEUE_COUNT | GNMI_CONFIG_SOCKET_PATH | \
-                         GNMI_CONFIG_HOST_NAME)
+#define GNMI_CONFIG_VHOST (GNMI_CONFIG_PORT_TYPE | GNMI_CONFIG_DEVICE_TYPE | \
+                           GNMI_CONFIG_QUEUE_COUNT | GNMI_CONFIG_SOCKET_PATH | \
+                           GNMI_CONFIG_HOST_NAME)
+
+
+#define GNMI_CONFIG_TAP (GNMI_CONFIG_PORT_TYPE)
+
+// Independant TAP ports shouldn't have the below params.
+#define GNMI_CONFIG_UNSUPPORTED_MASK_TAP (GNMI_CONFIG_DEVICE_TYPE | GNMI_CONFIG_QUEUE_COUNT | \
+                                          GNMI_CONFIG_SOCKET_PATH | GNMI_CONFIG_HOST_NAME)
+
+#define DEFAULT_PIPELINE "pipe"
+#define DEFAULT_MEMPOOL  "MEMPOOL0"
+#define DEFAULT_MTU      1500
 
 namespace stratum {
 namespace hal {
@@ -131,6 +145,8 @@ class BfChassisManager {
     int32 queues;
     std::string socket_path;
     std::string host_name;
+    std::string pipeline_name;
+    std::string mempool_name;
 
     PortConfig() : admin_state(ADMIN_STATE_UNKNOWN),
                    port_type(PORT_TYPE_NONE),
