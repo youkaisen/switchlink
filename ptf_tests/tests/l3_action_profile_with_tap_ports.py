@@ -3,7 +3,10 @@ DPDK L3 Verify traffic with Action Profile
 """
 
 # in-built module imports
-import time
+import time, sys
+
+# Unittest related imports
+import unittest
 
 # ptf related imports
 import ptf
@@ -27,6 +30,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
 
     def setUp(self):
         BaseTest.setUp(self)
+        self.result = unittest.TestResult()
         config["relax"] = True # for verify_packets to ignore other packets received at the interface
         
         test_params = test_params_get()
@@ -36,16 +40,15 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
 
         self.config_data = get_config_dict(config_json)
 
-        if not test_utils.gen_dep_files_p4c_ovs_pipeline_builder(self.config_data):
-            self.fail("Failed to generate P4C artifacts or pb.bin")
-
         self.gnmicli_params = get_gnmi_params_simple(self.config_data)
         self.interface_ip_list = get_interface_ipv4_dict(self.config_data)
-
-        self.PASSED = True
         
 
     def runTest(self):
+        if not test_utils.gen_dep_files_p4c_ovs_pipeline_builder(self.config_data):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail("Failed to generate P4C artifacts or pb.bin")
+
         gnmi_set_params(self.gnmicli_params)
         ip_set_ipv4(self.interface_ip_list)
 
@@ -56,8 +59,10 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
             device, port = port_id
             self.dataplane.port_add(ifname, device, port)
 
-        ovs_p4ctl.ovs_p4ctl_set_pipe(self.config_data['switch'], self.config_data['pb_bin'], self.config_data['p4_info'])
-        
+        if not ovs_p4ctl.ovs_p4ctl_set_pipe(self.config_data['switch'], self.config_data['pb_bin'], self.config_data['p4_info']):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail("Failed to set pipe")
+
         function_dict = {
                 'table_for_configure_member' : ovs_p4ctl.ovs_p4ctl_add_member_and_verify,
                 'table_for_ipv4' : ovs_p4ctl.ovs_p4ctl_add_entry
@@ -71,7 +76,9 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
             print(f"Scenario : l3 verify traffic with action profile : {table['description']}")
             print(f"Adding {table['description']} rules")
             for match_action in table[table_entry_dict[table['description']]]:
-                function_dict[table['description']](table['switch'],table['name'], match_action)
+                if not function_dict[table['description']](table['switch'],table['name'], match_action):
+                    self.result.addFailure(self, sys.exc_info())
+                    self.fail(f"Failed to add table entry {match_action}")
 
         # forming UDP packet
         print(f"Sending UDP packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_1']}")
@@ -84,8 +91,8 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
             verify_packets(self, pkt, device_number=0, ports=[port_ids[1][1]])
             print(f"PASS: Verification of UDP packets passed, packet received as per rule 1")
         except Exception as err:
-            print(f"FAIL: Verification of UDP packets sent failed with exception {err}")
-            self.PASSED = False
+            self.result.addFailure(self, sys.exc_info())
+            self.fail(f"FAIL: Verification of UDP packets sent failed with exception {err}")
 
         # forming TCP packet
         print(f"Sending TCP packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_1']}")
@@ -98,8 +105,8 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
             verify_packets(self, pkt, device_number=0, ports=[port_ids[1][1]])
             print(f"PASS: Verification of TCP packets passed, packet received as per rule 1")
         except Exception as err:
-            print(f"FAIL: Verification of TCP packets sent failed with exception {err}")
-            self.PASSED = False
+            self.result.addFailure(self, sys.exc_info())
+            self.fail(f"FAIL: Verification of TCP packets sent failed with exception {err}")
 
         # forming UDP Multicast packet
         print(f"Sending UDP Multicast packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_2']}")
@@ -112,8 +119,8 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
             verify_packets(self, pkt, device_number=0, ports=[port_ids[2][1]])
             print(f"PASS: Verification of UDP Multicast packets passed, packet received as per rule 2")
         except Exception as err:
-            print(f"FAIL: Verification of UDP Multicast sent failed with exception {err}")
-            self.PASSED = False
+            self.result.addFailure(self, sys.exc_info())
+            self.fail(f"FAIL: Verification of UDP Multicast packets sent failed with exception {err}")
 
 
         # forming UDP Broadcast packet
@@ -127,8 +134,8 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
             verify_packets(self, pkt, device_number=0, ports=[port_ids[3][1]])
             print(f"PASS: Verification of UDP Broadcast packets passed, packet received as per rule 3")
         except Exception as err:
-            print(f"FAIL: Verification of UDP Broadcast sent failed with exception {err}")
-            self.PASSED = False
+            self.result.addFailure(self, sys.exc_info())
+            self.fail(f"FAIL: Verification of UDP Broadcast packets sent failed with exception {err}")
 
         self.dataplane.kill()
 
@@ -146,11 +153,10 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
             print(f"Deleting {table['description']} rules")
             for del_action in table[table_entry_dict[table['description']]]:
                 function_dict[table['description']](table['switch'], table['name'], del_action)
-        
-        if self.PASSED:
+
+        if self.result.wasSuccessful():
             print("Test has PASSED")
         else:
             print("Test has FAILED")
-
  
 

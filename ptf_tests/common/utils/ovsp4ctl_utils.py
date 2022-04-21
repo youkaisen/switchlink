@@ -17,9 +17,12 @@ def ovs_p4ctl_set_pipe(bridge, device_config, p4info):
         out = ovs_p4ctl.p4ctl_set_pipe(bridge, device_config, p4info)
         if out == None:
             print(f"PASS: ovs-p4ctl set pip: {device_config}")
+            return True
 
     except Exception as error:
         print(f"FAIL: ovs-p4ctl set pipe Failed with error: {error}")
+        return False
+
     
 def ovs_p4ctl_add_entry(bridge, tbl_name, flow):
     """
@@ -32,9 +35,11 @@ def ovs_p4ctl_add_entry(bridge, tbl_name, flow):
         out = ovs_p4ctl.p4ctl_add_entry(bridge, tbl_name, flow)
         if out == None:
             print(f"PASS: ovs-p4ctl add entry: {flow}")
+            return True
 
     except Exception as error:
         print(f"FAIL: ovs-p4ctl add entry Failed with error: {error}")
+        return False
 
 
 
@@ -50,9 +55,11 @@ def ovs_p4ctl_del_entry(bridge, tbl_name, match_key):
         out = ovs_p4ctl.p4ctl_del_entry(bridge, tbl_name, match_key)
         if out == None:
             print(f"PASS: ovs-p4ctl del entry {match_key}")
+            return True
 
     except Exception as error:
         print(f"FAIL; ovs-p4ctl del entry Failed with error: {error}")
+        return False
 
 
 
@@ -69,9 +76,11 @@ def ovs_p4ctl_add_member(bridge, tbl_name, member_details):
         out = ovs_p4ctl.p4ctl_add_member(bridge, tbl_name, member_details)
         if out == None:
             print(f"PASS: ovs-p4ctl add member {member_details}")
+            return True
 
     except Exception as error:
         print(f"FAIL: ovs-p4ctl add member Failed with error: {error}")
+        return False
         
 
 def ovs_p4ctl_add_member_and_verify(bridge, tbl_name, member_details):
@@ -106,8 +115,12 @@ def ovs_p4ctl_add_member_and_verify(bridge, tbl_name, member_details):
             print("PASS : Returned member details matching with configured group")
         else:
             print("FAIL : Returned member details are not matching with configured group")
+            return False
     except Exception as error:
         print(f"FAIL: ovs-p4ctl add member Failed with error: {error}")
+        return False
+
+    return True
 
 
 
@@ -140,12 +153,13 @@ def ovs_p4ctl_get_member(bridge, tbl_name, member_id, member_details=None):
                 print("PASS : Returned member details matching with configured group")
             else:
                 print("FAIL : Returned member details are not matching with configured group")
+                return False
  
         return member_returned    
 
     except Exception as error:
         print(f"ovs-p4ctl get member Failed with error: {error}")
-   
+        return False 
 
 def ovs_p4ctl_del_member(bridge, tbl_name, member_id):
     """
@@ -158,8 +172,10 @@ def ovs_p4ctl_del_member(bridge, tbl_name, member_id):
         out = ovs_p4ctl.p4ctl_del_member(bridge, tbl_name, member_id)
         if out == None:
             print(f"PASS: ovs-p4ctl del member {member_id}")
+            return True
     except Exception as error:
         print(f"FAIL: ovs-p4ctl del member Failed with error: {error}")
+        return False
 
 
 
@@ -174,9 +190,11 @@ def ovs_p4ctl_add_group(bridge, tbl_name, group_details):
         out = ovs_p4ctl.p4ctl_add_group(bridge, tbl_name, group_details)
         if out == None:
             print(f"PASS: ovs-p4ctl add group {group_details}")
+            return True
 
     except Exception as error:
         print(f"FAIL: ovs-p4ctl add group Failed with error: {error}")
+        return False
 
 
 def ovs_p4ctl_add_group_and_verify(bridge, tbl_name, group_details):
@@ -204,9 +222,13 @@ def ovs_p4ctl_add_group_and_verify(bridge, tbl_name, group_details):
             print("PASS: Returned group details matching with configured group")
         else:
             print("FAIL : Returned group details are not matching with configured group")
+            return False
         
     except Exception as error:
         print(f"FAIL: ovs-p4ctl add group Failed with error: {error}")
+        return False
+
+    return True
 
 
 
@@ -221,8 +243,10 @@ def ovs_p4ctl_del_group(bridge, tbl_name, group_id):
         out = ovs_p4ctl.p4ctl_del_group(bridge, tbl_name, group_id)
         if out == None:
             print(f"PASS: ovs-p4ctl del group {group_id}")
+            return True
     except Exception as error:
         print(f"FAIL: ovs-p4ctl del group Failed with error: {error}")
+        return False
 
 
 
@@ -252,10 +276,12 @@ def ovs_p4ctl_get_group(bridge, tbl_name, group_id, group_details=None):
                 print("PASS: Returned group details matching with configured group")
             else:
                 print("FAIL: Returned group details are not matching with configured group")
+                return False
 
 
         return group_returned
     
     except Exception as error:
         print(f"FAIL: ovs-p4ctl get group Failed with error: {error}")
+        return False
 

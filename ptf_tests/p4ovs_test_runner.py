@@ -87,7 +87,6 @@ for test in test_to_run['sequence']:
     # discarding pre_test.sh logs
     results[test] = '\n'.join([x for x in list(dropwhile(lambda x: "Using packet manipulation module" not in x,
                                                          out.split('\n'))) if x])
-print(results)
 summary = []
 if args.log_file:
     fh = open(args.log_file, "w")

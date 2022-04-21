@@ -4,6 +4,10 @@ DPDK L2 Exact Match (match fields, actions) with TAP Port
 
 # in-built module imports
 import time
+import sys
+
+# Unittest related imports
+import unittest
 
 # ptf related imports
 import ptf
@@ -28,6 +32,7 @@ class L2_Exact_Match(BaseTest):
 
     def setUp(self):
         BaseTest.setUp(self)
+        self.result = unittest.TestResult()
         config["relax"] = True # for verify_packets to ignore other packets received at the interface
         
         test_params = test_params_get()
@@ -37,15 +42,15 @@ class L2_Exact_Match(BaseTest):
 
         self.config_data = get_config_dict(config_json)
 
-        if not test_utils.gen_dep_files_p4c_ovs_pipeline_builder(self.config_data):
-            self.fail("Failed to generate P4C artifacts or pb.bin")
-
         self.gnmicli_params = get_gnmi_params_simple(self.config_data)
         self.interface_ip_list = get_interface_ipv4_dict(self.config_data)
 
-        self.PASSED = True
 
     def runTest(self):
+        if not test_utils.gen_dep_files_p4c_ovs_pipeline_builder(self.config_data):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail("Failed to generate P4C artifacts or pb.bin")
+
         gnmi_set_params(self.gnmicli_params)
         ip_set_ipv4(self.interface_ip_list)
 
@@ -56,14 +61,19 @@ class L2_Exact_Match(BaseTest):
             device, port = port_id
             self.dataplane.port_add(ifname, device, port)
 
-        ovs_p4ctl.ovs_p4ctl_set_pipe(self.config_data['switch'], self.config_data['pb_bin'], self.config_data['p4_info'])
+        if not ovs_p4ctl.ovs_p4ctl_set_pipe(self.config_data['switch'], self.config_data['pb_bin'], self.config_data['p4_info']):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail("Failed to set pipe")
+
 
         for table in self.config_data['table']:
 
             print(f"Scenario : l2 exact match : {table['description']}")
             print(f"Adding {table['description']} rules")
             for match_action in table['match_action']:
-                ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action)
+                if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
+                    self.result.addFailure(self, sys.exc_info())
+                    self.fail(f"Failed to add table entry {match_action}")
 
             # forming 1st packet and sending to validate if scenario-1:rule-1 hits or not
             print("sending packet to check if rule 1  hits")
@@ -78,8 +88,8 @@ class L2_Exact_Match(BaseTest):
                 verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][1]])
                 print(f"PASS: Verification of packets passed, packet received as per rule 1")
             except Exception as err:
-                print(f"FAIL: Verification of packets sent failed with exception {err}")
-                self.PASSED = False
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"FAIL: Verification of packets sent failed with exception {err}")
         
             # forming 2th packet and sending to validate if scenario-1:rule-2 hits or not
             print("sending packet to check if rule2 hits")
@@ -93,8 +103,8 @@ class L2_Exact_Match(BaseTest):
                 verify_no_packet_any(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][1]][1]])
                 print(f"PASS: Verification of packets passed, packet dropped as per rule 2")
             except Exception as err:
-                print(f"FAIL: Verification of packets sent failed with exception {err}")
-                self.PASSED = False
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"FAIL: Verification of packets sent failed with exception {err}")
 
         self.dataplane.kill()
 
@@ -105,7 +115,7 @@ class L2_Exact_Match(BaseTest):
             for del_action in table['del_action']:
                 ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
 
-        if self.PASSED:
+        if self.result.wasSuccessful():
             print("Test has PASSED")
         else:
             print("Test has FAILED")
