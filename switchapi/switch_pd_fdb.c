@@ -72,13 +72,13 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
                                        &table_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get table handle for l2_fwd_tx_table");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get key handle");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     field_id = 1; // Filed type dst_mac
@@ -87,7 +87,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
                                         SWITCH_MAC_LENGTH);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d", field_id);
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     if (entry_add &&
@@ -99,7 +99,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         data_field_id = 1; // action value tunnel_id
@@ -107,7 +107,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
                                                  0, sizeof(uint32_t));
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         data_field_id = 2; // action value dst_addr
@@ -116,14 +116,14 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
                                             sizeof(uint32_t));
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to add table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
     } else if (entry_add &&
                api_l2_tx_info->learn_from == SWITCH_L2_FWD_LEARN_VLAN_INTERFACE) {
@@ -135,7 +135,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         data_field_id = 1; // Action type port
@@ -143,24 +143,25 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
                                             api_l2_tx_info->port_id);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to add table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
     } else {
         /* Delete an entry from target */
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to delete table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
     }
 
+dealloc_handle_session:
     status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                  entry_add);
     if(status != BF_SUCCESS) {
@@ -213,13 +214,13 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
                                        &table_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get table handle for l2_fwd_rx_table");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get key handle");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     field_id = 1; // Filed type dst_mac
@@ -228,7 +229,7 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
                                 SWITCH_MAC_LENGTH);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d", field_id);
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     if (entry_add) {
@@ -238,12 +239,15 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         rif_handle = api_l2_rx_info->rif_handle;
-        status = switch_rif_get(device, rif_handle, &rif_info);
-        CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
+        switch_status_t switch_status = switch_rif_get(device, rif_handle, &rif_info);
+        if (switch_status != SWITCH_STATUS_SUCCESS) {
+            VLOG_ERR("Unable to get rif info");
+            goto dealloc_handle_session;
+        }
         port_id = rif_info->api_rif_info.port_id;
         if (port_id == -1) {
           port_id = switch_pd_to_get_port_id(rif_info->api_rif_info.rif_ifindex);
@@ -255,24 +259,25 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
                                             port_id);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to add table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
     } else {
         /* Delete an entry from target */
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to delete table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
     }
 
+dealloc_handle_session:
     status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                  entry_add);
     if(status != BF_SUCCESS) {
@@ -325,13 +330,13 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
                                        &table_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get table handle for l2_fwd_rx_with_tunnel_table");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get key handle");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     field_id = 1; // Filed type dst_mac
@@ -340,7 +345,7 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
                                 SWITCH_MAC_LENGTH);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d", field_id);
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     if (entry_add) {
@@ -350,12 +355,15 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         rif_handle = api_l2_rx_info->rif_handle;
-        status = switch_rif_get(device, rif_handle, &rif_info);
-        CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
+        switch_status_t switch_status = switch_rif_get(device, rif_handle, &rif_info);
+        if (switch_status != SWITCH_STATUS_SUCCESS) {
+            VLOG_ERR("Unable to get rif info");
+            goto dealloc_handle_session;
+        }
         port_id = rif_info->api_rif_info.port_id;
         if (port_id == -1) {
           port_id = switch_pd_to_get_port_id(rif_info->api_rif_info.rif_ifindex);
@@ -367,24 +375,25 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
                                             port_id);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
 
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to add table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
     } else {
         /* Delete an entry from target */
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to delete table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
     }
 
+dealloc_handle_session:
     status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                  entry_add);
     if(status != BF_SUCCESS) {

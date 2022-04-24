@@ -70,13 +70,13 @@ switch_status_t switch_pd_nexthop_table_entry(
                                        &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle for nexthop_table");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
     
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get key handle");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   field_id = 1; // Match key nexthop_id
@@ -85,7 +85,7 @@ switch_status_t switch_pd_nexthop_table_entry(
                                       ~(SWITCH_HANDLE_TYPE_NHOP<<25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   if (entry_add) {
@@ -95,7 +95,7 @@ switch_status_t switch_pd_nexthop_table_entry(
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       data_field_id = 1; // Action value router_interface_id
@@ -105,7 +105,7 @@ switch_status_t switch_pd_nexthop_table_entry(
                                             
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       data_field_id = 2; // Action value neighbor_id
@@ -114,7 +114,7 @@ switch_status_t switch_pd_nexthop_table_entry(
                                           ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       data_field_id = 3; // Action value egress_port
@@ -123,24 +123,25 @@ switch_status_t switch_pd_nexthop_table_entry(
                                           sizeof(uint32_t));
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
         
       status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                      data_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to add table entry");
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
   } else {
         /* Delete an entry from target */
       status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to delete table entry");
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
   }
 
+dealloc_handle_session:
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -188,13 +189,13 @@ switch_status_t switch_pd_neighbor_table_entry(
                                        &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle for nexthop_table");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get key handle");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   field_id = 1;
@@ -203,7 +204,7 @@ switch_status_t switch_pd_neighbor_table_entry(
                                       ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   if (entry_add) {
@@ -213,7 +214,7 @@ switch_status_t switch_pd_neighbor_table_entry(
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       data_field_id = 1;
@@ -222,24 +223,25 @@ switch_status_t switch_pd_neighbor_table_entry(
                                           SWITCH_MAC_LENGTH);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to add table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
     } else {
         /* Delete an entry from target */
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to delete table entry");
-            return switch_pd_status_to_status(status);
+            goto dealloc_handle_session;
         }
   }
 
+dealloc_handle_session:
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -287,13 +289,13 @@ switch_status_t switch_pd_rif_mod_start_entry(
                                      &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get key handle");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   field_id = 1;
@@ -302,7 +304,7 @@ switch_status_t switch_pd_rif_mod_start_entry(
                                      ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   if (entry_add) {
@@ -312,7 +314,7 @@ switch_status_t switch_pd_rif_mod_start_entry(
                                              &data_hdl);
     if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
    }
 
    data_field_id = 1;
@@ -321,24 +323,25 @@ switch_status_t switch_pd_rif_mod_start_entry(
                                       RMAC_BYTES_OFFSET);
     if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
     }
 
    status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                    data_hdl);
       if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to add table entry");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
       }
     } else {
     /* Delete an entry from target */
     status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
     if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to delete table entry");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
     }
   }
 
+dealloc_handle_session:
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -386,13 +389,13 @@ switch_status_t switch_pd_rif_mod_mid_entry(
                                    &table_hdl);
   if(status != BF_SUCCESS) {
     VLOG_ERR("Unable to get table handle");
-    return switch_pd_status_to_status(status);
+    goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
     VLOG_ERR("Unable to get key handle");
-    return switch_pd_status_to_status(status);
+    goto dealloc_handle_session;
   }
 
   field_id = 1;
@@ -401,7 +404,7 @@ switch_status_t switch_pd_rif_mod_mid_entry(
                                      ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
     VLOG_ERR("Unable to set value for key ID: %d", field_id);
-    return switch_pd_status_to_status(status);
+    goto dealloc_handle_session;
   }
 
   if (entry_add) {
@@ -411,7 +414,7 @@ switch_status_t switch_pd_rif_mod_mid_entry(
                                               &data_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     data_field_id = 1;
@@ -420,24 +423,25 @@ switch_status_t switch_pd_rif_mod_mid_entry(
                                         RMAC_BYTES_OFFSET);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
 
     status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                    data_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to add table entry");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
   } else {
       /* Delete an entry from target */
       status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to delete table entry");
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
   }
 
+dealloc_handle_session:
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -485,13 +489,13 @@ switch_status_t switch_pd_rif_mod_end_entry(
                                      &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get key handle");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   field_id = 1;
@@ -500,7 +504,7 @@ switch_status_t switch_pd_rif_mod_end_entry(
                                      ~(SWITCH_HANDLE_TYPE_RIF << 25)));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   if (entry_add) {
@@ -510,7 +514,7 @@ switch_status_t switch_pd_rif_mod_end_entry(
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       data_field_id = 1;
@@ -519,24 +523,25 @@ switch_status_t switch_pd_rif_mod_end_entry(
                                                RMAC_BYTES_OFFSET);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                      data_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to add table entry");
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
   } else {
       /* Delete an entry from target */
       status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to delete table entry");
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
   }
 
+dealloc_handle_session:
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -584,13 +589,13 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                                        &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle for ipv4_table");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get key handle");
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   // CR: double check if api_route_entry->ip_address.ip.v4addr is actually a
@@ -603,7 +608,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                                             sizeof(uint32_t));
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d", field_id);
-      return switch_pd_status_to_status(status);
+      goto dealloc_handle_session;
   }
 
   if (entry_add) {
@@ -615,7 +620,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       data_field_id = 1; // Action value nexthop_id
@@ -624,7 +629,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                                            ~(SWITCH_HANDLE_TYPE_NHOP<<25)));
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
     }
 
@@ -635,7 +640,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
 
       data_field_id = 1; // Action value ecmp_group_id
@@ -643,7 +648,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                                           api_route_entry->ecmp_group_id);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
     }
 
@@ -651,17 +656,18 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                                        data_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to add table entry");
-        return switch_pd_status_to_status(status);
+        goto dealloc_handle_session;
     }
   } else {
       /* Delete an entry from target */
       status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to delete table entry");
-          return switch_pd_status_to_status(status);
+          goto dealloc_handle_session;
       }
   }
 
+dealloc_handle_session:
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
