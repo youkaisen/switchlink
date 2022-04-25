@@ -2,35 +2,17 @@ from common.lib.port_config import PortConfig
 from common.lib.local_connection import Local
 
 
-def gnmi_cli_set_and_verify(set_params, get_params, host_info, pass_criteria_pattern=['pipe', 'up']):
+def gnmi_cli_set_and_verify(params):
     """
     Util function to gnmi-set and verify using gnmi-get
-    :param pass_criteria_pattern: list of patterns to 'grep'
-                                in gnmi-cli get output to declare test Pass/Fail
-    :param set_params: 'params' string to execute gnmi-cli set
-    :param get_params: 'params' string to execute gnmi-cli get
-    :param host_info: type --> 'dict' : {'host':<host ip/localhost>,
-                                        'username':<username>,
-                                        'password':<password>
+    :param params: list of params
+                --> ["device:virtual-device,name:net_vhost0,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,port-type:LINK",
+                "device:virtual-device,name:net_vhost1,host:host2,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-1,port-type:LINK",
+                ...]
     :return: Boolean True/False
     """
-    port_config = PortConfig(host_info['host'], host_info['username'], host_info['password'])
-
-    if not port_config.GNMICLI.gnmi_cli_set(set_params):
-        print(f"Failed to do gnmi-set {set_params}")
-        return False
-
-    grep = "| grep -w -i "
-    grep_string = ""
-    for pattern in pass_criteria_pattern:
-        grep_string += f"{grep} \"{pattern}\""
-
-    if not port_config.GNMICLI.gnmi_cli_get(get_params, grep_string=grep_string):
-        print(f"Failed to do gnmi-get {set_params}")
-        return False
-
-    print("gnmi-set Successful!")
-    return True
+    gnmi_set_params(params)
+    return gnmi_get_params_verify(params)
 
 def gnmi_set_params(params):
     port_config = PortConfig()
@@ -39,6 +21,26 @@ def gnmi_set_params(params):
     port_config.GNMICLI.tear_down()
 
     return output
+
+def gnmi_get_params_verify(params):
+    port_config = PortConfig()
+    results=[]
+    for param in params:
+        mandatory_param = ",".join(param.split(',')[:2])
+
+        passed=True
+        
+        for entry in param.split(',')[2:]:
+            if port_config.GNMICLI.gnmi_cli_get(mandatory_param, entry.split(':')[0]) != entry.split(':')[1]:
+                passed=False
+        results.append(passed)
+    port_config.GNMICLI.tear_down()
+    
+    if [x for x in results if not x]:
+        return True
+
+    return False
+
 
 def ip_set_ipv4(interface_ip_list):
     port_config = PortConfig()

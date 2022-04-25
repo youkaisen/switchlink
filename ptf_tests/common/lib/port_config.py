@@ -50,21 +50,21 @@ class PortConfig(object):
             print(f"PASS: {cmd}")
             return output
 
-        def gnmi_cli_get(self, params, grep_string=""):
+        def gnmi_cli_get(self, mandatory_params, key):
             """
             gnmi-cli get command
-            :param params: all parameters required for gnmi-cli get
-            :type params: str
+            :param mandatory_params: "device:virtual-device,name:net_vhost0"
+            :param key: "mtu" or "pipeline-name" etc.
             :return: stdout of the gnmi-cli get command
             :rtype: str
             """
-            self.ssh.execute_command("echo $SDE_INSTALL")
-            cmd = self.form_cmd(f"get \"{params}\" {grep_string}")
+            cmd = self.form_cmd(f"get \"{mandatory_params},{key}\" |egrep \"*_val\" | cut -d \":\"  -f 2")
             output, return_code, _ = self.local.execute_command(cmd)
             if return_code:
-                print(f"output: {output}")
+                print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
-
+            print(f"PASS: {cmd}")
+            print(output)
             return output
 
         def tear_down(self):

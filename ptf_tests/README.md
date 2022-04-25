@@ -69,6 +69,9 @@ P4OVS, P4SDE and P4C should be installed before running the tests
 
 # Running the test
 
+
+## Running a single test
+
 ---
 ~ ptf --test-dir tests/ <test_script_name_without_extension> --pypath $PWD --test-params="config_json='<config json file name>'" --platform=dummy
 
@@ -76,9 +79,11 @@ E.g. ptf --test-dir tests/ l3_exact_match_with_tap_port --pypath $PWD --test-par
 
 ---
 
-# Running tests in a suite
+## Running tests in a suite
 
 To run multiple tests in a suite, we need to use the script p4ovs_test_runner.py.
+
+E.g. python p4ovs_test_runner.py -f tests_to_run.txt -s /home/admin/djayakum/drop-1/P4SDE/install/ -o /home/admin/djayakum/drop-1/P4OVS  --log_file ptf_tests.log --verbose
 
 ---
 ~ python p4ovs_test_runner.py -h
@@ -149,5 +154,32 @@ The consolidated output is applicable only when running multiple tests. Refer to
 To store the test logs we need to provide -l or --log_file option with the name of the log file.
 Additionally, if --verbose is enabled, the log file will contain the full execution logs, 
 else it will contain a summary.
+
+---
+
+E.g.
+
+---
+
+====================
+
+Summary
+
+====================
+
+l2_exact_match_with_tap_port : PASSED
+
+l3_action_profile_with_tap_ports : PASSED
+
+l3_action_selector_with_tap_ports : PASSED
+
+l3_action_selector_with_tap_ports : PASSED
+
+l3_exact_match_with_tap_port : PASSED
+
+
+
+
+Ran 5 test(s), 5 Passed, 0 Failed.
 
 ---

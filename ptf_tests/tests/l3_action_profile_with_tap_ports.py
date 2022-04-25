@@ -49,7 +49,10 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to generate P4C artifacts or pb.bin")
 
-        gnmi_set_params(self.gnmicli_params)
+        if not gnmi_cli_set_and_verify(self.gnmicli_params):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail("Failed to configure gnmi cli ports")
+
         ip_set_ipv4(self.interface_ip_list)
 
         port_list = self.config_data['port_list']
