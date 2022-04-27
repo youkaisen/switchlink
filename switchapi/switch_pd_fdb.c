@@ -52,6 +52,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
     bf_rt_table_key_hdl *key_hdl;
     bf_rt_table_data_hdl *data_hdl;
     const bf_rt_table_hdl *table_hdl;
+    uint32_t network_byte_order;
 
     dev_tgt.dev_id = device;
     dev_tgt.pipe_id = 0;
@@ -111,8 +112,9 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         }
 
         data_field_id = 2; // action value dst_addr
+        network_byte_order = ntohl(api_tunnel_info->dst_ip.ip.v4addr);
         status = bf_rt_data_field_set_value_ptr (data_hdl, data_field_id,
-                                            (const uint8_t *)&api_tunnel_info->dst_ip.ip.v4addr,
+                                            (const uint8_t *)&network_byte_order,
                                             sizeof(uint32_t));
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);

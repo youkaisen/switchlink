@@ -118,9 +118,8 @@ switch_status_t switch_pd_nexthop_table_entry(
       }
 
       data_field_id = 3; // Action value egress_port
-      status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                          (const uint8_t *)&api_nexthop_pd_info->port_id,
-                                          sizeof(uint32_t));
+      status = bf_rt_data_field_set_value(data_hdl, data_field_id,
+                                          api_nexthop_pd_info->port_id);
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
           goto dealloc_handle_session;

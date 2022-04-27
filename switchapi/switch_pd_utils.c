@@ -119,6 +119,16 @@ int switch_pd_to_get_port_id(uint32_t rif_ifindex)
             // for both direction
             VLOG_INFO("found the target dp index %d for sdk port id %d",
                       port_info->port_attrib.port_in_id, i);
+            if (i > CONFIG_PORT_INDEX) {
+                bf_dev_port_t bf_dev_port_control = i - CONFIG_PORT_INDEX;
+                port_info = NULL;
+                bf_pal_port_info_get(bf_dev_id, bf_dev_port_control, &port_info);
+                if (port_info == NULL) {
+                    VLOG_ERR("Cannot find the target dp index for control port "
+                             "associated with : %s", if_name);
+                    return -1;
+                }
+            }
             return (port_info->port_attrib.port_in_id);
         }
     }

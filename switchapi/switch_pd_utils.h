@@ -38,7 +38,8 @@ extern "C" {
 #define PROGRAM_NAME "linux_networking"
 
 // Currently this value is picked from dpdk_port_config.pb.txt
-#define MAX_NO_OF_PORTS 56
+#define MAX_NO_OF_PORTS 312
+#define CONFIG_PORT_INDEX 256
 
 #define RMAC_BASE 0
 #define RMAC_BYTES_OFFSET 2

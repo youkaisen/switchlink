@@ -49,6 +49,7 @@ switch_status_t switch_pd_tunnel_entry(
     bf_rt_table_key_hdl *key_hdl;
     bf_rt_table_data_hdl *data_hdl;
     const bf_rt_table_hdl *table_hdl;
+    uint32_t network_byte_order;
 
     dev_tgt.dev_id = device;
     dev_tgt.pipe_id = 0;
@@ -94,8 +95,10 @@ switch_status_t switch_pd_tunnel_entry(
         }
 
         data_field_id = 1; // Action value src_addr
+
+        network_byte_order = ntohl(api_tunnel_info_t->src_ip.ip.v4addr);
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                            (const uint8_t *)&api_tunnel_info_t->src_ip.ip.v4addr,
+                                            (const uint8_t *)&network_byte_order,
                                             sizeof(uint32_t));
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
@@ -103,8 +106,10 @@ switch_status_t switch_pd_tunnel_entry(
         }
 
         data_field_id = 2; // Action value dst_addr
+
+        network_byte_order = ntohl(api_tunnel_info_t->dst_ip.ip.v4addr);
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                            (const uint8_t *)&api_tunnel_info_t->dst_ip.ip.v4addr,
+                                            (const uint8_t *)&network_byte_order,
                                             sizeof(uint32_t));
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
@@ -112,8 +117,10 @@ switch_status_t switch_pd_tunnel_entry(
         }
 
         data_field_id = 3; // Action value dst_port
+
+        uint16_t network_byte_order_udp = ntohs(api_tunnel_info_t->udp_port);
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                            (const uint8_t *)&api_tunnel_info_t->udp_port,
+                                            (const uint8_t *)&network_byte_order_udp,
                                             sizeof(uint16_t));
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
@@ -171,6 +178,7 @@ switch_status_t switch_pd_tunnel_term_entry(
     bf_rt_table_key_hdl *key_hdl;
     bf_rt_table_data_hdl *data_hdl;
     const bf_rt_table_hdl *table_hdl;
+    uint32_t network_byte_order;
 
     dev_tgt.dev_id = device;
     dev_tgt.pipe_id = 0;
@@ -197,8 +205,7 @@ switch_status_t switch_pd_tunnel_term_entry(
         VLOG_ERR("Unable to get key handle");
         goto dealloc_handle_session;
     }
-/*
- *  Uncomment this after P4 file changes are done for tunnel term table
+
     field_id = 1; // Match key local_metadata.tunnel.tun_type
     status = bf_rt_key_field_set_value(key_hdl, field_id, 0);
     if(status != BF_SUCCESS) {
@@ -207,20 +214,21 @@ switch_status_t switch_pd_tunnel_term_entry(
     }
 
     field_id = 2; // Match key ipv4_src
-*/
-    field_id = 1; // Match key ipv4_src
+
+    network_byte_order = ntohl(api_tunnel_term_info_t->src_ip.ip.v4addr);
     status = bf_rt_key_field_set_value_ptr(key_hdl, field_id,
-                                           (const uint8_t *)&api_tunnel_term_info_t->src_ip.ip.v4addr,
+                                           (const uint8_t *)&network_byte_order,
                                            sizeof(uint32_t));
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d", field_id);
         goto dealloc_handle_session;
     }
 
-//    field_id = 3; // Match key ipv4_dst
-    field_id = 2; // Match key ipv4_dst
+    field_id = 3; // Match key ipv4_dst
+
+    network_byte_order = ntohl(api_tunnel_term_info_t->dst_ip.ip.v4addr);
     status = bf_rt_key_field_set_value_ptr(key_hdl, field_id,
-                                           (const uint8_t *)&api_tunnel_term_info_t->dst_ip.ip.v4addr,
+                                           (const uint8_t *)&network_byte_order,
                                            sizeof(uint32_t));
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d", field_id);
