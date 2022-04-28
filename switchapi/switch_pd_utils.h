@@ -16,6 +16,8 @@ limitations under the License.
 
 #include "switch_base_types.h"
 #include "switch_handle.h"
+#include "switch_rif.h"
+
 #include <config.h>
 #include <bf_types/bf_types.h>
 #include <port_mgr/dpdk/bf_dpdk_port_if.h>
@@ -58,7 +60,7 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
                                                 bf_rt_session_hdl *session_t,
                                                 bool entry_type);
 
-int switch_pd_to_get_port_id(uint32_t rif_ifindex);
+void switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info);
 
 #ifdef  __cplusplus
 }

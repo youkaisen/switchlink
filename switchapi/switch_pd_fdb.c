@@ -154,6 +154,33 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
             VLOG_ERR("Unable to add table entry");
             goto dealloc_handle_session;
         }
+    } else if (entry_add &&
+               api_l2_tx_info->learn_from == SWITCH_L2_FWD_LEARN_PHYSICAL_INTERFACE) {
+
+        VLOG_INFO("Populate l2_fwd action for physical port: %d",
+                  api_l2_tx_info->port_id);
+        action_id = 19169916; //action id for l2_fwd_rx_table, action: l2_fwd
+        status = bf_rt_table_action_data_allocate(table_hdl, action_id,
+                                                  &data_hdl);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
+            goto dealloc_handle_session;
+        }
+
+        data_field_id = 1; // Action type port
+        status = bf_rt_data_field_set_value(data_hdl, data_field_id,
+                                            api_l2_tx_info->port_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
+            goto dealloc_handle_session;
+        }
+
+        status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
+                                       data_hdl);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to add table entry");
+            goto dealloc_handle_session;
+        }
     } else {
         /* Delete an entry from target */
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
@@ -250,11 +277,14 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
             VLOG_ERR("Unable to get rif info");
             goto dealloc_handle_session;
         }
-        port_id = rif_info->api_rif_info.port_id;
-        if (port_id == -1) {
-          port_id = switch_pd_to_get_port_id(rif_info->api_rif_info.rif_ifindex);
-          rif_info->api_rif_info.port_id = port_id;
+
+        if (rif_info->api_rif_info.port_id == -1) {
+          switch_pd_to_get_port_id(&rif_info->api_rif_info);
         }
+
+        // While matching l2_fwd_rx_table should receive packet on phy-port
+        // and send to control port.
+        port_id = rif_info->api_rif_info.port_id;
 
         data_field_id = 1; // Action type port
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
@@ -366,11 +396,14 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
             VLOG_ERR("Unable to get rif info");
             goto dealloc_handle_session;
         }
-        port_id = rif_info->api_rif_info.port_id;
-        if (port_id == -1) {
-          port_id = switch_pd_to_get_port_id(rif_info->api_rif_info.rif_ifindex);
-          rif_info->api_rif_info.port_id = port_id;
+
+        if (rif_info->api_rif_info.port_id == -1) {
+          switch_pd_to_get_port_id(&rif_info->api_rif_info);
         }
+
+        // While matching l2_fwd_rx_table should receive packet on phy-port
+        // and send to control port.
+        port_id = rif_info->api_rif_info.port_id;
 
         data_field_id = 1; // Action type port
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,

@@ -91,7 +91,8 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
   return status;
 }
 
-int switch_pd_to_get_port_id(uint32_t rif_ifindex)
+void
+switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
 {
     VLOG_INFO("%s", __func__);
     char if_name[16] = {0};
@@ -100,9 +101,9 @@ int switch_pd_to_get_port_id(uint32_t rif_ifindex)
     bf_dev_port_t bf_dev_port;
     bf_status_t bf_status;
 
-    if (!if_indextoname(rif_ifindex, if_name)) {
-        VLOG_ERR("Cannot get ifname for the index: %d", rif_ifindex);
-        return -1;
+    if (!if_indextoname((*port_rif_info)->rif_ifindex, if_name)) {
+        VLOG_ERR("Cannot get ifname for the index: %d", (*port_rif_info)->rif_ifindex);
+        return;
     }
 
     for(i = 0; i < MAX_NO_OF_PORTS; i++) {
@@ -119,6 +120,7 @@ int switch_pd_to_get_port_id(uint32_t rif_ifindex)
             // for both direction
             VLOG_INFO("found the target dp index %d for sdk port id %d",
                       port_info->port_attrib.port_in_id, i);
+            (*port_rif_info)->port_id = port_info->port_attrib.port_in_id;
             if (i > CONFIG_PORT_INDEX) {
                 bf_dev_port_t bf_dev_port_control = i - CONFIG_PORT_INDEX;
                 port_info = NULL;
@@ -126,15 +128,16 @@ int switch_pd_to_get_port_id(uint32_t rif_ifindex)
                 if (port_info == NULL) {
                     VLOG_ERR("Cannot find the target dp index for control port "
                              "associated with : %s", if_name);
-                    return -1;
+                    return;
                 }
+                (*port_rif_info)->phy_port_id = port_info->port_attrib.port_in_id;
             }
-            return (port_info->port_attrib.port_in_id);
+            return;
         }
     }
 
     VLOG_ERR("Cannot find the target dp index for ifname : %s", if_name);
 
-    return -1;
+    return;
 }
 

@@ -85,6 +85,7 @@ static void neigh_delete(switchlink_handle_t vrf_h,
     return;
   }
 
+  mac_delete(neigh_info.mac_addr, g_default_bridge_h);
   VLOG_INFO("Delete a neighbor entry: 0x%x", ipaddr->ip.v4addr.s_addr);
   switchlink_neighbor_delete(&neigh_info);
 //  switchlink_nexthop_delete(&neigh_info);
@@ -246,10 +247,6 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
       }
     }
   } else {
-    // if (bridge_h && mac_addr_valid) {
-    if (mac_addr_valid) {
-      mac_delete(mac_addr, bridge_h);
-    }
     if (ipaddr_valid) {
       neigh_delete(g_default_vrf_h, &ipaddr, intf_h);
     }

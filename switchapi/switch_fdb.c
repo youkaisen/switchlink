@@ -23,6 +23,7 @@ limitations under the License.
 #include "switch_base_types.h"
 #include "switch_status.h"
 #include "switch_fdb.h"
+#include "switch_rif_int.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_fdb);
 
@@ -289,7 +290,7 @@ switch_status_t switch_api_l2_forward_create(
 
     switch_api_tunnel_info_t *api_tunnel_info = NULL;
 
-    // Only when the learn is from TUNNEL port we have corresponding RIF handle
+    // When the learn is from TUNNEL port we have corresponding RIF handle
     if (api_l2_info->learn_from == SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE) {
         switch_tunnel_info_t *tunnel_info = NULL;
         tnl_handle = api_l2_info->rif_handle;
@@ -298,6 +299,19 @@ switch_status_t switch_api_l2_forward_create(
 
         api_tunnel_info = &tunnel_info->api_tunnel_info;
     }
+
+    if (api_l2_info->learn_from == SWITCH_L2_FWD_LEARN_PHYSICAL_INTERFACE) {
+        switch_rif_info_t *rif_info = NULL;
+
+        status = switch_rif_get(device, api_l2_info->rif_handle, &rif_info);
+        CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
+        if (rif_info->api_rif_info.phy_port_id == -1) {
+            switch_pd_to_get_port_id(&(rif_info->api_rif_info));
+        }
+
+        api_l2_info->port_id = rif_info->api_rif_info.phy_port_id;
+    }
+
     status = switch_pd_l2_tx_forward_table_entry(device, api_l2_info,
                                                   api_tunnel_info,  true);
     if (status != SWITCH_STATUS_SUCCESS) {

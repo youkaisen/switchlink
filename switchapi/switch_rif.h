@@ -43,7 +43,8 @@ typedef struct switch_api_rif_info_s {
   switch_handle_t rmac_handle; /**< rmac group id */
   switch_handle_t nh_handle;   /**< shared nexthop if a route points to RIF */
 
-  switch_port_t port_id;
+  switch_port_t port_id; /** target dp index used when packet need to tx */
+  switch_port_t phy_port_id; /** target dp index used when packet need to rx */
 
 } switch_api_rif_info_t;
 

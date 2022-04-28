@@ -17,6 +17,7 @@ limitations under the License.
 #include <config.h>
 #include "switch_neighbor_int.h"
 #include "switch_neighbor.h"
+#include "switch_fdb.h"
 #include "switch_nhop.h"
 #include "switch_nhop_int.h"
 #include "switch_rif_int.h"
@@ -183,7 +184,10 @@ switch_status_t switch_api_neighbor_create(
       pd_neighbor_info.rif_handle = api_neighbor_info->rif_handle;
       status = switch_rif_get(device, pd_neighbor_info.rif_handle, &rif_info);
       CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
-      pd_neighbor_info.port_id = rif_info->api_rif_info.port_id;
+      if (rif_info->api_rif_info.phy_port_id == -1) {
+        switch_pd_to_get_port_id(&(rif_info->api_rif_info));
+      }
+      pd_neighbor_info.port_id = rif_info->api_rif_info.phy_port_id;
 
       SWITCH_MEMCPY(&pd_neighbor_info.dst_mac_addr, &api_neighbor_info->mac_addr, sizeof(switch_mac_addr_t));
 
@@ -203,12 +207,22 @@ switch_status_t switch_api_neighbor_create(
       // SRC MAC is picked from RMAC of RIF entry. This needs to be programmed
       // only once, even though many neighbors learnt on same RIF.
       if (rmac_entry && !rmac_entry->is_rmac_pd_programmed) {
+          switch_api_l2_info_t api_l2_rx_info;
+          api_l2_rx_info.rif_handle = api_neighbor_info->rif_handle;
+          SWITCH_MEMCPY(&api_l2_rx_info.dst_mac, &(rmac_entry->mac), sizeof(switch_mac_addr_t));
+
+          status = switch_pd_l2_rx_forward_table_entry(device, &api_l2_rx_info, true);
+          if (status != SWITCH_STATUS_SUCCESS) {
+            return status;
+          }
+
           status = switch_pd_rmac_table_entry(device, rmac_entry,
                                            api_neighbor_info->rif_handle, true);
           if (status != SWITCH_STATUS_SUCCESS) {
               VLOG_ERR("routing tables update failed \n");
               return status;
           }
+
           rmac_entry->is_rmac_pd_programmed = true;
       }
   }

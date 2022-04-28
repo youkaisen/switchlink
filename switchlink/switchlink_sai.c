@@ -275,6 +275,7 @@ int switchlink_mac_create(switchlink_mac_addr_t mac_addr,
   sai_fdb_entry_t fdb_entry;
   memset(&fdb_entry, 0, sizeof(fdb_entry));
   memcpy(fdb_entry.mac_address, mac_addr, sizeof(sai_mac_t));
+  fdb_entry.bv_id = bridge_h;
 
   sai_attribute_t attr_list[3];
   memset(&attr_list, 0, sizeof(attr_list));
