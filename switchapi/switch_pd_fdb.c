@@ -120,7 +120,6 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
             goto dealloc_handle_session;
         }
-
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
@@ -132,7 +131,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
 
         VLOG_INFO("Populate l2_fwd action for VLAN netdev: vlan%d",
                   api_l2_tx_info->port_id+1);
-        action_id = 19169916; //action id for l2_fwd_rx_table, action: l2_fwd
+        action_id = 19169916; //action id for l2_fwd_tx_table, action: l2_fwd
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -159,7 +158,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
 
         VLOG_INFO("Populate l2_fwd action for physical port: %d",
                   api_l2_tx_info->port_id);
-        action_id = 19169916; //action id for l2_fwd_rx_table, action: l2_fwd
+        action_id = 19169916; //action id for l2_fwd_tx_table, action: l2_fwd
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -343,10 +342,6 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
     dev_tgt.direction = 0xFF;
     dev_tgt.prsr_id = 0xFF;
 
-    switch_handle_t rif_handle;
-    switch_rif_info_t *rif_info = NULL;
-    switch_port_t port_id;
-
     VLOG_INFO("%s", __func__);
 
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
@@ -390,24 +385,9 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
             goto dealloc_handle_session;
         }
 
-        rif_handle = api_l2_rx_info->rif_handle;
-        switch_status_t switch_status = switch_rif_get(device, rif_handle, &rif_info);
-        if (switch_status != SWITCH_STATUS_SUCCESS) {
-            VLOG_ERR("Unable to get rif info");
-            goto dealloc_handle_session;
-        }
-
-        if (rif_info->api_rif_info.port_id == -1) {
-          switch_pd_to_get_port_id(&rif_info->api_rif_info);
-        }
-
-        // While matching l2_fwd_rx_table should receive packet on phy-port
-        // and send to control port.
-        port_id = rif_info->api_rif_info.port_id;
-
         data_field_id = 1; // Action type port
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
-                                            port_id);
+                                            api_l2_rx_info->port_id);
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
             goto dealloc_handle_session;

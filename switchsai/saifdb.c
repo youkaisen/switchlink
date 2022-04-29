@@ -153,7 +153,7 @@ static sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry) 
 
   memset(&mac_entry, 0, sizeof(mac_entry));
   sai_fdb_entry_parse(fdb_entry, &mac_entry);
-  mac_entry.type = SWITCH_L2_FWD_RX;
+  mac_entry.type = SWITCH_L2_FWD_TX;
 
   VLOG_INFO("Call switch API FDB entry delete");
   switch_status = switch_api_l2_forward_delete(0, &mac_entry);

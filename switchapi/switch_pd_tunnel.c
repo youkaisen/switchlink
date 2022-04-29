@@ -206,8 +206,9 @@ switch_status_t switch_pd_tunnel_term_entry(
         goto dealloc_handle_session;
     }
 
-    field_id = 1; // Match key local_metadata.tunnel.tun_type
-    status = bf_rt_key_field_set_value(key_hdl, field_id, 0);
+    field_id = 1; // Match key local_metadata.tunnel.tun_type.
+    // From p4 file the value expected is TUNNEL_TYPE_VXLAN=2
+    status = bf_rt_key_field_set_value(key_hdl, field_id, 2);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d", field_id);
         goto dealloc_handle_session;
@@ -215,7 +216,9 @@ switch_status_t switch_pd_tunnel_term_entry(
 
     field_id = 2; // Match key ipv4_src
 
-    network_byte_order = ntohl(api_tunnel_term_info_t->src_ip.ip.v4addr);
+    // This refers to incoming packet fields, where SIP will be the remote_ip
+    // configured while creating tunnel
+    network_byte_order = ntohl(api_tunnel_term_info_t->dst_ip.ip.v4addr);
     status = bf_rt_key_field_set_value_ptr(key_hdl, field_id,
                                            (const uint8_t *)&network_byte_order,
                                            sizeof(uint32_t));
@@ -226,7 +229,9 @@ switch_status_t switch_pd_tunnel_term_entry(
 
     field_id = 3; // Match key ipv4_dst
 
-    network_byte_order = ntohl(api_tunnel_term_info_t->dst_ip.ip.v4addr);
+    // This refers to incoming packet fields, where DIP will be the local_ip
+    // configured while creating tunnel
+    network_byte_order = ntohl(api_tunnel_term_info_t->src_ip.ip.v4addr);
     status = bf_rt_key_field_set_value_ptr(key_hdl, field_id,
                                            (const uint8_t *)&network_byte_order,
                                            sizeof(uint32_t));

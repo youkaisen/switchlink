@@ -111,7 +111,6 @@ switch_status_t switch_api_neighbor_create(
   switch_pd_routing_info_t pd_neighbor_info;
   switch_rif_info_t *rif_info = NULL;
   switch_handle_t rmac_handle;
-  switch_mac_addr_t src_rmac;
   switch_rmac_info_t *rmac_info;
   switch_rmac_entry_t *rmac_entry = NULL;
   switch_node_t *node = NULL;

@@ -267,8 +267,8 @@ switch_status_t switch_api_l2_forward_create(
     return status;
   }
 
-  if(api_l2_info->type == SWITCH_L2_FWD_TX)
-  {
+  if(api_l2_info->type == SWITCH_L2_FWD_TX) {
+
     handle = switch_l2_tx_handle_create(device);
     if (handle == SWITCH_API_INVALID_HANDLE) {
         status = SWITCH_STATUS_NO_MEMORY;
@@ -322,9 +322,23 @@ switch_status_t switch_api_l2_forward_create(
             switch_error_to_string(status));
         return status;
     }
-  }
-  else if(api_l2_info->type == SWITCH_L2_FWD_RX)
-  {
+    // These FDB entries are learnt from OVS, and same FDB entry rule
+    // should be programmed for 2_fwd_rx_with_tunnel_table too.
+    if (api_l2_info->learn_from == SWITCH_L2_FWD_LEARN_VLAN_INTERFACE) {
+      status = switch_pd_l2_rx_forward_with_tunnel_table_entry(device,
+                                                               api_l2_info,
+                                                               true);
+      if (status != SWITCH_STATUS_SUCCESS) {
+          VLOG_ERR(
+              "l2 rx tunnel create failed on device %d: "
+              "l2 pd create failed :(%s)\n",
+              device,
+              switch_error_to_string(status));
+          return status;
+      }
+    }
+  } else if(api_l2_info->type == SWITCH_L2_FWD_RX) {
+
     handle = switch_l2_rx_handle_create(device);
     if (handle == SWITCH_API_INVALID_HANDLE) {
         status = SWITCH_STATUS_NO_MEMORY;
@@ -349,17 +363,6 @@ switch_status_t switch_api_l2_forward_create(
       VLOG_ERR(
           "l2 create failed on device %d: "
           "l2 forward pd create failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-      return status;
-    }
-
-    status = switch_pd_l2_rx_forward_with_tunnel_table_entry(device,
-                                                             api_l2_info, true);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "l2 create failed on device %d: "
-          "l2 forward tunnel pd create failed :(%s)\n",
           device,
           switch_error_to_string(status));
       return status;
@@ -413,6 +416,7 @@ switch_status_t switch_api_l2_forward_delete (
         switch_error_to_string(status));
     return status;
   }
+
   status = SWITCH_HASHTABLE_DELETE(&l2_ctx->l2_hashtable, (void *)(&l2_mac),
                                    (void **)&l2_info);
   SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
@@ -429,6 +433,23 @@ switch_status_t switch_api_l2_forward_delete (
             switch_error_to_string(status));
         return status;
     }
+
+    // These FDB entries are learnt from OVS, and same FDB entry rule
+    // should be deleted from 2_fwd_rx_with_tunnel_table too.
+    if (l2_info->api_l2_info.learn_from == SWITCH_L2_FWD_LEARN_VLAN_INTERFACE) {
+      status = switch_pd_l2_rx_forward_with_tunnel_table_entry(device,
+                                                               api_l2_info,
+                                                               false);
+      if (status != SWITCH_STATUS_SUCCESS) {
+          VLOG_ERR(
+              "l2 rx forward delete failed on device %d: "
+              "l2 rx forward tunnel pd table delete failed :(%s)\n",
+              device,
+              switch_error_to_string(status));
+          return status;
+      }
+    }
+
     status = switch_l2_tx_handle_delete(device, l2_handle, 1);
     SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
   }
@@ -439,18 +460,6 @@ switch_status_t switch_api_l2_forward_delete (
       VLOG_ERR(
           "l2 rx forward delete failed on device %d: "
           "l2 rx forward pd table delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
-      return status;
-    }
-
-    status = switch_pd_l2_rx_forward_with_tunnel_table_entry(device,
-                                                             api_l2_info,
-                                                             false);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "l2 rx forward delete failed on device %d: "
-          "l2 rx forward tunnel pd table delete failed :(%s)\n",
           device,
           switch_error_to_string(status));
       return status;

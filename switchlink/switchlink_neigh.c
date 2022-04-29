@@ -41,9 +41,9 @@ static void mac_delete(switchlink_mac_addr_t mac_addr,
   if (status != SWITCHLINK_DB_STATUS_SUCCESS) {
     return;
   }
-  VLOG_INFO("Delete a FDB entry: 0x%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1],
-                                                       mac_addr[2], mac_addr[3],
-                                                       mac_addr[4], mac_addr[5]);
+  VLOG_INFO("Delete a FDB entry: %x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1],
+                                                     mac_addr[2], mac_addr[3],
+                                                     mac_addr[4], mac_addr[5]);
   switchlink_mac_delete(mac_addr, bridge_h);
   switchlink_db_mac_delete(mac_addr, bridge_h);
 }
@@ -62,9 +62,9 @@ static void mac_create(switchlink_mac_addr_t mac_addr,
       return;
     }
   }
-  VLOG_INFO("Create a FDB entry: 0x%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1],
-                                                       mac_addr[2], mac_addr[3],
-                                                       mac_addr[4], mac_addr[5]);
+  VLOG_INFO("Create a FDB entry: %x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1],
+                                                     mac_addr[2], mac_addr[3],
+                                                     mac_addr[4], mac_addr[5]);
 
   switchlink_mac_create(mac_addr, bridge_h, intf_h);
   switchlink_db_mac_add(mac_addr, bridge_h, intf_h);
