@@ -131,7 +131,7 @@ index 5ce91295..03b7a241 100644
    virtual ::util::Status DeletePort(int device, int port) = 0;
  
 diff --git a/stratum/hal/lib/barefoot/bf_sde_wrapper.cc b/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
-index 9f4bb3a9..a58e1ab5 100644
+index 9f4bb3a9..8ed4daab 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
 +++ b/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
 @@ -12,7 +12,10 @@
@@ -213,7 +213,7 @@ index 9f4bb3a9..a58e1ab5 100644
  
  }  // namespace
  
-@@ -1052,15 +1072,18 @@ ABSL_CONST_INIT absl::Mutex BfSdeWrapper::init_lock_(absl::kConstInit);
+@@ -1052,38 +1072,41 @@ ABSL_CONST_INIT absl::Mutex BfSdeWrapper::init_lock_(absl::kConstInit);
  BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
  
  ::util::StatusOr<PortState> BfSdeWrapper::GetPortState(int device, int port) {
@@ -229,19 +229,52 @@ index 9f4bb3a9..a58e1ab5 100644
  
  ::util::Status BfSdeWrapper::GetPortCounters(int device, int port,
                                               PortCounters* counters) {
-+#ifdef P4SDE_DPDK_TARGET_STUB
-   uint64_t stats[BF_NUM_RMON_COUNTERS];
+-  uint64_t stats[BF_NUM_RMON_COUNTERS];
++  uint64_t stats[BF_PORT_NUM_COUNTERS] = {0};
++
    RETURN_IF_BFRT_ERROR(
        bf_pal_port_all_stats_get(static_cast<bf_dev_id_t>(device),
-@@ -1084,7 +1107,7 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
-   counters->set_in_errors(stats[bf_mac_stat_FrameswithanyError]);
-   counters->set_out_errors(stats[bf_mac_stat_FramesTransmittedwithError]);
-   counters->set_in_fcs_errors(stats[bf_mac_stat_FramesReceivedwithFCSError]);
--
-+#endif //P4SDE_DPDK_TARGET_STUB
+                                 static_cast<bf_dev_port_t>(port), stats));
+-  counters->set_in_octets(stats[bf_mac_stat_OctetsReceived]);
+-  counters->set_out_octets(stats[bf_mac_stat_OctetsTransmittedTotal]);
+-  counters->set_in_unicast_pkts(
+-      stats[bf_mac_stat_FramesReceivedwithUnicastAddresses]);
+-  counters->set_out_unicast_pkts(stats[bf_mac_stat_FramesTransmittedUnicast]);
+-  counters->set_in_broadcast_pkts(
+-      stats[bf_mac_stat_FramesReceivedwithBroadcastAddresses]);
+-  counters->set_out_broadcast_pkts(
+-      stats[bf_mac_stat_FramesTransmittedBroadcast]);
+-  counters->set_in_multicast_pkts(
+-      stats[bf_mac_stat_FramesReceivedwithMulticastAddresses]);
+-  counters->set_out_multicast_pkts(
+-      stats[bf_mac_stat_FramesTransmittedMulticast]);
+-  counters->set_in_discards(stats[bf_mac_stat_FramesDroppedBufferFull]);
+-  counters->set_out_discards(0);       // stat not available
++
++  LOG(INFO) << "Port stats retrieved for "
++            << " device=" << device
++            << " port=" << port;
++
++  counters->set_in_octets(stats[RX_BYTES]);
++  counters->set_out_octets(stats[TX_BYTES]);
++  counters->set_in_unicast_pkts(stats[RX_PACKETS]);
++  counters->set_out_unicast_pkts(stats[TX_PACKETS]);
++  counters->set_in_broadcast_pkts(stats[RX_BROADCAST]);
++  counters->set_out_broadcast_pkts(stats[TX_BROADCAST]);
++  counters->set_in_multicast_pkts(stats[RX_MULTICAST]);
++  counters->set_out_multicast_pkts(stats[TX_MULTICAST]);
++  counters->set_in_discards(stats[RX_DISCARDS]);
++  counters->set_out_discards(stats[TX_DISCARDS]);
+   counters->set_in_unknown_protos(0);  // stat not meaningful
+-  counters->set_in_errors(stats[bf_mac_stat_FrameswithanyError]);
+-  counters->set_out_errors(stats[bf_mac_stat_FramesTransmittedwithError]);
+-  counters->set_in_fcs_errors(stats[bf_mac_stat_FramesReceivedwithFCSError]);
++  counters->set_in_errors(stats[RX_ERRORS]);
++  counters->set_out_errors(stats[TX_ERRORS]);
++  counters->set_in_fcs_errors(0);
+
    return ::util::OkStatus();
  }
- 
 @@ -1107,8 +1130,11 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
      std::unique_ptr<ChannelWriter<PortStatusEvent>> writer) {
    absl::WriterMutexLock l(&port_status_event_writer_lock_);
@@ -281,30 +314,29 @@ index 9f4bb3a9..a58e1ab5 100644
 +  return ::util::OkStatus();
 +}
 +
- ::util::Status BfSdeWrapper::AddPort(int device, int port, uint64 speed_bps,
-                                      FecMode fec_mode) {
++::util::Status BfSdeWrapper::AddPort(int device, int port, uint64 speed_bps,
++                                     FecMode fec_mode) {
 +  auto port_attrs = absl::make_unique<port_attributes_t>();
 +#ifdef P4SDE_DPDK_TARGET_STUB
-   ASSIGN_OR_RETURN(auto bf_speed, PortSpeedHalToBf(speed_bps));
-   ASSIGN_OR_RETURN(auto bf_fec_mode, FecModeHalToBf(fec_mode, speed_bps));
++  ASSIGN_OR_RETURN(auto bf_speed, PortSpeedHalToBf(speed_bps));
++  ASSIGN_OR_RETURN(auto bf_fec_mode, FecModeHalToBf(fec_mode, speed_bps));
 +#endif
-   RETURN_IF_BFRT_ERROR(bf_pal_port_add(static_cast<bf_dev_id_t>(device),
-                                        static_cast<bf_dev_port_t>(port),
--                                       bf_speed, bf_fec_mode));
++  RETURN_IF_BFRT_ERROR(bf_pal_port_add(static_cast<bf_dev_id_t>(device),
++                                       static_cast<bf_dev_port_t>(port),
 +                                       port_attrs.get()));
 +  return ::util::OkStatus();
 +}
 +
-+::util::Status BfSdeWrapper::AddPort(int device, int port, uint64 speed_bps,
+ ::util::Status BfSdeWrapper::AddPort(int device, int port, uint64 speed_bps,
 +                                     PortConfigParams& config,
-+                                     FecMode fec_mode) {
+                                      FecMode fec_mode) {
 +  static int port_in;
 +  static int port_out;
 +
 +  auto port_attrs = absl::make_unique<port_attributes_t>();
 +#ifdef P4SDE_DPDK_TARGET_STUB
-+  ASSIGN_OR_RETURN(auto bf_speed, PortSpeedHalToBf(speed_bps));
-+  ASSIGN_OR_RETURN(auto bf_fec_mode, FecModeHalToBf(fec_mode, speed_bps));
+   ASSIGN_OR_RETURN(auto bf_speed, PortSpeedHalToBf(speed_bps));
+   ASSIGN_OR_RETURN(auto bf_fec_mode, FecModeHalToBf(fec_mode, speed_bps));
 +#endif
 +  strncpy(port_attrs->port_name, config.port_name.c_str(), sizeof(port_attrs->port_name));
 +  strncpy(port_attrs->pipe_in, config.pipeline_name.c_str(), sizeof(port_attrs->pipe_in));
@@ -317,8 +349,8 @@ index 9f4bb3a9..a58e1ab5 100644
 +
 +  LOG(INFO) << "Parameters for backend are: port_name=" << port_attrs->port_name
 +            << " port_type=" << port_attrs->port_type
-+            << " port_in_id=" << port_in
-+            << " port_out_id=" << port_out
++            << " port_in_id=" << port_attrs->port_in_id
++            << " port_out_id=" << port_attrs->port_out_id
 +            << " pipeline_in_name=" << port_attrs->pipe_in
 +            << " pipeline_out_name=" << port_attrs->pipe_out
 +            << " mempool_name=" << port_attrs->mempool_name
@@ -346,8 +378,9 @@ index 9f4bb3a9..a58e1ab5 100644
 +	        << "mtu = " << port_attrs->tap.mtu;
 +  }
 +
-+  RETURN_IF_BFRT_ERROR(bf_pal_port_add(static_cast<bf_dev_id_t>(device),
-+                                       static_cast<bf_dev_port_t>(port),
+   RETURN_IF_BFRT_ERROR(bf_pal_port_add(static_cast<bf_dev_id_t>(device),
+                                        static_cast<bf_dev_port_t>(port),
+-                                       bf_speed, bf_fec_mode));
 +                                       port_attrs.get()));
    return ::util::OkStatus();
  }
