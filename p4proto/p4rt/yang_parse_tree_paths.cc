@@ -1580,6 +1580,84 @@ void SetUpInterfacesInterfaceConfigMempoolname(const char *mempool_name,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// /interfaces/virtual-interface[name=<name>]/config/packet-dir
+//
+void SetUpInterfacesInterfaceConfigPacketDir(uint64 packet_dir,
+                                              uint64 node_id,
+                                              uint64 port_id,
+                                              TreeNode* node,
+                                              YangParseTree* tree) {
+  auto poll_functor = [packet_dir](const GnmiEvent& event, const ::gnmi::Path& path,
+                              GnmiSubscribeStream* stream) {
+    // This leaf represents configuration data. Return what was known when it
+    // was configured!
+    return SendResponse(GetResponse(path, packet_dir), stream);
+  };
+  auto on_set_functor =
+      [node_id, port_id, node, tree](
+          const ::gnmi::Path& path, const ::google::protobuf::Message& val,
+          CopyOnWriteChassisConfig* config) -> ::util::Status {
+    const gnmi::TypedValue* typed_val =
+        dynamic_cast<const gnmi::TypedValue*>(&val);
+    if (typed_val == nullptr) {
+      return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
+    }
+
+    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPacketDir)) {
+        return MAKE_ERROR(ERR_INVALID_PARAM) << "packet-dir is either already set (or) the PORT is already configured";
+    }
+
+    std::string packet_dir_string = typed_val->string_val();
+    SWBackendPktDirType direction = DIRECTION_NONE;
+    if (packet_dir_string == "network" || packet_dir_string == "NETWORK") {
+        direction = SWBackendPktDirType::DIRECTION_NETWORK;
+    } else if (packet_dir_string == "host" || packet_dir_string == "HOST") {
+        direction = SWBackendPktDirType::DIRECTION_HOST;
+    } else {
+      return MAKE_ERROR(ERR_INVALID_PARAM) << "wrong value for packet-direction, accepted values are case in-sensitivie network or host";
+    }
+
+    // Set the value.
+    auto status = SetValue(node_id, port_id, tree,
+                           &SetRequest::Request::Port::mutable_packet_dir,
+                           &SWBackendPktDirStatus::set_packet_dir, direction);
+    if (status != ::util::OkStatus()) {
+      return status;
+    }
+
+    // Update the chassis config
+    ChassisConfig* new_config = config->writable();
+    for (auto& singleton_port : *new_config->mutable_singleton_ports()) {
+      if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
+        singleton_port.mutable_config_params()->set_packet_dir(direction);
+
+        // Validate if all mandatory params are set and call SDE API
+        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+                                                    singleton_port,
+                                                    SetRequest::Request::Port::ValueCase::kPacketDir));
+          break;
+      }
+    }
+
+    // Update the YANG parse tree.
+    auto poll_functor = [packet_dir_string](const GnmiEvent& event,
+                                           const ::gnmi::Path& path,
+                                           GnmiSubscribeStream* stream) {
+      // This leaf represents configuration data. Return what was known when
+      // it was configured!
+      return SendResponse(GetResponse(path, packet_dir_string), stream);
+    };
+    node->SetOnTimerHandler(poll_functor)->SetOnPollHandler(poll_functor);
+
+    return ::util::OkStatus();
+  };
+  node->SetOnTimerHandler(poll_functor)
+      ->SetOnPollHandler(poll_functor)
+      ->SetOnUpdateHandler(on_set_functor)
+      ->SetOnReplaceHandler(on_set_functor);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // /interfaces/virtual-interface[name=<name>]/config/control-port
 //
 void SetUpInterfacesInterfaceConfigControlport(const char *control_port,
@@ -4852,6 +4930,11 @@ TreeNode* YangParseTreePaths::AddSubtreeInterface(
   node = tree->AddNode(GetPath("interfaces")(
       "virtual-interface", name)("config")("socket-path")());
   SetUpInterfacesInterfaceConfigSocket("/", node_id, port_id, node, tree);
+
+  node = tree->AddNode(GetPath("interfaces")(
+      "virtual-interface", name)("config")("packet-dir")());
+  SetUpInterfacesInterfaceConfigPacketDir(/*SWBackendPktDirType*/ 2, node_id, port_id, node, tree);
+
 
   node = tree->AddNode(GetPath("interfaces")(
       "virtual-interface", name)("config")("qemu-socket-ip")());

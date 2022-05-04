@@ -37,6 +37,7 @@
 #define GNMI_CONFIG_HOTPLUG_VM_CHARDEV_ID 0x4000
 #define GNMI_CONFIG_NATIVE_SOCKET_PATH 0x8000
 #define GNMI_CONFIG_HOTPLUG_VM_DEVICE_ID 0x10000
+#define GNMI_CONFIG_PACKET_DIR 0x20000
 
 #define GNMI_CONFIG_PORT_DONE 0x10000000
 #define GNMI_CONFIG_HOTPLUG_DONE 0x20000000
@@ -74,6 +75,7 @@
 #define DEFAULT_PIPELINE "pipe"
 #define DEFAULT_MEMPOOL  "MEMPOOL0"
 #define DEFAULT_MTU      1500
+#define DEFAULT_PACKET_DIR DIRECTION_HOST
 
 typedef enum qemu_cmd_type {
    CHARDEV_ADD,
@@ -202,6 +204,7 @@ class BfChassisManager {
 
     SWBackendPortType port_type;
     SWBackendDeviceType device_type;
+    SWBackendPktDirType packet_dir;
     int32 queues;
     std::string socket_path;
     std::string host_name;

@@ -142,6 +142,12 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       }
       break;
 
+    case SetRequest::Request::Port::ValueCase::kPacketDir:
+      if (validate & GNMI_CONFIG_PACKET_DIR) {
+          return true;
+      }
+      break;
+
     default:
       break;
   }
@@ -498,6 +504,12 @@ int BfChassisManager::CreateHelperSocket(uint64 node_id, uint32 port_id) {
       LOG(INFO) << "ValidateAndAdd::kHostConfig = " << config_params.host_name();
       break;
 
+    case SetRequest::Request::Port::ValueCase::kPacketDir:
+      validate |= GNMI_CONFIG_PACKET_DIR;
+      config.packet_dir = config_params.packet_dir();
+      LOG(INFO) << "ValidateAndAdd::kPacketDir= " << config_params.packet_dir();
+      break;
+
     default:
       break;
   }
@@ -528,6 +540,11 @@ int BfChassisManager::CreateHelperSocket(uint64 node_id, uint32 port_id) {
         // configure the default MTU, if its not given in GNMI CLI.
         config.mtu = DEFAULT_MTU;
         validate |= GNMI_CONFIG_MTU_VALUE;
+      }
+      if (!(validate & GNMI_CONFIG_PACKET_DIR)) {
+        // configure the default packet dir(host), if its not given in GNMI CLI.
+        config.packet_dir = DEFAULT_PACKET_DIR;
+        validate |= GNMI_CONFIG_PACKET_DIR;
       }
       if (((config.port_type == PORT_TYPE_VHOST) &&
          (validate & GNMI_CONFIG_UNSUPPORTED_MASK_VHOST)) ||
@@ -580,6 +597,7 @@ int BfChassisManager::CreateHelperSocket(uint64 node_id, uint32 port_id) {
             << " (SDK Port " << sdk_port_id << ").";
   BfSdeInterface::PortConfigParams bf_sde_wrapper_config = {config->port_type,
                                                             config->device_type,
+                                                            config->packet_dir,
                                                             config->queues,
                                                             *config->mtu,
                                                             config->socket_path,
@@ -600,8 +618,10 @@ int BfChassisManager::CreateHelperSocket(uint64 node_id, uint32 port_id) {
   // Check if Control Port Creation is opted in CLI.
   if(config->control_port.length()) {
     LOG(INFO) << "Autocreation of Control TAP port is being triggered";
+    // Packet direction for control port will always be host type
     bf_sde_wrapper_config = {SWBackendPortType::PORT_TYPE_TAP,
                              config->device_type,
+                             DEFAULT_PACKET_DIR,
                              config->queues,
                              *config->mtu,
                              config->socket_path,

@@ -434,7 +434,7 @@ previously configured CONFIG params.
                   port-type:link"
     gnmi-cli set "device:physical-device,name:PORT0,pipeline-name:pipe,
                   mempool-name:MEMPOOL0,mtu:1000,pci-bdf:0000:00:04.0,
-                  port-type:link"
+                  packet-dir:network,port-type:link"
 
 .. note::
 
@@ -453,6 +453,11 @@ previously configured CONFIG params.
     configured by the user it is considered as value `MEMPOOL0`
     mtu: this is a non-mandatory parameter, if not specifically configured
     by the user it is considered as value `1500`
+    packet-dir: this is a non-mandatory parameter. It accepts 2 values
+    `host` or `network`(case insensitive). The value 'host' indicates that
+    traffic via this port will be within the host. The value 'network' indicates
+    this port will be able to send/receive traffic to/from network. If not
+    specifically configured by the user, default value is `host`
 
 
 6) Set atrributes for link ports and a control port::
@@ -461,7 +466,7 @@ previously configured CONFIG params.
     $ Example:
     gnmi-cli set "device:physical-device,name:PORT2,pipeline-name:pipe,
                   mempool-name:MEMPOOL0,control-port:TAP1,mtu:1000,
-                  pci-bdf:0000:00:06.0,port-type:link"
+                  pci-bdf:0000:00:06.0,packet-dir:network,port-type:link"
 
   .. note::
 
@@ -481,8 +486,13 @@ previously configured CONFIG params.
     mtu: this is a non-mandatory parameter, if not specifically configured
     by the user it is considered as value `1500`
     control-port: TAP port that need to be created for control packets.
+    packet-dir: this is a non-mandatory parameter. It accepts 2 values
+    `host` or `network`(case insensitive). The value 'host' indicates that
+    traffic via this port will be within the host. The value 'network' indicates
+    this port will be able to send/receive traffic to/from network. If not
+    specifically configured by the user, default value is `host`
 
-7) Set atrributes for link ports::
+7) Set atrributes for TAP ports::
 
     $ gnmi-cli set PARAMS
     $ Example:
@@ -507,7 +517,7 @@ previously configured CONFIG params.
     mempool-name: this is a non-mandatory parameter, if not specifically
     configured by the user it is considered as value `MEMPOOL0`
 
-8) Set atrributes for link ports and a control port::
+8) Set atrributes for TAP ports and a control port::
 
     $ gnmi-cli set PARAMS
     $ Example:
