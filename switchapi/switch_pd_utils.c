@@ -39,11 +39,11 @@ bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
                                               bf_rt_session_hdl **session_t) {
   bf_status_t status;
   
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = bf_rt_session_create(session_t);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Cannot create bfrt session");
+      VLOG_ERR("Failed to create bfrt session");
       return status;
   }
 
@@ -51,7 +51,7 @@ bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
   status = bf_rt_info_get(device_id, pipeline_name,
                           (const bf_rt_info_hdl **)bfrt_info_hdl_t);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Cannot get bfrt handle for pipeline: %s", pipeline_name);
+      VLOG_ERR("Failed to get bfrt handle for pipeline: %s", pipeline_name);
       return status;
   }
 
@@ -65,26 +65,26 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
 
   bf_status_t status;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (entry_type) {
       // Data handle is created only when entry is added to backend
       status = bf_rt_table_data_deallocate(data_hdl_t);
       if(status != BF_SUCCESS) {
-          VLOG_ERR("Cannot deallocate data handler");
+          VLOG_ERR("Failed to deallocate data handler");
           return status;
       }
   }
 
   status = bf_rt_table_key_deallocate(key_hdl_t);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Cannot deallocate key handler");
+      VLOG_ERR("Failed to deallocate key handler");
       return status;
   }
 
   status = bf_rt_session_destroy(session_t);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Cannot destroy session");
+      VLOG_ERR("Failed to destroy session");
       return status;
   }
 
@@ -94,7 +94,7 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
 void
 switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
 {
-    VLOG_INFO("%s", __func__);
+    VLOG_DBG("%s", __func__);
     char if_name[16] = {0};
     int i = 0;
     bf_dev_id_t bf_dev_id = 0;
@@ -102,7 +102,7 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
     bf_status_t bf_status;
 
     if (!if_indextoname((*port_rif_info)->rif_ifindex, if_name)) {
-        VLOG_ERR("Cannot get ifname for the index: %d", (*port_rif_info)->rif_ifindex);
+        VLOG_ERR("Failed to get ifname for the index: %d", (*port_rif_info)->rif_ifindex);
         return;
     }
 
@@ -118,7 +118,7 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
         if (!strcmp((port_info)->port_attrib.port_name, if_name)) {
             // With multi-pipeline support, return target dp index
             // for both direction
-            VLOG_INFO("found the target dp index %d for sdk port id %d",
+            VLOG_DBG("found the target dp index %d for sdk port id %d",
                       port_info->port_attrib.port_in_id, i);
             (*port_rif_info)->port_id = port_info->port_attrib.port_in_id;
             if (i > CONFIG_PORT_INDEX) {
@@ -126,7 +126,7 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
                 port_info = NULL;
                 bf_pal_port_info_get(bf_dev_id, bf_dev_port_control, &port_info);
                 if (port_info == NULL) {
-                    VLOG_ERR("Cannot find the target dp index for control port "
+                    VLOG_ERR("Failed to find the target dp index for control port "
                              "associated with : %s", if_name);
                     return;
                 }
@@ -136,7 +136,7 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
         }
     }
 
-    VLOG_ERR("Cannot find the target dp index for ifname : %s", if_name);
+    VLOG_ERR("Failed to find the target dp index for ifname : %s", if_name);
 
     return;
 }

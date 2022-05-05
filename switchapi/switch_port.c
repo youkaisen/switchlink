@@ -41,16 +41,16 @@ switch_status_t switch_api_port_add(
   port = api_port_info->port;
   mtu = api_port_info->rx_mtu;
 
-  VLOG_INFO("switch_pd_port_add called with three parameters:\n");
-  VLOG_INFO("device=%d\n", device);
-  VLOG_INFO("port=%d\n", port);
-  VLOG_INFO("mtu=%d\n", mtu);
+  VLOG_DBG("switch_pd_port_add called with three parameters:\n");
+  VLOG_DBG("device=%d\n", device);
+  VLOG_DBG("port=%d\n", port);
+  VLOG_DBG("mtu=%d\n", mtu);
 
   status = switch_pd_device_port_add(device, port, mtu);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "port add failed on device %d port %d: "
-          "port pd add failed(%s)\n",
+          "Failed to add port on device %d  for port %d: "
+          ",error: %s\n",
           device,
           port,
           switch_error_to_string(status));

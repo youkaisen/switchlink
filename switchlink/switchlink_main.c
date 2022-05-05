@@ -375,7 +375,7 @@ int switchlink_init(void) {
   pthread_cond_init(&cookie_cv, NULL);
   int status = pthread_create(&switchlink_thread, NULL, switchlink_main, NULL);
   if (status) {
-    VLOG_ERR("Switchlink main creation failed, error %d", status);
+    VLOG_ERR("Failed to create switchlink main thread, error %d", status);
     return 0;
   }
   pthread_mutex_lock(&cookie_mutex);

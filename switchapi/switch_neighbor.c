@@ -31,7 +31,7 @@ switch_status_t switch_neighbor_init(switch_device_t device) {
   switch_neighbor_context_t *neighbor_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   neighbor_ctx = SWITCH_MALLOC(device, sizeof(switch_neighbor_context_t), 0x1);
   if (!neighbor_ctx) {
@@ -73,7 +73,7 @@ switch_status_t switch_neighbor_free(switch_device_t device) {
   switch_neighbor_context_t *neighbor_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_NEIGHBOR, (void **)&neighbor_ctx);
@@ -115,7 +115,7 @@ switch_status_t switch_api_neighbor_create(
   switch_rmac_entry_t *rmac_entry = NULL;
   switch_node_t *node = NULL;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   memset(&pd_neighbor_info, 0, sizeof(switch_pd_routing_info_t));
 
@@ -242,7 +242,7 @@ switch_status_t switch_api_neighbor_delete(
   switch_handle_t nhop_handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_NEIGHBOR_HANDLE(neighbor_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;

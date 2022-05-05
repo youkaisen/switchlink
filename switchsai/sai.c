@@ -76,7 +76,6 @@ sai_status_t sai_api_query(_In_ sai_api_t sai_api_id,
 
   if (!api_method_table) {
     status = SAI_STATUS_INVALID_PARAMETER;
-    //VLOG_ERR("null api method table: %s", sai_status_to_string(status));
     VLOG_ERR("null api method table: invalid parameter");
     return status;
   }
@@ -228,11 +227,11 @@ sai_status_t sai_api_query(_In_ sai_api_t sai_api_id,
   }
 
   if (status == SAI_STATUS_SUCCESS) {
-    VLOG_INFO("api query for module: %s", module[sai_api_id]);
+    VLOG_DBG("api query for module: %s", module[sai_api_id]);
   } else if (sai_api_id >= SAI_API_MAX) {
-    VLOG_ERR("api query failed. invalid api id: %d\n", sai_api_id);
+    VLOG_ERR("api query failed, invalid api id: %d\n", sai_api_id);
   } else {
-    VLOG_ERR("api query failed. api %s not implemented\n",
+    VLOG_ERR("api query failed, api %s not implemented\n",
                   module[sai_api_id]);
   }
 

@@ -59,7 +59,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
     dev_tgt.direction = 0xFF;
     dev_tgt.prsr_id = 0xFF;
 
-    VLOG_INFO("%s", __func__);
+    VLOG_DBG("%s", __func__);
 
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
@@ -78,7 +78,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get key handle");
+        VLOG_ERR("Unable to get key handle for l2_fwd_tx_table");
         goto dealloc_handle_session;
     }
 
@@ -93,7 +93,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
 
     if (entry_add &&
         api_l2_tx_info->learn_from == SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE) {
-        VLOG_INFO("Populate set_tunnel action for tunnel interface %x",
+        VLOG_INFO("Populate set_tunnel action in l2_fwd_tx_table for tunnel interface %x",
                    api_l2_tx_info->rif_handle);
         action_id = 22384992; //action id for l2_fwd_tx_table, action: set_tunnel
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
@@ -129,7 +129,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
     } else if (entry_add &&
                api_l2_tx_info->learn_from == SWITCH_L2_FWD_LEARN_VLAN_INTERFACE) {
 
-        VLOG_INFO("Populate l2_fwd action for VLAN netdev: vlan%d",
+        VLOG_INFO("Populate l2_fwd action in l2_fwd_tx_table for VLAN netdev: vlan%d",
                   api_l2_tx_info->port_id+1);
         action_id = 19169916; //action id for l2_fwd_tx_table, action: l2_fwd
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
@@ -150,13 +150,13 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to add table entry");
+            VLOG_ERR("Unable to add l2_fwd_tx_table table entry");
             goto dealloc_handle_session;
         }
     } else if (entry_add &&
                api_l2_tx_info->learn_from == SWITCH_L2_FWD_LEARN_PHYSICAL_INTERFACE) {
 
-        VLOG_INFO("Populate l2_fwd action for physical port: %d",
+        VLOG_INFO("Populate l2_fwd action in l2_fwd_tx_table for physical port: %d",
                   api_l2_tx_info->port_id);
         action_id = 19169916; //action id for l2_fwd_tx_table, action: l2_fwd
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
@@ -177,14 +177,14 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to add table entry");
+            VLOG_ERR("Unable to add l2_fwd_tx_table entry");
             goto dealloc_handle_session;
         }
     } else {
         /* Delete an entry from target */
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to delete table entry");
+            VLOG_ERR("Unable to delete l2_fwd_tx_table entry");
             goto dealloc_handle_session;
         }
     }
@@ -193,7 +193,7 @@ dealloc_handle_session:
     status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                  entry_add);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to deallocate session and handles");
+        VLOG_ERR("Unable to deallocate handle session");
         return switch_pd_status_to_status(status);
     }
 
@@ -228,7 +228,7 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
     switch_rif_info_t *rif_info = NULL;
     switch_port_t port_id;
 
-    VLOG_INFO("%s", __func__);
+    VLOG_DBG("%s", __func__);
 
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
@@ -247,7 +247,7 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get key handle");
+        VLOG_ERR("Unable to get key handle for l2_fwd_rx_table");
         goto dealloc_handle_session;
     }
 
@@ -262,6 +262,8 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
 
     if (entry_add) {
         /* Add an entry to target */
+        VLOG_INFO("Populate l2_fwd action in l2_fwd_rx_table for rif handle %d",
+                   api_l2_rx_info->rif_handle);
         action_id = 19169916; //action id for l2_fwd_rx_table, action: l2_fwd
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
@@ -296,14 +298,14 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to add table entry");
+            VLOG_ERR("Unable to add l2_fwd_rx_table entry");
             goto dealloc_handle_session;
         }
     } else {
         /* Delete an entry from target */
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to delete table entry");
+            VLOG_ERR("Unable to delete l2_fwd_rx_table entry");
             goto dealloc_handle_session;
         }
     }
@@ -342,7 +344,7 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
     dev_tgt.direction = 0xFF;
     dev_tgt.prsr_id = 0xFF;
 
-    VLOG_INFO("%s", __func__);
+    VLOG_DBG("%s", __func__);
 
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
@@ -362,7 +364,7 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get key handle");
+        VLOG_ERR("Unable to get key handle for l2_fwd_rx_with_tunnel_table");
         goto dealloc_handle_session;
     }
 
@@ -377,7 +379,9 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
 
     if (entry_add) {
         /* Add an entry to target */
-        action_id = 19169916; //action id for l2_fwd_rx_table, action: l2_fwd
+        VLOG_INFO("Populate l2_fwd action in l2_fwd_rx_with_tunnel_table for rif handle %d",
+                   api_l2_rx_info->rif_handle);
+        action_id = 19169916; //action id for l2_fwd_rx_with_tunnel_table, action: l2_fwd
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -396,14 +400,14 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to add table entry");
+            VLOG_ERR("Unable to add l2_fwd_rx_with_tunnel_table entry");
             goto dealloc_handle_session;
         }
     } else {
         /* Delete an entry from target */
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to delete table entry");
+            VLOG_ERR("Unable to delete l2_fwd_rx_with_tunnel_table entry");
             goto dealloc_handle_session;
         }
     }
@@ -412,7 +416,7 @@ dealloc_handle_session:
     status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                  entry_add);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to deallocate session and handles");
+        VLOG_ERR("Unable to deallocate handle session");
         return switch_pd_status_to_status(status);
     }
 

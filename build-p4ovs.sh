@@ -41,7 +41,7 @@ fi
 ./boot.sh
 if [ ! -z "$DEPS_INSTALL_PATH" ]
 then
-    ./configure --prefix=$DEPS_INSTALL_PATH --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g' --disable-ssl
+    ./configure --prefix=$DEPS_INSTALL_PATH --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g' --disable-ssl --with-sai
 else
     ./configure --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g' --with-sai
 fi

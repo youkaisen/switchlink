@@ -33,7 +33,7 @@ switch_status_t switch_l2_hash_key_init(void *args,
   switch_mac_addr_t *l2_key = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!args || !key || !len) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -52,7 +52,7 @@ switch_status_t switch_l2_hash_key_init(void *args,
 }
 
 switch_int32_t switch_l2_hash_compare(const void *key1, const void *key2) {
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   switch_l2_info_t *l2_info = (switch_l2_info_t *) key2;
   switch_mac_addr_t l2_mac;
@@ -72,14 +72,14 @@ switch_status_t switch_l2_init(switch_device_t device)
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_status_t tmp_status = SWITCH_STATUS_SUCCESS;
  
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   l2_ctx = SWITCH_MALLOC(device, sizeof(switch_l2_context_t), 0x1);
   if (!l2_ctx) {
       status = SWITCH_STATUS_NO_MEMORY;
       VLOG_ERR(
-        "l2 init failed on device %d: "
-        "l2 context malloc failed:(%s)\n",
+        "switch_l2_init: Failed to allocate memory for l2 context on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
       return status;
@@ -91,8 +91,8 @@ switch_status_t switch_l2_init(switch_device_t device)
       device, SWITCH_API_TYPE_L2, (void *)l2_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-        "l2 init failed on device %d: "
-        "l2 context set failed:(%s)\n",
+        "switch_l2_init: Failed to set device api context on device %d:"
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
       return status;
@@ -105,7 +105,7 @@ switch_status_t switch_l2_init(switch_device_t device)
 
   status = SWITCH_HASHTABLE_INIT(&l2_ctx->l2_hashtable);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("l2 init failed for device %d\n",
+    VLOG_ERR("switch_l2_init: Failed to initialize hashtable for device %d\n",
                      device);
     return status;
   }
@@ -114,8 +114,8 @@ switch_status_t switch_l2_init(switch_device_t device)
     device, SWITCH_HANDLE_TYPE_L2_FWD_RX, L2_FWD_RX_TABLE_SIZE);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-        "l2 rx init failed on device %d: "
-        "l2 rx handle init failed:(%s)\n",
+        "switch_l2_init: Failed to initialize switch handle for type SWITCH_HANDLE_TYPE_L2_FWD_RX"
+        "on device %d:, error: %s\n",
         device,
         switch_error_to_string(status));
       goto cleanup;
@@ -125,8 +125,8 @@ switch_status_t switch_l2_init(switch_device_t device)
       device, SWITCH_HANDLE_TYPE_L2_FWD_TX, L2_FWD_TX_TABLE_SIZE);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-        "l2 tx init failed on device %d: "
-        "l2 tx handle init failed:(%s)\n",
+        "switch_l2_init: Failed to initialize switch handle for type SWITCH_HANDLE_TYPE_L2_FWD_TX"
+        "on device %d:, error: %s\n",
         device,
         switch_error_to_string(status));
       goto cleanup;
@@ -146,14 +146,14 @@ switch_status_t switch_l2_free(switch_device_t device)
   switch_l2_context_t *l2_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L2, (void **)&l2_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l2 free failed on device %d: "
-        "l2 context get failed:(%s)\n",
+        "switch_l2_free: Failed to get device api context on device %d: "
+        "error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -161,7 +161,7 @@ switch_status_t switch_l2_free(switch_device_t device)
   
   status = SWITCH_HASHTABLE_DONE(&l2_ctx->l2_hashtable);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("l2 free failed for device %d: %s\n",
+    VLOG_ERR("switch_l2_free: SWITCH_HASHTABLE_DONE failed for device %d: %s\n",
                      device,
                      switch_error_to_string(status));
   }
@@ -169,8 +169,8 @@ switch_status_t switch_l2_free(switch_device_t device)
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_L2_FWD_TX);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l2 free failed on device %d: "
-        "l2 handle free failed:(%s)\n",
+        "switch_l2_free: Failed to free handle type SWITCH_HANDLE_TYPE_L2_FWD_TX on device %d: "
+        "error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -178,8 +178,8 @@ switch_status_t switch_l2_free(switch_device_t device)
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_L2_FWD_RX);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l2 free failed on device %d: "
-        "l2 handle free failed:(%s)\n",
+        "switch_l2_free: Failed to free handle type SWITCH_HANDLE_TYPE_L2_FWD_RX on device %d: "
+        "error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -199,18 +199,22 @@ switch_status_t switch_api_l2_handle_get(
   switch_l2_info_t *l2_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!l2_key || !l2_handle) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("Failed to find l2 handle due to invalid parameters \n");
+    VLOG_ERR("Failed to find l2 handle due to invalid parameters \n"
+             "error: %s\n",
+             switch_error_to_string(status));
     return status;
   }
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L2, (void **)&l2_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("Failed to get device api context \n");
+    VLOG_ERR("switch_api_l2_handle_get: Failed to get device api context \n"
+             "error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
 
@@ -235,12 +239,14 @@ switch_status_t switch_api_l2_forward_create(
   switch_l2_context_t *l2_ctx = NULL;
   switch_mac_addr_t l2_mac;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L2, (void **)&l2_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("l2_key find failed \n");
+    VLOG_ERR("switch_api_l2_forward_create: Failed to find the device api context,"
+             "error: %s \n",
+              switch_error_to_string(status));
     return status;
   }
 
@@ -250,8 +256,8 @@ switch_status_t switch_api_l2_forward_create(
   if (status != SWITCH_STATUS_SUCCESS &&
       status != SWITCH_STATUS_ITEM_NOT_FOUND) {
     VLOG_ERR(
-        "l2 create failed on device %d: "
-        "l2 get failed:(%s)\n",
+        "switch_api_l2_forward_create: Failed to get api l2 handle on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -259,10 +265,9 @@ switch_status_t switch_api_l2_forward_create(
 
   if (status == SWITCH_STATUS_SUCCESS) {
     VLOG_INFO(
-        "l2 create failed on device %d nhop handle 0x%lx: "
-        "l2 already exists\n",
-        device,
-        handle);
+        "switch_api_l2_forward_create: nhop handle 0x%lx on device %d already exists\n",
+        handle,
+        device);
     *l2_handle = handle;
     return status;
   }
@@ -272,8 +277,8 @@ switch_status_t switch_api_l2_forward_create(
     handle = switch_l2_tx_handle_create(device);
     if (handle == SWITCH_API_INVALID_HANDLE) {
         status = SWITCH_STATUS_NO_MEMORY;
-        VLOG_ERR("l2 create failed on device %d: "
-                 "l2 handle create failed:(%s)\n",
+        VLOG_ERR("switch_api_l2_forward_create: Failed to create l2 tx handle on device %d: "
+                 ",error: %s\n",
                  device, switch_error_to_string(status));
         return status;
     }
@@ -281,8 +286,9 @@ switch_status_t switch_api_l2_forward_create(
     status = switch_l2_tx_get(device, handle, &l2_info);
     if (status != SWITCH_STATUS_SUCCESS) {
         VLOG_ERR(
-            "l2 create failed on device %d: "
-            "l2 get failed:(%s)\n",
+            "switch_api_l2_forward_create: Failed to get l2 tx info for "
+            "handle 0x%lx on device %d: ,error: %s\n",
+            handle,
             device,
             switch_error_to_string(status));
         return status;
@@ -316,8 +322,8 @@ switch_status_t switch_api_l2_forward_create(
                                                   api_tunnel_info,  true);
     if (status != SWITCH_STATUS_SUCCESS) {
         VLOG_ERR(
-            "l2 create failed on device %d: "
-            "l2 pd create failed :(%s)\n",
+            "switch_api_l2_forward_create: Failed to create platform dependent "
+            "l2 tx forward table entry on device %d: ,error :(%s)\n",
             device,
             switch_error_to_string(status));
         return status;
@@ -330,8 +336,8 @@ switch_status_t switch_api_l2_forward_create(
                                                                true);
       if (status != SWITCH_STATUS_SUCCESS) {
           VLOG_ERR(
-              "l2 rx tunnel create failed on device %d: "
-              "l2 pd create failed :(%s)\n",
+              "switch_api_l2_forward_create: Failed to create platform dependent "
+              "l2 rx forward tunnel table entry on device %d: ,error :%s\n",
               device,
               switch_error_to_string(status));
           return status;
@@ -342,17 +348,18 @@ switch_status_t switch_api_l2_forward_create(
     handle = switch_l2_rx_handle_create(device);
     if (handle == SWITCH_API_INVALID_HANDLE) {
         status = SWITCH_STATUS_NO_MEMORY;
-        VLOG_ERR("l2 create failed on device %d: "
-                 "l2 handle create failed:(%s)\n",
+        VLOG_ERR("switch_api_l2_forward_create: Failed to create l2 rx handle on device %d: "
+                 ",error: %s\n",
                  device, switch_error_to_string(status));
         return status;
     }
 
     status = switch_l2_rx_get(device, handle, &l2_info);
     if (status != SWITCH_STATUS_SUCCESS) {
-        VLOG_ERR(
-            "l2 create failed on device %d: "
-            "l2 get failed:(%s)\n",
+         VLOG_ERR(
+            "switch_api_l2_forward_create: Failed to get l2 rx info for handle 0x%lx on device %d: "
+            ",error: %s\n",
+            handle,
             device,
             switch_error_to_string(status));
         return status;
@@ -361,14 +368,14 @@ switch_status_t switch_api_l2_forward_create(
     status = switch_pd_l2_rx_forward_table_entry(device, api_l2_info, true);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "l2 create failed on device %d: "
-          "l2 forward pd create failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
+              "switch_api_l2_forward_create: Failed to create platform dependent "
+              "l2 rx forward table entry on device %d: ,error: %s\n",
+              device,
+              switch_error_to_string(status));
       return status;
     }
   } else {
-    VLOG_ERR("Invalid L2 FWD type");
+    VLOG_ERR("switch_api_l2_forward_create: Invalid L2 FWD type");
     return SWITCH_STATUS_NOT_SUPPORTED;
   }
 
@@ -397,12 +404,13 @@ switch_status_t switch_api_l2_forward_delete (
   switch_mac_addr_t l2_mac;
   switch_l2_info_t *l2_info = NULL;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L2, (void **)&l2_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("l2_key find failed \n");
+    VLOG_ERR("switch_api_l2_forward_delete: Failed to get device api context, error: %s \n",
+              switch_error_to_string(status));
     return status;
   }
 
@@ -410,8 +418,7 @@ switch_status_t switch_api_l2_forward_delete (
   status = switch_api_l2_handle_get(device, &l2_mac, &l2_handle);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l2 create failed on device %d: "
-        "l2 get failed:(%s)\n",
+        "switch_api_l2_forward_delete: Failed to get api l2 handle on device: %d, error:%s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -427,10 +434,10 @@ switch_status_t switch_api_l2_forward_delete (
                                                   false);
     if (status != SWITCH_STATUS_SUCCESS) {
         VLOG_ERR(
-            "l2 tx forward delete failed on device %d: "
-            "l2 tx forward pd table delete failed :(%s)\n",
-            device,
-            switch_error_to_string(status));
+              "switch_api_l2_forward_delete: Failed to delete platform dependent "
+              "l2 tx forward table entry on device %d: ,error :%s\n",
+              device,
+              switch_error_to_string(status));
         return status;
     }
 
@@ -442,8 +449,8 @@ switch_status_t switch_api_l2_forward_delete (
                                                                false);
       if (status != SWITCH_STATUS_SUCCESS) {
           VLOG_ERR(
-              "l2 rx forward delete failed on device %d: "
-              "l2 rx forward tunnel pd table delete failed :(%s)\n",
+              "switch_api_l2_forward_delete: Failed to delete platform dependent l2 rx forward "
+              "tunnel table entry on device %d: ,error :%s\n",
               device,
               switch_error_to_string(status));
           return status;
@@ -458,10 +465,10 @@ switch_status_t switch_api_l2_forward_delete (
     status = switch_pd_l2_rx_forward_table_entry (device, api_l2_info, false);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "l2 rx forward delete failed on device %d: "
-          "l2 rx forward pd table delete failed :(%s)\n",
-          device,
-          switch_error_to_string(status));
+              "switch_api_l2_forward_delete: Failed to delete platform dependent "
+              "l2 rx forward table entry on device %d: ,error :%s\n",
+              device,
+              switch_error_to_string(status));
       return status;
     }
 

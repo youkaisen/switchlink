@@ -1,26 +1,18 @@
-/*******************************************************************************
- * BAREFOOT NETWORKS CONFIDENTIAL & PROPRIETARY
+/*
+ * Copyright (c) 2021 Intel Corporation.
  *
- * Copyright (c) 2015-2019 Barefoot Networks, Inc.
-
- * All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
- * NOTICE: All information contained herein is, and remains the property of
- * Barefoot Networks, Inc. and its suppliers, if any. The intellectual and
- * technical concepts contained herein are proprietary to Barefoot Networks,
- * Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents, patents in
- * process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material is
- * strictly forbidden unless prior written permission is obtained from
- * Barefoot Networks, Inc.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * No warranty, explicit or implicit is provided, unless granted under a
- * written agreement with Barefoot Networks, Inc.
- *
- * $Id: $
- *
- ******************************************************************************/
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <sairouterinterface.h>
 #include <config.h>
@@ -46,11 +38,11 @@ static sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("Get default RMAC handle");
+  VLOG_DBG("Get default RMAC handle");
   switch_status = switch_api_device_default_rmac_handle_get(switch_id, rmac_h);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("failed to get default RMAC handle: %s",
+    VLOG_ERR("Failed to get default RMAC handle, error: %s",
                   sai_status_to_string(status));
     return status;
   }
@@ -60,13 +52,13 @@ static sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
     switch (attribute->id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
 
-        VLOG_INFO("RMAC group create");
+        VLOG_DBG("RMAC group create");
         switch_status = switch_api_router_mac_group_create(
             switch_id, SWITCH_RMAC_TYPE_ALL, rmac_h);
 
         if (switch_status == SWITCH_STATUS_SUCCESS) {
           memcpy(&mac.mac_addr, &attribute->value.mac, 6);
-          VLOG_INFO("MAC: %02x:%02x:%02x:%02x:%02x:%02x, add to group",
+          VLOG_DBG("MAC: %02x:%02x:%02x:%02x:%02x:%02x, add to group",
                      mac.mac_addr[0], mac.mac_addr[1], mac.mac_addr[2],
                      mac.mac_addr[3], mac.mac_addr[4], mac.mac_addr[5]);
           switch_status = switch_api_router_mac_add(switch_id, *rmac_h, &mac);
@@ -89,12 +81,12 @@ static sai_status_t sai_delete_rmac_internal(switch_handle_t rif_handle,
 
   switch_api_device_default_rmac_handle_get(0, &tmp_rmac_handle);
   if (tmp_rmac_handle != rmac_handle) {
-      VLOG_INFO("Delete router MAC");
+      VLOG_DBG("Delete router MAC");
       switch_status = switch_api_router_mac_group_delete(0, rif_handle,
                                                          rmac_handle);
       status = sai_switch_status_to_sai_status(switch_status);
       if (status != SAI_STATUS_SUCCESS) {
-        VLOG_ERR("failed to remove router interface: %s",
+        VLOG_ERR("Failed to remove router interface, error: %s",
                   sai_status_to_string(status));
       }
       return status;
@@ -152,7 +144,7 @@ static sai_status_t sai_create_router_interface(
                                  &api_rif_info);
     if ((status = sai_switch_status_to_sai_status(switch_status)) !=
         SAI_STATUS_SUCCESS) {
-      VLOG_ERR("failed to get router interface: %s",
+      VLOG_ERR("Failed to get router interface, error: %s",
                sai_status_to_string(status));
       return status;
     }
@@ -168,7 +160,7 @@ static sai_status_t sai_create_router_interface(
 
     status = sai_create_rmac_internal(switch_id, attr_count, attr_list, &rmac_handle);
     if (status != SAI_STATUS_SUCCESS) {
-      VLOG_ERR("failed to create RMAC: %s", sai_status_to_string(status));
+      VLOG_ERR("Failed to create RMAC, error: %s", sai_status_to_string(status));
       return status;
     }
 
@@ -190,11 +182,11 @@ static sai_status_t sai_create_router_interface(
     }
 
     api_rif_info.rif_ifindex = attribute->value.u32;
-    VLOG_INFO("Calling switch api create router interface");
+    VLOG_DBG("Calling switch api create router interface");
     switch_status = switch_api_rif_create(switch_id, &api_rif_info, &rif_handle);
     status = sai_switch_status_to_sai_status(switch_status);
     if (status != SAI_STATUS_SUCCESS) {
-      VLOG_ERR("failed to create router interface: %s",
+      VLOG_ERR("Failed to create router interface, error: %s",
                     sai_status_to_string(status));
       return status;
     }
@@ -212,12 +204,12 @@ static sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
   switch_handle_t rmac_handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("Get RIF attributes");
+  VLOG_DBG("Get RIF attributes");
   switch_status = switch_api_rif_attribute_get(
       0, rif_id, (switch_uint64_t)UINT64_MAX, &api_rif_info);
   if ((status = sai_switch_status_to_sai_status(switch_status)) !=
       SAI_STATUS_SUCCESS) {
-    VLOG_ERR("failed to remove router interface: %s",
+    VLOG_ERR("Failed to remove router interface, error: %s",
                   sai_status_to_string(status));
     return status;
   }
@@ -225,15 +217,15 @@ static sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
   rmac_handle = api_rif_info.rmac_handle;
   status = sai_delete_rmac_internal((switch_handle_t)rif_id, rmac_handle);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("failed to remove RMAC: %s",
+    VLOG_ERR("Failed to remove RMA, erorr: %s",
                   sai_status_to_string(status));
   }
 
-  VLOG_INFO("Calling switch api delete router interface");
+  VLOG_DBG("Calling switch api delete router interface");
   switch_status = switch_api_rif_delete(0, (switch_handle_t)rif_id);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("failed to remove router interface: %s",
+    VLOG_ERR("Failed to remove router interface, error: %s",
                   sai_status_to_string(status));
   }
 

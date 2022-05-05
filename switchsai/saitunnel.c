@@ -187,8 +187,7 @@ static sai_status_t sai_create_tunnel(_Out_ sai_object_id_t *tunnel_id,
   status = sai_tunnel_attribute_parse(attr_count, attr_list, &tunnel_info);
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR(
-        "sai tunnel create failed: "
-        "parsing failed:(%s)\n",
+        "Failed to parse atributes when creating tunnel, error: %s \n",
         sai_status_to_string(status));
     return status;
   }
@@ -198,8 +197,7 @@ static sai_status_t sai_create_tunnel(_Out_ sai_object_id_t *tunnel_id,
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR(
-        "sai tunnel create failed: "
-        "switch tunnel create failed:(%s)\n",
+        "Failed to create tunnel, error: %s \n",
         sai_status_to_string(status));
     return status;
   }
@@ -225,13 +223,12 @@ static sai_status_t sai_remove_tunnel(_In_ sai_object_id_t tunnel_handle) {
   switch_status = switch_api_tunnel_delete(tunnel_handle);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("sai tunnel delete failed: "
-        "switch api tunnel delete failed: %s\n",
+    VLOG_ERR("Failed to delete tunnel, error: %s\n",
         sai_status_to_string(status));
     return status;
   }
 
-  VLOG_ERR("Tunnel entry delete success, handle 0x%lx", tunnel_handle);
+  VLOG_DBG("Tunnel entry delete success, handle 0x%lx", tunnel_handle);
 
   return status;
 }
@@ -364,8 +361,7 @@ static sai_status_t sai_create_tunnel_term_table_entry(
   status = sai_tunnel_term_attribute_parse(attr_count, attr_list, &api_term_info);
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR(
-        "sai tunnel create failed: "
-        "parsing failed:(%s)\n",
+        "Failed to parse atributes when creating tunnel term table entry, error: %s \n",
         sai_status_to_string(status));
     return status;
   }
@@ -373,12 +369,12 @@ static sai_status_t sai_create_tunnel_term_table_entry(
   switch_status = switch_api_tunnel_term_create(switch_id, &api_term_info, &tunnel_term_handle);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("Failed to create tunnel term table entry");
+    VLOG_ERR("Failed to create tunnel term table entry, error: %s", sai_status_to_string(status));
     return status;
   }
 
   *tunnel_term_id = tunnel_term_handle;
-  VLOG_ERR("Tunnel term table entry add, handle 0x%lx", tunnel_term_handle);
+  VLOG_DBG("Tunnel term table entry add, handle 0x%lx", tunnel_term_handle);
   return status;
 }
 
@@ -434,11 +430,12 @@ static sai_status_t sai_remove_tunnel_term_table_entry(_In_ sai_object_id_t tunn
   switch_status = switch_api_tunnel_term_delete(tunnel_term_handle);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("Failed to delete tunnel term table entry");
+    VLOG_ERR("Failed to delete tunnel term table entry, error: %s",
+              sai_status_to_string(status));
     return status;
   }
 
-  VLOG_ERR("Tunnel term table entry delete success, handle 0x%lx", tunnel_term_handle);
+  VLOG_DBG("Tunnel term table entry delete success, handle 0x%lx", tunnel_term_handle);
   return status;
 }
 

@@ -1,26 +1,18 @@
-/*******************************************************************************
- * BAREFOOT NETWORKS CONFIDENTIAL & PROPRIETARY
+/*
+ * Copyright (c) 2021 Intel Corporation.
  *
- * Copyright (c) 2015-2019 Barefoot Networks, Inc.
-
- * All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
- * NOTICE: All information contained herein is, and remains the property of
- * Barefoot Networks, Inc. and its suppliers, if any. The intellectual and
- * technical concepts contained herein are proprietary to Barefoot Networks,
- * Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents, patents in
- * process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material is
- * strictly forbidden unless prior written permission is obtained from
- * Barefoot Networks, Inc.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * No warranty, explicit or implicit is provided, unless granted under a
- * written agreement with Barefoot Networks, Inc.
- *
- * $Id: $
- *
- ******************************************************************************/
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 /* Local header includes */
 #include <config.h>
@@ -39,7 +31,7 @@ switch_status_t switch_route_table_entry_key_init(void *args,
   switch_route_entry_t *route_entry = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!args || !key || !len) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -65,7 +57,7 @@ switch_status_t switch_route_table_entry_key_init(void *args,
 
 switch_int32_t switch_route_entry_hash_compare(const void *key1,
                                                const void *key2) {
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   return SWITCH_MEMCMP(key1, key2, SWITCH_ROUTE_HASH_KEY_SIZE);
 }
@@ -74,14 +66,14 @@ switch_status_t switch_l3_init(switch_device_t device) {
   switch_l3_context_t *l3_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   l3_ctx = SWITCH_MALLOC(device, sizeof(switch_l3_context_t), 0x1);
   if (!l3_ctx) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "l3 init failed on device %d "
-        "l3 device context memoary allocation failed(%s)\n",
+        "l3 init: Failed to allocate memory for switch_l3_context_t on device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -91,8 +83,8 @@ switch_status_t switch_l3_init(switch_device_t device) {
       switch_device_api_context_set(device, SWITCH_API_TYPE_L3, (void *)l3_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l3 init failed on device %d "
-        "l3 context set failed(%s)\n",
+        "l3 init: Failed to set device context device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -105,8 +97,8 @@ switch_status_t switch_l3_init(switch_device_t device) {
   status = SWITCH_HASHTABLE_INIT(&l3_ctx->route_hashtable);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l3 init failed on device %d: "
-        "l3 hashtable init failed(%s)\n",
+        "l3 init: Failed to init hashtable on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -116,8 +108,8 @@ switch_status_t switch_l3_init(switch_device_t device) {
       device, SWITCH_HANDLE_TYPE_ROUTE, IPV4_TABLE_SIZE);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l3 init failed on device %d: "
-        "route handle init failed (%s)\n",
+        "l3 init: Failed to init SWITCH_HANDLE_TYPE_ROUTE on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -130,14 +122,14 @@ switch_status_t switch_l3_free(switch_device_t device) {
   switch_l3_context_t *l3_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L3, (void **)&l3_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l3 free failed on device %d: "
-        "l3 context get failed(%s)\n",
+        "l3 free: Failed to get device context on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -145,8 +137,8 @@ switch_status_t switch_l3_free(switch_device_t device) {
   status = SWITCH_HASHTABLE_DONE(&l3_ctx->route_hashtable);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l3 free failed on device %d: "
-        "l3 hashtable done failed(%s)\n",
+        "l3 free: SWITCH_HASHTABLE_DONE failed on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -154,8 +146,8 @@ switch_status_t switch_l3_free(switch_device_t device) {
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_ROUTE);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "l3 free failed on device %d: "
-        "route handle free failed(%s)\n",
+        "l3 free: Failed to free SWITCH_HANDLE_TYPE_ROUTE on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -175,13 +167,13 @@ switch_status_t switch_route_table_hash_lookup(
   switch_route_info_t *route_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!route_entry) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
     VLOG_ERR(
-        "route table entry find failed on device %d: "
-        "parameters invalid(%s)\n",
+        "route table lookup failed on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -191,8 +183,8 @@ switch_status_t switch_route_table_hash_lookup(
       device, SWITCH_API_TYPE_L3, (void **)&l3_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "route table entry find failed on device %d: "
-        "l3 context get failed(%s)\n",
+        "route table lookup: Failed to get device context on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -214,13 +206,13 @@ switch_status_t switch_route_hashtable_insert(switch_device_t device,
   switch_route_entry_t *route_entry = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_ROUTE_HANDLE(route_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
         "route hashtable insert failed on device %d "
-        "route handle 0x%lx: route handle invalid(%s)\n",
+        ",route handle 0x%lx, error: %s\n",
         device,
         route_handle,
         switch_error_to_string(status));
@@ -230,8 +222,8 @@ switch_status_t switch_route_hashtable_insert(switch_device_t device,
   status = switch_route_get(device, route_handle, &route_info);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "route hashtable insert failed on device %d "
-        "route handle 0x%lx: route get failed(%s)\n",
+        "route hashtable insert: Failed to get route info on device %d "
+        ",route handle 0x%lx, error: %s\n",
         device,
         route_handle,
         switch_error_to_string(status));
@@ -276,7 +268,7 @@ switch_status_t switch_route_hashtable_remove(switch_device_t device,
   switch_route_entry_t *route_entry = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_ROUTE_HANDLE(route_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
@@ -339,7 +331,7 @@ switch_status_t switch_api_l3_route_add(
   switch_handle_t vrf_handle;
   switch_handle_t route_handle;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!api_route_entry) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -451,7 +443,7 @@ switch_status_t switch_api_l3_route_delete(switch_device_t device,
   switch_route_entry_t route_entry;
   switch_handle_t route_handle;  
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!api_route_entry) {
     status = SWITCH_STATUS_INVALID_PARAMETER;

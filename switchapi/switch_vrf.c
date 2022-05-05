@@ -30,14 +30,14 @@ switch_status_t switch_vrf_init(switch_device_t device) {
   switch_vrf_context_t *vrf_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   vrf_ctx = SWITCH_MALLOC(device, sizeof(switch_vrf_context_t), 0x1);
   if (!vrf_ctx) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "vrf init failed on device %d: "
-        "vrf context memory allocation failed(%s)\n",
+        "vrf init: Failed to allocate memory switch_vrf_context_t on device %d: "
+        ", error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -49,8 +49,8 @@ switch_status_t switch_vrf_init(switch_device_t device) {
       device, SWITCH_API_TYPE_VRF, (void *)vrf_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf init failed on device %d: "
-        "vrf context get failed(%s)\n",
+        "vrf init: Failed to get device context on device %d: "
+        ", error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -60,8 +60,8 @@ switch_status_t switch_vrf_init(switch_device_t device) {
 
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf init failed on device %d: "
-        "vrf handle init failed(%s)\n",
+        "vrf init: Failed to init handle on device %d: "
+        ", error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -76,14 +76,14 @@ switch_status_t switch_vrf_free(switch_device_t device) {
   switch_vrf_context_t *vrf_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_VRF, (void **)&vrf_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf free failed on device %d: "
-        "vrf context get failed(%s)\n",
+        "vrf free: Failed to get device context on device %d: "
+        ", error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -92,8 +92,8 @@ switch_status_t switch_vrf_free(switch_device_t device) {
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_VRF);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf free failed on device %d: "
-        "vrf handle free failed(%s)\n",
+        "vrf free: Failed to fre handle on device %d: "
+        ", error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -116,14 +116,14 @@ switch_status_t switch_api_vrf_create(const switch_device_t device,
   switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
   switch_handle_t *tmp_vrf_handle = NULL;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_VRF, (void **)&vrf_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf create failed on device %d vrf id %d: "
-        "vrf context get failed(%s)\n",
+        "vrf create:: Failed to get device context on device %d, vrf id %d: "
+        ", error: %s\n",
         device,
         vrf_id,
         switch_error_to_string(status));
@@ -139,8 +139,8 @@ switch_status_t switch_api_vrf_create(const switch_device_t device,
     if (status != SWITCH_STATUS_ITEM_NOT_FOUND &&
         status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "vrf create failed on device %d vrf id %d: "
-          "vrf array get failed(%s)\n",
+          "vrf create Failed to get vrf handle on device %d, vrf id %d: "
+          ", error: %s\n",
           device,
           vrf_id,
           switch_error_to_string(status));
@@ -149,10 +149,10 @@ switch_status_t switch_api_vrf_create(const switch_device_t device,
 
     if (status == SWITCH_STATUS_SUCCESS) {
       *vrf_handle = *tmp_vrf_handle;
-      VLOG_INFO("vrf id %x (handle: 0x%lx) already exists on device %d",
-                       vrf_id,
-                       *vrf_handle,
-                       device);
+      VLOG_INFO("vrf id %x, (handle: 0x%lx) already exists on device %d",
+                vrf_id,
+                *vrf_handle,
+                device);
       return status;
     }
   }
@@ -161,8 +161,8 @@ switch_status_t switch_api_vrf_create(const switch_device_t device,
   if (handle == SWITCH_API_INVALID_HANDLE) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "vrf create failed on device %d vrf id %d: "
-        "vrf handle create failed(%s)\n",
+        "vrf create: Failed to create handle on device %d, vrf id %d: "
+        ", error: %s\n",
         device,
         vrf_id,
         switch_error_to_string(status));
@@ -176,8 +176,8 @@ switch_status_t switch_api_vrf_create(const switch_device_t device,
 
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf create failed on device %d vrf id %d: "
-        "vrf array insert failed(%s)\n",
+        "vrf create Failed to get vrf handle on device %d, vrf id %d: "
+        ", error: %s\n",
         device,
         vrf_id,
         switch_error_to_string(status));
@@ -189,8 +189,8 @@ switch_status_t switch_api_vrf_create(const switch_device_t device,
   switch_vrf_get(device, handle, &vrf_info, status);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf create failed on device %d vrf id %d: "
-        "vrf get failed(%s)\n",
+        "vrf create: Failed to get vrf info on device %d, vrf id %d: "
+        ", error: %s\n",
         device,
         vrf_id,
         switch_error_to_string(status));
@@ -216,13 +216,13 @@ switch_status_t switch_api_vrf_delete(
   switch_handle_t *tmp_vrf_handle = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_VRF_HANDLE(vrf_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "vrf delete failed on device %d vrf handle 0x%lx: "
-        "vrf handle invalid(%s)\n",
+        "vrf delete failed on device %d, vrf handle 0x%lx: "
+        ", error: %s\n",
         device,
         vrf_handle,
         switch_error_to_string(status));
@@ -233,8 +233,8 @@ switch_status_t switch_api_vrf_delete(
       device, SWITCH_API_TYPE_VRF, (void **)&vrf_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf delete failed on device %d vrf handle 0x%lx: "
-        "vrf context get failed(%s)\n",
+        "vrf delete: Failed to get device context on device %d, vrf handle 0x%lx: "
+        ", error: %s\n",
         device,
         vrf_handle,
         switch_error_to_string(status));
@@ -244,8 +244,8 @@ switch_status_t switch_api_vrf_delete(
   switch_vrf_get(device, vrf_handle, &vrf_info, status);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf delete failed on device %d vrf handle 0x%lx: "
-        "vrf get failed(%s)\n",
+        "vrf delete: Failed to get vrf info on device %d, vrf handle 0x%lx: "
+        ", error: %s\n",
         device,
         vrf_handle,
         switch_error_to_string(status));
@@ -258,11 +258,11 @@ switch_status_t switch_api_vrf_delete(
     status = SWITCH_ARRAY_DELETE(&vrf_ctx->vrf_id_array, vrf_info->vrf_id);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "vrf delete failed on device %d vrf handle 0x%lx vrf id %d: "
-          "vrf array delete failed(%s)\n",
-          device,
+          "vrf delete: Failed to get vrf info for vrf handle 0x%lx vrf id %d: "
+          "on device %d, error: %s\n",
           vrf_handle,
           vrf_info->vrf_id,
+          device,
           switch_error_to_string(status));
       return status;
     }
@@ -275,16 +275,16 @@ switch_status_t switch_api_vrf_delete(
   status = switch_vrf_handle_delete(device, vrf_info->vrf_handle);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf delete failed on device %d vrf handle 0x%lx: "
-        "vrf handle delete failed(%s)\n",
-        device,
+        "vrf delete: Failed to delete vrf handle 0x%lx: on device %d "
+        ", error: %s\n",
         vrf_handle,
+        device,
         switch_error_to_string(status));
     return status;
   }
 
   VLOG_INFO(
-      "vrf deleted on device %d vrf handle 0x%lx\n", device, vrf_handle);
+      "vrf deleted on device %d, vrf handle 0x%lx\n", device, vrf_handle);
 
   return status;
 }

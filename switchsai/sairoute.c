@@ -1,26 +1,18 @@
-/*******************************************************************************
- * BAREFOOT NETWORKS CONFIDENTIAL & PROPRIETARY
+/*
+ * Copyright (c) 2021 Intel Corporation.
  *
- * Copyright (c) 2015-2019 Barefoot Networks, Inc.
-
- * All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
- * NOTICE: All information contained herein is, and remains the property of
- * Barefoot Networks, Inc. and its suppliers, if any. The intellectual and
- * technical concepts contained herein are proprietary to Barefoot Networks,
- * Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents, patents in
- * process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material is
- * strictly forbidden unless prior written permission is obtained from
- * Barefoot Networks, Inc.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * No warranty, explicit or implicit is provided, unless granted under a
- * written agreement with Barefoot Networks, Inc.
- *
- * $Id: $
- *
- ******************************************************************************/
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <sairoute.h>
 #include <config.h>
@@ -100,13 +92,15 @@ static sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
   int action = -1, pri = -1;
   if (!route_entry) {
     status = SAI_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("null unicast entry: %s", sai_status_to_string(status));
+    VLOG_ERR("null route entry for route entry update: %s",
+             sai_status_to_string(status));
     return status;
   }
 
   if (!attr_list) {
     status = SAI_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("null attribute list: %s", sai_status_to_string(status));
+    VLOG_ERR("null attribute list for route entry update: %s",
+              sai_status_to_string(status));
     return status;
   }
 
@@ -123,7 +117,7 @@ static sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
     api_route_entry.neighbor_installed = FALSE;
     memcpy(&api_route_entry.ip_address, &ip_addr, sizeof(switch_ip_addr_t));
 
-    VLOG_INFO("Add route via switch_api_l3_route_add for: %s", entry_string);
+    VLOG_DBG("Add route via switch_api_l3_route_add for: %s", entry_string);
     switch_status = switch_api_l3_route_add(0, &api_route_entry);
 
     status = sai_switch_status_to_sai_status(switch_status);
@@ -164,7 +158,7 @@ static sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_e
 
   status = sai_route_entry_update(route_entry, attr_count, attr_list);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("Route entry create failed for route entry %s: %s",
+    VLOG_ERR("Failed to create route entry for %s, error: %s",
                   entry_string,
                   sai_status_to_string(status));
   }
@@ -195,7 +189,7 @@ static sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_e
 
   if (!route_entry) {
     status = SAI_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("null unicast entry: %s", sai_status_to_string(status));
+    VLOG_ERR("null route entry for remove route entry: %s", sai_status_to_string(status));
     return status;
   }
 
@@ -205,12 +199,12 @@ static sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_e
   memcpy(&api_route_entry.ip_address, &ip_addr, sizeof(switch_ip_addr_t));
   api_route_entry.neighbor_installed = FALSE;
 
-  VLOG_INFO("Delete l3 route via switch_api_l3_route_delete");
+  VLOG_DBG("Delete l3 route via switch_api_l3_route_delete");
   switch_status = switch_api_l3_route_delete(0, &api_route_entry);
   status = sai_switch_status_to_sai_status(switch_status);
 
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("failed to remove route entry: %s",
+    VLOG_ERR("Failed to remove route entry, error: %s",
                   sai_status_to_string(status));
   }
 

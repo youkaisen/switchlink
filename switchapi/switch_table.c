@@ -1,6 +1,17 @@
-
 /*
 Copyright 2013-present Barefoot Networks, Inc.
+Copyright(c) 2021 Intel Corporation.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 #include "switch_internal.h"
@@ -279,9 +290,9 @@ switch_status_t switch_table_init(switch_device_t device,
 
   status = switch_device_table_get(device, &table_info);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("failed to get table on device %d:%s",
-                     device,
-                     switch_error_to_string(status));
+    VLOG_ERR("table init: Failed to get table info on device %d:%s",
+              device,
+              switch_error_to_string(status));
     return status;
   }
 
@@ -306,9 +317,9 @@ switch_status_t switch_table_free(switch_device_t device) {
 
   status = switch_device_table_get(device, &table_info);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("failed to get table on device %d:%s",
-                     device,
-                     switch_error_to_string(status));
+    VLOG_ERR("table free: Failed to get table info on device %d:%s",
+             device,
+             switch_error_to_string(status));
     return status;
   }
 
@@ -327,17 +338,17 @@ switch_status_t switch_api_table_size_get_internal(switch_device_t device,
 
   if (!table_size) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("failed to get table on device %d:%s",
-                     device,
-                     switch_error_to_string(status));
+    VLOG_ERR("Failed to get table size on device %d, error: %s",
+              device,
+              switch_error_to_string(status));
     return status;
   }
 
   status = switch_device_table_get(device, &table_info);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("failed to get table on device %d:%s",
-                     device,
-                     switch_error_to_string(status));
+    VLOG_ERR("get table size: Failed to get table info on device %d, error: %s",
+             device,
+             switch_error_to_string(status));
     return status;
   }
 
@@ -352,8 +363,8 @@ switch_status_t switch_table_default_sizes_get(switch_size_t *table_sizes) {
 
   if (!table_sizes) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("table sizes get failed: %s",
-                     switch_error_to_string(status));
+    VLOG_ERR("Failed to get table default size, error: %s",
+             switch_error_to_string(status));
     return status;
   }
 

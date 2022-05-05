@@ -1,26 +1,18 @@
-/*******************************************************************************
- * BAREFOOT NETWORKS CONFIDENTIAL & PROPRIETARY
+/*
+ * Copyright (c) 2021 Intel Corporation.
  *
- * Copyright (c) 2015-2019 Barefoot Networks, Inc.
-
- * All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
- * NOTICE: All information contained herein is, and remains the property of
- * Barefoot Networks, Inc. and its suppliers, if any. The intellectual and
- * technical concepts contained herein are proprietary to Barefoot Networks,
- * Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents, patents in
- * process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material is
- * strictly forbidden unless prior written permission is obtained from
- * Barefoot Networks, Inc.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * No warranty, explicit or implicit is provided, unless granted under a
- * written agreement with Barefoot Networks, Inc.
- *
- * $Id: $
- *
- ******************************************************************************/
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <sainexthop.h>
 #include "saiinternal.h"
@@ -119,10 +111,10 @@ static sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id
 
   api_nhop_info.nhop_type = sai_nhop_type_to_switch_nhop_type(nhtype);
 
-  VLOG_INFO("Calling switch api nhop create");
+  VLOG_DBG("Calling switch api nhop create");
   status = switch_api_nhop_create(0, &api_nhop_info, &next_hop_handle);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("failed to create nexthop: %s", sai_status_to_string(status));
+    VLOG_ERR("Failed to create nexthop, error: %s", sai_status_to_string(status));
   } else {
     *next_hop_id = next_hop_handle;
   }
@@ -147,17 +139,17 @@ static sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) 
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
   if (sai_object_type_query(next_hop_id) != SAI_OBJECT_TYPE_NEXT_HOP) {
-    VLOG_ERR("nexthop remove failed: invalid nexthop handle %lx\n",
+    VLOG_ERR("Failed to remove nexthop entry: invalid nexthop handle %lx\n",
                   next_hop_id);
     return SAI_STATUS_INVALID_PARAMETER;
   }
 
-  VLOG_INFO("Calling switch api nhop delete");
+  VLOG_DBG("Calling switch api nhop delete");
   switch_status = switch_api_nhop_delete(0, (switch_handle_t)next_hop_id);
   status = sai_switch_status_to_sai_status(switch_status);
 
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("failed to remove nexthop %lx: %s",
+    VLOG_ERR("Failed to remove nexthop %lx, error: %s",
                   next_hop_id,
                   sai_status_to_string(status));
   }

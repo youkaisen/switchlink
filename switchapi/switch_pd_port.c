@@ -62,7 +62,7 @@ switch_status_t switch_pd_device_port_add(switch_device_t device,
    bf_dev_port = (bf_dev_port_t)dev_port;
    strncat(portName, portNameDpdk,10);
    strncpy(port_attrib.port_name, portName, sizeof(port_attrib.port_name));
-   VLOG_INFO("port_attrib.port_name=%s\n", port_attrib.port_name);
+   VLOG_DBG("port_attrib.port_name=%s\n", port_attrib.port_name);
 #if 0
    //port_attrib.port_type = BF_DPDK_TAP;
    //port_attrib.port_dir = PM_PORT_DIR_DEFAULT;
@@ -93,7 +93,7 @@ switch_status_t switch_pd_device_port_add(switch_device_t device,
    if (bf_status != BF_SUCCESS)
    {
        VLOG_ERR(
-       "port add failed "
+       "Failed to add the port "
        "on device %d \n",
        device);
        return bf_status;

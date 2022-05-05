@@ -1,26 +1,18 @@
-/*******************************************************************************
- * BAREFOOT NETWORKS CONFIDENTIAL & PROPRIETARY
+/*
+ * Copyright (c) 2021 Intel Corporation.
  *
- * Copyright (c) 2015-2019 Barefoot Networks, Inc.
-
- * All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
- * NOTICE: All information contained herein is, and remains the property of
- * Barefoot Networks, Inc. and its suppliers, if any. The intellectual and
- * technical concepts contained herein are proprietary to Barefoot Networks,
- * Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents, patents in
- * process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material is
- * strictly forbidden unless prior written permission is obtained from
- * Barefoot Networks, Inc.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * No warranty, explicit or implicit is provided, unless granted under a
- * written agreement with Barefoot Networks, Inc.
- *
- * $Id: $
- *
- ******************************************************************************/
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 /* Local header includes */
 #include <openvswitch/vlog.h>
@@ -175,8 +167,8 @@ switch_status_t SWITCH_LIST_INIT(switch_list_t *list) {
 
   if (!list) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("list insert failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("list insert failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
   tommy_list_init(&list->list);
@@ -192,8 +184,8 @@ switch_status_t SWITCH_LIST_SORT(switch_list_t *list,
 
   if (!list) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("list insert failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("list insert failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
   tommy_list_sort(&list->list, compare_func);
@@ -208,8 +200,8 @@ bool SWITCH_LIST_EMPTY(switch_list_t *list) {
 
   if (!list) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("list empty get failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("list empty get failed, error: %s\n",
+             switch_error_to_string(status));
     return FALSE;
   }
 
@@ -238,8 +230,8 @@ switch_status_t SWITCH_LIST_INSERT(switch_list_t *list,
 
   if (!list || !node || !data) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("list insert failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("list insert failed, error: %s\n",
+             switch_error_to_string(status));
     return status;
   }
   tommy_list_insert_head(&list->list, node, data);
@@ -255,8 +247,8 @@ switch_status_t SWITCH_LIST_DELETE(switch_list_t *list, switch_node_t *node) {
 
   if (!list || !node) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("list delete failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("list delete failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
   tommy_list_remove_existing(&list->list, node);
@@ -272,8 +264,8 @@ switch_status_t SWITCH_HASHTABLE_INIT(switch_hashtable_t *hashtable) {
 
   if (!hashtable || hashtable->size == 0) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("hashtable init failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable init failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
   tommy_hashtable_init(&hashtable->table, hashtable->size);
@@ -307,8 +299,8 @@ switch_status_t SWITCH_HASHTABLE_INSERT(switch_hashtable_t *hashtable,
 
   if (!hashtable || !node || !key || !data) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("hashtable insert failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable insert failed, error: %s\n",
+             switch_error_to_string(status));
     return status;
   }
 
@@ -316,8 +308,8 @@ switch_status_t SWITCH_HASHTABLE_INSERT(switch_hashtable_t *hashtable,
 
   status = hashtable->key_func(key, hash_key, &hash_length);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("hashtable insert failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable insert failed, error: %s\n",
+             switch_error_to_string(status));
     return status;
   }
 
@@ -341,8 +333,8 @@ switch_status_t SWITCH_HASHTABLE_DELETE(switch_hashtable_t *hashtable,
 
   if (!hashtable || !key || !data) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("hashtable delete failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable delete failed, error: %s\n",
+             switch_error_to_string(status));
     return status;
   }
 
@@ -350,8 +342,8 @@ switch_status_t SWITCH_HASHTABLE_DELETE(switch_hashtable_t *hashtable,
 
   status = hashtable->key_func(key, hash_key, &hash_length);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("hashtable delete failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable delete failed, error: %s\n",
+             switch_error_to_string(status));
     return status;
   }
 
@@ -360,8 +352,8 @@ switch_status_t SWITCH_HASHTABLE_DELETE(switch_hashtable_t *hashtable,
       &hashtable->table, hashtable->compare_func, hash_key, hash);
   if (!(*data)) {
     status = SWITCH_STATUS_ITEM_NOT_FOUND;
-    VLOG_ERR("hashtable delete failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable delete failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
 
@@ -378,8 +370,8 @@ switch_status_t SWITCH_HASHTABLE_DELETE_NODE(switch_hashtable_t *hashtable,
 
   if (!hashtable || !node) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("hashtable delete node failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable delete node failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
   tommy_hashtable_remove_existing(&hashtable->table, node);
@@ -401,8 +393,8 @@ switch_status_t SWITCH_HASHTABLE_SEARCH(switch_hashtable_t *hashtable,
 
   if (!hashtable || !key || !data) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_DBG("hashtable search failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_DBG("hashtable search failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
 
@@ -410,8 +402,8 @@ switch_status_t SWITCH_HASHTABLE_SEARCH(switch_hashtable_t *hashtable,
 
   status = hashtable->key_func(key, hash_key, &hash_length);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_DBG("hashtable search failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_DBG("hashtable search failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
 
@@ -420,8 +412,8 @@ switch_status_t SWITCH_HASHTABLE_SEARCH(switch_hashtable_t *hashtable,
       &hashtable->table, hashtable->compare_func, hash_key, hash);
   if (!(*data)) {
     status = SWITCH_STATUS_ITEM_NOT_FOUND;
-    VLOG_DBG("hashtable search failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_DBG("hashtable search failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
 
@@ -439,8 +431,8 @@ switch_status_t SWITCH_HASHTABLE_FOREACH_ARG(switch_hashtable_t *hashtable,
 
   if (!hashtable || !func || !arg) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("hashtable foreach arg failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable foreach arg failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
   tommy_hashtable_foreach_arg(&hashtable->table, func, arg);
@@ -455,8 +447,8 @@ switch_status_t SWITCH_HASHTABLE_DONE(switch_hashtable_t *hashtable) {
 
   if (!hashtable) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
-    VLOG_ERR("hashtable done failed(%s)\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("hashtable done failed, error: %s\n",
+              switch_error_to_string(status));
     return status;
   }
   tommy_hashtable_done(&hashtable->table);

@@ -1,26 +1,18 @@
-/*******************************************************************************
- * BAREFOOT NETWORKS CONFIDENTIAL & PROPRIETARY
+/*
+ * Copyright (c) 2021 Intel Corporation.
  *
- * Copyright (c) 2015-2019 Barefoot Networks, Inc.
-
- * All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
- * NOTICE: All information contained herein is, and remains the property of
- * Barefoot Networks, Inc. and its suppliers, if any. The intellectual and
- * technical concepts contained herein are proprietary to Barefoot Networks,
- * Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents, patents in
- * process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material is
- * strictly forbidden unless prior written permission is obtained from
- * Barefoot Networks, Inc.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * No warranty, explicit or implicit is provided, unless granted under a
- * written agreement with Barefoot Networks, Inc.
- *
- * $Id: $
- *
- ******************************************************************************/
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <saifdb.h>
 #include "saiinternal.h"
@@ -111,7 +103,7 @@ static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
   mac_entry.type = SWITCH_L2_FWD_TX;
   mac_entry.learn_from = SWITCH_L2_FWD_LEARN_PHYSICAL_INTERFACE;
 
-  VLOG_INFO("Call switch API FDB entry create");
+  VLOG_DBG("Call switch API FDB entry create");
   switch_status = switch_api_l2_forward_create(0, &mac_entry,
                                                &mac_handle);
   status = sai_switch_status_to_sai_status(switch_status);
@@ -119,7 +111,7 @@ static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
   if (status != SAI_STATUS_SUCCESS &&
       status != SWITCH_STATUS_ITEM_ALREADY_EXISTS) {
     sai_fdb_entry_to_string(fdb_entry, entry_string);
-    VLOG_ERR("failed to create fdb entry %s : %s",
+    VLOG_ERR("Failed to create fdb entry %s : error: %s",
                   entry_string,
                   sai_status_to_string(status));
     return status;
@@ -155,13 +147,13 @@ static sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry) 
   sai_fdb_entry_parse(fdb_entry, &mac_entry);
   mac_entry.type = SWITCH_L2_FWD_TX;
 
-  VLOG_INFO("Call switch API FDB entry delete");
+  VLOG_DBG("Call switch API FDB entry delete");
   switch_status = switch_api_l2_forward_delete(0, &mac_entry);
   status = sai_switch_status_to_sai_status(switch_status);
 
   if (status != SAI_STATUS_SUCCESS) {
     sai_fdb_entry_to_string(fdb_entry, entry_string);
-    VLOG_ERR("failed to remove fdb entry %s : %s",
+    VLOG_ERR("Failed to remove fdb entry %s, error: %s",
                   entry_string,
                   sai_status_to_string(status));
   }

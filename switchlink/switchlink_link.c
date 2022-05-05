@@ -54,7 +54,8 @@ static void tuntap_create(switchlink_db_tuntap_info_t *tunp) {
     // create the tuntap port
     status = switchlink_tuntap_create(tunp, &(tunp->tunp_h));
     if (status != 0) {
-        VLOG_ERR("newlink: switchlink_tuntap_create failed\n");
+        VLOG_ERR("newlink: Failed to create tunnel tap, error: %d\n",
+                  status);
         return;
     }
     // add the mapping to the db
@@ -78,7 +79,8 @@ static void interface_create(switchlink_db_interface_info_t *intf) {
 
     status = switchlink_interface_create(intf, &(intf->intf_h));
     if (status) {
-      VLOG_ERR("newlink: switchlink_interface_create failed\n");
+      VLOG_ERR("newlink: Failed to create switchlink interface, error: %d\n",
+               status);
       return;
     }
 
@@ -95,7 +97,8 @@ static void interface_create(switchlink_db_interface_info_t *intf) {
       // Delete if RMAC is configured previously, and create this new RMAC.
       status = switchlink_interface_create(&ifinfo, &ifinfo.intf_h);
       if (status) {
-        VLOG_ERR("newlink: switchlink_interface_create failed\n");
+        VLOG_ERR("newlink: Failed to create switchlink interface, error: %d\n",
+                 status);
         return;
       }
 
@@ -128,12 +131,13 @@ static void tunnel_interface_create(
                                                    &tnl_ifinfo);
   if (status == SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND) {
 
-    VLOG_INFO("Switchlink tunnel interface: %s", tnl_intf->ifname);
+    VLOG_DBG("Switchlink tunnel interface: %s", tnl_intf->ifname);
     status = switchlink_tunnel_interface_create(tnl_intf,
                                                 &(tnl_intf->orif_h),
                                                 &(tnl_intf->tnl_term_h));
     if (status) {
-      VLOG_ERR("newlink: switchlink_tunnel_interface_create failed\n");
+      VLOG_ERR("newlink: Failed to create switchlink tunnel interface :%s, error: %d",
+                tnl_intf->ifname, status);
       return;
     }
 
@@ -155,7 +159,7 @@ static void tunnel_interface_delete(uint32_t ifindex) {
     return;
   }
 
-  VLOG_INFO("Switchlink tunnel interface: %s", tnl_intf.ifname);
+  VLOG_DBG("Switchlink tunnel interface: %s", tnl_intf.ifname);
 
   // delete the interface from backend and in DB
   switchlink_tunnel_interface_delete(&tnl_intf);
@@ -222,7 +226,7 @@ void process_link_msg(struct nlmsghdr *nlmsg, int type) {
         ovs_strzcpy(intf_info.ifname,
                 nla_get_string(attr),
                 SWITCHLINK_INTERFACE_NAME_LEN_MAX);
-        VLOG_INFO("Interface name is %s\n", intf_info.ifname);
+        VLOG_DBG("Interface name is %s\n", intf_info.ifname);
         break;
       case IFLA_LINKINFO:
         nla_for_each_nested(nest_attr, attr, attrlen) {

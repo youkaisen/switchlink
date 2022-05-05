@@ -47,13 +47,13 @@ VLOG_DEFINE_THIS_MODULE(switch_rif);
 switch_status_t switch_rif_init(switch_device_t device) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status =
       switch_handle_type_init(device, SWITCH_HANDLE_TYPE_RIF, SWITCH_RIF_MAX);
   CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
 
-  VLOG_INFO("rif init successful on device %d\n", device);
+  VLOG_DBG("rif init successful on device %d\n", device);
 
   return status;
 }
@@ -72,12 +72,12 @@ switch_status_t switch_rif_init(switch_device_t device) {
 switch_status_t switch_rif_free(switch_device_t device) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_RIF);
   CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
 
-  VLOG_INFO("RIF free successful on device %d\n", device);
+  VLOG_DBG("RIF free successful on device %d\n", device);
 
   return status;
 }
@@ -90,14 +90,14 @@ switch_status_t switch_api_rif_attribute_get(
   switch_rif_info_t *rif_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_RIF_HANDLE(rif_handle)) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
     VLOG_ERR(
-        "rif attribute get failed on device %d "
+        "rif attribute get: Invalid rif handle on device %d, "
         "rif handle 0x%lx: "
-        "rif handle invalid(%s)\n",
+        "error: %s\n",
         device,
         rif_handle,
         switch_error_to_string(status));
@@ -120,7 +120,7 @@ switch_status_t switch_api_rif_create(
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_rif_info_t *rif_info = NULL;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (api_rif_info->rmac_handle == SWITCH_API_INVALID_HANDLE) {
     status = switch_api_device_default_rmac_handle_get(
@@ -131,10 +131,10 @@ switch_status_t switch_api_rif_create(
   if (!SWITCH_RMAC_HANDLE(api_rif_info->rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "rif create failed on device %d: "
-        "rmac or vrf handle invalid(%s)\n",
+        "rif create: Invalid rmac handle on device %d: "
+        "error: %s\n",
         device,
-        switch_error_to_string(device));
+        switch_error_to_string(status));
     return status;
   }
 
@@ -163,7 +163,7 @@ switch_status_t switch_api_rif_delete(switch_device_t device,
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_rif_info_t *rif_info = NULL;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_rif_get(device, rif_handle, &rif_info);
   CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);

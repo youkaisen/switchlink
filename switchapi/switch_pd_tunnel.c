@@ -59,7 +59,7 @@ switch_status_t switch_pd_tunnel_entry(
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Switch PD handle fail");
+        VLOG_ERR("Failed to allocate pd handle session");
         return switch_pd_status_to_status(status);
     }
 
@@ -73,19 +73,22 @@ switch_status_t switch_pd_tunnel_entry(
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get key handle");
+        VLOG_ERR("Unable to allocate key handle for vxlan_encap_mod_table");
         goto dealloc_handle_session;
     }
 
     field_id = 1; // vendormeta_mod_data_ptr which is tunnel ID
     status = bf_rt_key_field_set_value(key_hdl, field_id, 0 /*vni value*/);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to set value for key ID: %d", field_id);
+        VLOG_ERR("Unable to set value for key ID: %d for vxlan_encap_mod_table",
+                 field_id);
         goto dealloc_handle_session;
     }
 
     if (entry_add) {
         /* Add an entry to target */
+        VLOG_INFO("Populate vxlan encap action in vxlan_encap_mod_table for tunnel interface %x",
+                   api_tunnel_info_t->overlay_rif_handle);
         action_id = 20733968; // Action is vxlan_encap
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
@@ -143,9 +146,10 @@ switch_status_t switch_pd_tunnel_entry(
         }
     } else {
         /* Delete an entry from target */
+        VLOG_INFO("Delete vxlan_encap_mod_table entry");
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to delete table entry");
+            VLOG_ERR("Unable to delete vxlan_encap_mod_table entry");
             goto dealloc_handle_session;
         }
     }
@@ -188,7 +192,7 @@ switch_status_t switch_pd_tunnel_term_entry(
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Switch PD handle fail");
+        VLOG_ERR("Failed to allocate pd handle session");
         return switch_pd_status_to_status(status);
     }
 
@@ -202,7 +206,7 @@ switch_status_t switch_pd_tunnel_term_entry(
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get key handle");
+        VLOG_ERR("Unable to allocate key handle for ipv4_tunnel_term_table");
         goto dealloc_handle_session;
     }
 
@@ -210,7 +214,8 @@ switch_status_t switch_pd_tunnel_term_entry(
     // From p4 file the value expected is TUNNEL_TYPE_VXLAN=2
     status = bf_rt_key_field_set_value(key_hdl, field_id, 2);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to set value for key ID: %d", field_id);
+        VLOG_ERR("Unable to set value for key ID: %d for ipv4_tunnel_term_table",
+                 field_id);
         goto dealloc_handle_session;
     }
 
@@ -241,6 +246,9 @@ switch_status_t switch_pd_tunnel_term_entry(
     }
 
     if (entry_add) {
+        VLOG_INFO("Populate decap_outer_ipv4 action in ipv4_tunnel_term_table "
+                  "for tunnel interface %x",
+                   api_tunnel_term_info_t->tunnel_handle);
         /* Add an entry to target */
         action_id = 32579284; // Action is decap_outer_ipv4
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
@@ -261,14 +269,15 @@ switch_status_t switch_pd_tunnel_term_entry(
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to add table entry");
+            VLOG_ERR("Unable to add ipv4_tunnel_term_table entry");
             goto dealloc_handle_session;
         }
     } else {
         /* Delete an entry from target */
+        VLOG_INFO("Delete ipv4_tunnel_term_table entry");
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to delete table entry");
+            VLOG_ERR("Unable to delete ipv4_tunnel_term_table entry");
             goto dealloc_handle_session;
         }
     }

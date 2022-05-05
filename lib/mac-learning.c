@@ -45,8 +45,6 @@ COVERAGE_DEFINE(mac_learning_evicted);
 COVERAGE_DEFINE(mac_learning_moved);
 COVERAGE_DEFINE(mac_learning_static_none_move);
 
-static sai_fdb_api_t *mac_learn_api = NULL;
-
 /*
  * This function will return age of mac entry in the fdb.
  * It will return either one of the following:
@@ -237,11 +235,6 @@ mac_learning_create(unsigned int idle_time)
     ovs_rwlock_init(&ml->rwlock);
     mac_learning_clear_statistics(ml);
     ml->static_entries = 0;
-#if P4SAI
-    sai_status_t status = SAI_STATUS_SUCCESS;
-    status = sai_api_query(SAI_API_FDB, (void **)&mac_learn_api);
-    ovs_assert(status == SAI_STATUS_SUCCESS);
-#endif
     return ml;
 }
 

@@ -40,14 +40,14 @@ switch_status_t switch_rmac_init(switch_device_t device) {
   switch_rmac_context_t *rmac_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   rmac_ctx = SWITCH_MALLOC(device, sizeof(switch_rmac_context_t), 0x1);
   if (!rmac_ctx) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "rmac init failed on device %d "
-        "rmac device context set failed(%s)\n",
+        "rmac_init:Failed to allocate memory for switch_rmac_context_t on device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -57,8 +57,8 @@ switch_status_t switch_rmac_init(switch_device_t device) {
       device, SWITCH_API_TYPE_RMAC, (void *)rmac_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "rmac init failed on device %d "
-        "rmac device context get failed(%s)\n",
+        "rmac_init: Failed to set device api context on device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -69,8 +69,8 @@ switch_status_t switch_rmac_init(switch_device_t device) {
 
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "rmac init failed on device %d "
-        "rmac handle init failed(%s)\n",
+        "rmac init: Failed to initialize handle SWITCH_HANDLE_TYPE_RMAC on device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -95,14 +95,14 @@ switch_status_t switch_rmac_free(switch_device_t device) {
   switch_rmac_context_t *rmac_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_RMAC, (void **)&rmac_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "rmac free failed on device %d "
-        "rmac device context get failed(%s)\n",
+        "rmac free: Failed to get device api context on device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -111,8 +111,8 @@ switch_status_t switch_rmac_free(switch_device_t device) {
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_RMAC);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "rmac free failed on device %d "
-        "rmac handle free failed(%s)\n",
+        "rmac free: Failed to free handle SWITCH_HANDLE_TYPE_RMAC on device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -132,14 +132,14 @@ switch_status_t switch_api_router_mac_group_create(
   switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   handle = switch_rmac_handle_create(device);
   if (handle == SWITCH_API_INVALID_HANDLE) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "rmac group create failed on device %d "
-        "rmac handle create failed(%s)\n",
+        "rmac group create: Failed to create rmac handle on device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -148,8 +148,8 @@ switch_status_t switch_api_router_mac_group_create(
   status = switch_rmac_get(device, handle, &rmac_info);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "rmac group create failed on device %d "
-        "rmac get failed(%s)\n",
+        "rmac group create: Failed to get rmac info on device %d "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -163,7 +163,7 @@ switch_status_t switch_api_router_mac_group_create(
   *rmac_handle = handle;
 
   VLOG_INFO(
-      "rmac group created on device %d "
+      "rmac group created on device %d, "
       "rmac handle 0x%lx \n",
       device,
       handle);
@@ -179,15 +179,15 @@ switch_status_t switch_api_router_mac_group_delete(
   switch_node_t *node = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
   
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "rmac group delete failed on device %d rmac handle 0x%lx: "
-        "rmac handle invalid(%s)\n",
-        device,
+        "rmac group delete: Invalid rmac handle 0x%lx: on device %d "
+        ",error: %s\n",
         rmac_handle,
+        device,
         switch_error_to_string(status));
     return status;
   }
@@ -196,8 +196,8 @@ switch_status_t switch_api_router_mac_group_delete(
   if (status != SWITCH_STATUS_SUCCESS) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "rmac group delete failed on device %d rmac hadle 0x%lx: "
-        "rmac get failed(%s)\n",
+        "rmac group delete: Failed to get rmac info on device %d rmac hadle 0x%lx: "
+        ",error: %s\n",
         device,
         rmac_handle,
         switch_error_to_string(status));
@@ -211,8 +211,8 @@ switch_status_t switch_api_router_mac_group_delete(
                                      &rmac_entry->mac);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "rmac group delete failed on device %d rmac handle 0x%lx: "
-          "rmac mac delete failed(%s)\n",
+          "rmac group delete: Failed to delete router mac on device %d "
+          "rmac handle 0x%lx: ,error: %s\n",
           device,
           rmac_handle,
           switch_error_to_string(status));
@@ -223,16 +223,16 @@ switch_status_t switch_api_router_mac_group_delete(
   status = switch_rmac_handle_delete(device, rmac_handle);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "rmac group delete failed on device %d rmac handle 0x%lx: "
-        "rmac handle delete failed(%s)\n",
-        device,
+        "rmac group delete: Failed to delete rmac handle 0x%lx: on device %d  "
+        ",error: %s\n",
         rmac_handle,
+        device,
         switch_error_to_string(status));
     return status;
   }
 
   VLOG_INFO(
-      "rmac group deleted on device %d "
+      "rmac group deleted on device %d, "
       "rmac handle 0x%lx\n",
       device,
       rmac_handle);
@@ -251,16 +251,16 @@ switch_status_t switch_api_router_mac_delete(
   bool entry_found = FALSE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "router mac delete failed on device %d rmac handle 0x%lx mac %s: "
-        "rmac handle invalid(%s)\n",
-        device,
+        "router mac delete: Invalid rmac handle 0x%lx, mac %s: on device %d"
+        ",error: %s\n",
         rmac_handle,
         switch_macaddress_to_string(mac),
+        device,
         switch_error_to_string(status));
     return status;
   }
@@ -269,10 +269,10 @@ switch_status_t switch_api_router_mac_delete(
 
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "router mac handle 0x%lx is valid, but already deleted as part of "
-        "rmac_group "
-        "delete or duplicate delete",
-        rmac_handle);
+        "router mac delete: Failed to get rmac info, handle 0x%lx "
+        ",error: %s\n",
+        rmac_handle,
+        switch_error_to_string(status));
     return status;
   }
 
@@ -289,8 +289,8 @@ switch_status_t switch_api_router_mac_delete(
   if (!entry_found) {
     status = SWITCH_STATUS_ITEM_NOT_FOUND;
     VLOG_ERR(
-        "router mac delete failed on device %d rmac handle 0x%lx mac %s: "
-        "rmac mac entry find failed(%s)\n",
+        "router mac delete: Failed to find rmac entry on device %d, rmac handle 0x%lx, mac %s: "
+        ",error: %s\n",
         device,
         rmac_handle,
         switch_macaddress_to_string(mac),
@@ -302,9 +302,9 @@ switch_status_t switch_api_router_mac_delete(
     status = switch_pd_rmac_table_entry(device, rmac_entry, rif_handle, false);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-        "router mac PD entry delete failed on device %d "
-        "rmac handle 0x%lx mac %s: "
-        "rmac list delete failed(%s)\n",
+        "router mac delete: Failed to delete PD rmac entry on device %d ,"
+        "rmac handle 0x%lx, mac %s: "
+        ",error: %s\n",
         device,
         rmac_handle,
         switch_macaddress_to_string(mac),
@@ -316,9 +316,9 @@ switch_status_t switch_api_router_mac_delete(
   status = SWITCH_LIST_DELETE(&(rmac_info->rmac_list), node);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "router mac delete failed on device %d "
-        "rmac handle 0x%lx mac %s: "
-        "rmac list delete failed(%s)\n",
+        "router mac delete: Failed to delete from switch list on device %d ,"
+        "rmac handle 0x%lx, mac %s: "
+        ",error: %s\n",
         device,
         rmac_handle,
         switch_macaddress_to_string(mac),
@@ -326,7 +326,7 @@ switch_status_t switch_api_router_mac_delete(
     return status;
   }
 
-  VLOG_INFO("rmac deleted on device %d rmac handle 0x%lx mac %s\n",
+  VLOG_INFO("rmac deleted on device %d, rmac handle 0x%lx, mac %s\n",
                    device,
                    rmac_handle,
                    switch_macaddress_to_string(mac));
@@ -347,15 +347,15 @@ switch_status_t switch_api_router_mac_add(
   switch_node_t *node = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_INFO("%s", __func__);
+  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "router mac add failed on device %d rmac handle 0x%lx: "
-        "rmac handle invalid(%s)\n",
-        device,
+        "router mac add: Invalid rmac handle 0x%lx: on device %d "
+        ",error: %s\n",
         rmac_handle,
+        device,
         switch_error_to_string(status));
     return status;
   }
@@ -364,8 +364,8 @@ switch_status_t switch_api_router_mac_add(
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "router mac add failed on device %d rmac handle 0x%lx: "
-        "rmac get failed(%s)\n",
+        "router mac add: Failed to get rmac info on device %d, rmac handle 0x%lx: "
+        ",error: %s\n",
         device,
         rmac_handle,
         switch_error_to_string(status));
@@ -375,8 +375,8 @@ switch_status_t switch_api_router_mac_add(
   if (!mac || (!SWITCH_MAC_VALID((*mac)))) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
     VLOG_ERR(
-        "router tunnel mac add failed on device %d rmac handle 0x%lx: "
-        "tunnel mac ptr is null or mac is invalid: %s\n",
+        "router mac add: Invalid mac on device %d, rmac handle 0x%lx: "
+        ",error: %s\n",
         device,
         rmac_handle,
         switch_error_to_string(status));
@@ -396,8 +396,8 @@ switch_status_t switch_api_router_mac_add(
   if (!rmac_entry) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "router mac add failed on device %d rmac handle 0x%lx: "
-        "memory allocation failed(%s)\n",
+        "router mac add: Failed to allocate memory for switch_rmac_entry_t on device"
+        "%d rmac handle 0x%lx: ,error: %s\n",
         device,
         rmac_handle,
         switch_error_to_string(status));
@@ -410,7 +410,7 @@ switch_status_t switch_api_router_mac_add(
 
   SWITCH_LIST_INSERT(&(rmac_info->rmac_list), &(rmac_entry->node), rmac_entry);
 
-  VLOG_INFO("RMAC added on device %d rmac handle 0x%lx mac %s\n", device,
+  VLOG_INFO("RMAC added on device %d, rmac handle 0x%lx, mac %s\n", device,
              rmac_handle, switch_macaddress_to_string(&rmac_entry->mac));
 
   return status;

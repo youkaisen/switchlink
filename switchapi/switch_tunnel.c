@@ -36,8 +36,8 @@ switch_status_t switch_api_tunnel_delete(
   SWITCH_ASSERT(SWITCH_TUNNEL_HANDLE(tunnel_handle));
   if (!SWITCH_TUNNEL_HANDLE(tunnel_handle)) {
     VLOG_ERR(
-        "tunnel delete failed on device %d tunnel handle 0x%lx: "
-        "tunnel handle invalid:(%s)\n",
+        "Failed to delete tunnel on device %d due to invalid, "
+        "tunnel handle 0x%lx: ,error: %s",
         device,
         tunnel_handle,
         switch_error_to_string(status));
@@ -47,8 +47,8 @@ switch_status_t switch_api_tunnel_delete(
   status = switch_tunnel_get(device, tunnel_handle, &tunnel_info);
   if (status != SWITCH_STATUS_SUCCESS || tunnel_info == NULL) {
     VLOG_ERR(
-        "tunnel delete failed on device %d tunnel handle 0x%lx: "
-        "tunnel get failed:(%s)\n",
+        "Failed to get tunnel info on device %d of tunnel handle 0x%lx: "
+        "error: %s\n",
         device,
         tunnel_handle,
         switch_error_to_string(status));
@@ -58,8 +58,8 @@ switch_status_t switch_api_tunnel_delete(
   status = switch_pd_tunnel_entry(device, &tunnel_info->api_tunnel_info, false);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "tunnel delete failed on device %d: "
-          "tunnel pd delete failed :(%s)\n",
+          "Failed to delete tunnel entry on device %d: ,"
+          "error: %s\n",
           device,
           switch_error_to_string(status));
       return status;
@@ -68,8 +68,8 @@ switch_status_t switch_api_tunnel_delete(
   status = switch_tunnel_handle_delete(device, tunnel_handle);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "tunnel delete failed on device %d: "
-          "tunnel handle delete failed :(%s)\n",
+          "Failed to delete tunnel handle on device %d: "
+          ",error: %s\n",
           device,
           switch_error_to_string(status));
       return status;
@@ -91,8 +91,8 @@ switch_status_t switch_api_tunnel_term_delete (
       switch_tunnel_term_get(device, tunnel_term_handle, &tunnel_term_info);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "tunnel term delete failed on device %d: "
-        "tunnel term get failed:(%s)\n",
+        "Failed to get tunnel term info on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -102,8 +102,8 @@ switch_status_t switch_api_tunnel_term_delete (
   status = switch_pd_tunnel_term_entry(device, api_tunnel_term_info, false);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "tunnel term delete failed on device %d: "
-          "tunnel term pd delete failed :(%s)\n",
+          "Failed to delete tunnel term entry on device %d: "
+          ",error: %s\n",
           device,
           switch_error_to_string(status));
       return status;
@@ -111,8 +111,8 @@ switch_status_t switch_api_tunnel_term_delete (
   status = switch_tunnel_term_handle_delete(device, tunnel_term_handle);
   if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "tunnel term delete failed on device %d: "
-          "tunnel term handle delete failed:(%s)\n",
+          "Failed to delete tunnel term handle on device %d: "
+          ",error: %s\n",
           device,
           switch_error_to_string(status));
       return status;
@@ -133,8 +133,8 @@ switch_status_t switch_api_tunnel_create(
     handle = switch_tunnel_handle_create(device);
     if (handle == SWITCH_API_INVALID_HANDLE) {
         status = SWITCH_STATUS_NO_MEMORY;
-        VLOG_ERR("tunnel create failed on device %d: "
-                 "tunnel handle create failed:(%s)\n",
+        VLOG_ERR("Failed to create tunnel handle on device %d: "
+                 ",error: %s\n",
                  device, switch_error_to_string(status));
         return status;
     }
@@ -142,8 +142,8 @@ switch_status_t switch_api_tunnel_create(
     status = switch_tunnel_get(device, handle, &tunnel_info);
     if (status != SWITCH_STATUS_SUCCESS) {
         VLOG_ERR(
-            "tunnel create failed on device %d: "
-            "tunnel get failed:(%s)\n",
+            "Failed to get tunnel info on device %d: "
+            ",error: %s\n",
             device,
             switch_error_to_string(status));
         return status;
@@ -152,8 +152,8 @@ switch_status_t switch_api_tunnel_create(
     status = switch_pd_tunnel_entry(device, api_tunnel_info, true);
     if (status != SWITCH_STATUS_SUCCESS) {
         VLOG_ERR(
-            "tunnel create failed on device %d: "
-            "tunnel pd create failed :(%s)\n",
+            "Failed to create tunnel entry on device %d: "
+            ",error: %s\n",
             device,
             switch_error_to_string(status));
         return status;
@@ -181,8 +181,8 @@ switch_status_t switch_api_tunnel_term_create(
     if (handle == SWITCH_API_INVALID_HANDLE) {
         status = SWITCH_STATUS_NO_MEMORY;
         VLOG_ERR(
-            "tunnel term create failed on device %d: "
-            "handle create failed:(%s)\n",
+            "Failed to create tunnel term handle on device %d: "
+            ",error: %s\n",
             device,
             switch_error_to_string(status));
         return status;
@@ -193,8 +193,8 @@ switch_status_t switch_api_tunnel_term_create(
     status = switch_tunnel_term_get(device, handle, &tunnel_term_info);
     if (status != SWITCH_STATUS_SUCCESS) {
         VLOG_ERR(
-            "tunnel term create failed on device %d: "
-            "tunnel term get failed:(%s)\n",
+            "Failed to get tunnel term info on device %d: "
+            ",error: %s\n",
             device,
             switch_error_to_string(status));
         return status;
@@ -203,8 +203,8 @@ switch_status_t switch_api_tunnel_term_create(
     status = switch_pd_tunnel_term_entry(device, api_tunnel_term_info, true);
     if (status != SWITCH_STATUS_SUCCESS) {
         VLOG_ERR(
-            "tunnel term create failed on device %d: "
-            "tunnel term pd create failed :(%s)\n",
+            "Failed to create tunnel term entry on device %d: "
+            ",error: %s\n",
             device,
             switch_error_to_string(status));
         return status;
@@ -230,8 +230,8 @@ switch_status_t switch_tunnel_init(switch_device_t device) {
   if (!tunnel_ctx) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "tunnel init failed on device %d: "
-        "tunnel context malloc failed:(%s)\n",
+        "Failed to allocate memory for switch_tunnel_context_t on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -243,8 +243,8 @@ switch_status_t switch_tunnel_init(switch_device_t device) {
       device, SWITCH_API_TYPE_TUNNEL, (void *)tunnel_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "tunnel init failed on device %d: "
-        "tunnel context set failed:(%s)\n",
+        "Failed to set device api context on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -265,8 +265,8 @@ switch_status_t switch_tunnel_init(switch_device_t device) {
                                        &tunnel_ctx->tunnel_vni_allocator);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "tunnel init failed on device %d: "
-        "tunnel vni allocation failed:(%s)\n",
+        "Failed to allocate new api id on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     goto cleanup;
@@ -277,8 +277,8 @@ switch_status_t switch_tunnel_init(switch_device_t device) {
       device, SWITCH_HANDLE_TYPE_TUNNEL, tunnel_table_size);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "tunnel init failed on device %d: "
-        "tunnel handle init failed:(%s)\n",
+        "Failed to init handle SWITCH_HANDLE_TYPE_TUNNEL on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     goto cleanup;
@@ -288,8 +288,8 @@ switch_status_t switch_tunnel_init(switch_device_t device) {
       device, SWITCH_HANDLE_TYPE_TUNNEL_TERM, tunnel_term_table_size);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "tunnel init failed on device %d: "
-        "tunnel term handle init failed:(%s)\n",
+        "Failed to init handle SWITCH_HANDLE_TYPE_TUNNEL_TERM on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     goto cleanup;
@@ -311,8 +311,8 @@ switch_status_t switch_tunnel_free(switch_device_t device) {
       device, SWITCH_API_TYPE_TUNNEL, (void **)&tunnel_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "tunnel free failed on device %d: "
-        "tunnel context get failed:(%s)\n",
+        "Failed to get device api context on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -321,8 +321,8 @@ switch_status_t switch_tunnel_free(switch_device_t device) {
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_TUNNEL);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "tunnel free failed on device %d: "
-        "tunnel handle free failed:(%s)\n",
+        "Failed to free handle SWITCH_HANDLE_TYPE_TUNNEL on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
   }
@@ -330,8 +330,8 @@ switch_status_t switch_tunnel_free(switch_device_t device) {
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_TUNNEL_TERM);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "tunnel free failed on device %d: "
-        "tunnel term handle free failed:(%s)\n",
+        "Failed to free handle SWITCH_HANDLE_TYPE_TUNNEL_TERM on device %d: "
+        ",error: %s\n",
         device,
         switch_error_to_string(status));
   }

@@ -344,13 +344,12 @@ void process_route_msg(struct nlmsghdr *nlmsg, int type) {
       switchlink_db_status_t status;
       status = switchlink_db_interface_get_info(oif, &ifinfo);
       if (status != SWITCHLINK_DB_STATUS_SUCCESS) {
-        VLOG_DBG(
-            ("route: switchlink_db_interface_get_info "
-             "(unicast) failed\n"));
+        VLOG_ERR("route: Failed to get switchlink DB interface info, error: %d \n",
+             status);
         return;
       }
     }
-    VLOG_DBG("Create route for %s, with addr: 0x%x", ifinfo.ifname,
+    VLOG_INFO("Create route for %s, with addr: 0x%x", ifinfo.ifname,
                                                      dst_valid ?
                                                      dst_addr.ip.v4addr.s_addr :
                                                      0);
@@ -360,7 +359,7 @@ void process_route_msg(struct nlmsghdr *nlmsg, int type) {
                  ecmp_h,
                  ifinfo.intf_h);
   } else {
-    VLOG_DBG("Delete route with addr: 0x%x", dst_valid ?
+    VLOG_INFO("Delete route with addr: 0x%x", dst_valid ?
                                              dst_addr.ip.v4addr.s_addr : 0);
     route_delete(g_default_vrf_h, (dst_valid ? &dst_addr : NULL));
   }
