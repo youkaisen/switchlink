@@ -32,7 +32,7 @@ limitations under the License.
 
 VLOG_DEFINE_THIS_MODULE(switch_pd_utils);
 
-// TODO: check if session can be created only once and re0use it
+/* TODO: check if session can be created only once and reuse it */
 bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
                                               const char *pipeline_name,
                                               bf_rt_info_hdl **bfrt_info_hdl_t,
@@ -102,7 +102,8 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
     bf_status_t bf_status;
 
     if (!if_indextoname((*port_rif_info)->rif_ifindex, if_name)) {
-        VLOG_ERR("Failed to get ifname for the index: %d", (*port_rif_info)->rif_ifindex);
+        VLOG_ERR("Failed to get ifname for the index: %d",
+                 (*port_rif_info)->rif_ifindex);
         return;
     }
 
@@ -124,13 +125,15 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
             if (i > CONFIG_PORT_INDEX) {
                 bf_dev_port_t bf_dev_port_control = i - CONFIG_PORT_INDEX;
                 port_info = NULL;
-                bf_pal_port_info_get(bf_dev_id, bf_dev_port_control, &port_info);
+                bf_pal_port_info_get(bf_dev_id, bf_dev_port_control,
+                                     &port_info);
                 if (port_info == NULL) {
-                    VLOG_ERR("Failed to find the target dp index for control port "
-                             "associated with : %s", if_name);
+                    VLOG_ERR("Failed to find the target dp index for "
+                             "control port associated with : %s", if_name);
                     return;
                 }
-                (*port_rif_info)->phy_port_id = port_info->port_attrib.port_in_id;
+                (*port_rif_info)->phy_port_id = 
+                                        port_info->port_attrib.port_in_id;
             }
             return;
         }

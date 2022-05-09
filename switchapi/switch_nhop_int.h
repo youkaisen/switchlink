@@ -208,7 +208,7 @@ typedef struct switch_nhop_info_s {
   /** nhop flags */
   switch_uint64_t flags;
 
-  switch_pd_routing_info_t switch_device_pd_routing_info;
+  switch_pd_routing_info_t switch_pd_routing_info;
   /** Number of contiguous nexthop groups */
   unsigned int num_nhop_groups;
 } switch_nhop_info_t;

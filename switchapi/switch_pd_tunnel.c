@@ -87,8 +87,9 @@ switch_status_t switch_pd_tunnel_entry(
 
     if (entry_add) {
         /* Add an entry to target */
-        VLOG_INFO("Populate vxlan encap action in vxlan_encap_mod_table for tunnel interface %x",
-                   api_tunnel_info_t->overlay_rif_handle);
+        VLOG_INFO("Populate vxlan encap action in vxlan_encap_mod_table for "
+                  "tunnel interface %x", api_tunnel_info_t->overlay_rif_handle);
+
         action_id = 20733968; // Action is vxlan_encap
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
@@ -100,9 +101,11 @@ switch_status_t switch_pd_tunnel_entry(
         data_field_id = 1; // Action value src_addr
 
         network_byte_order = ntohl(api_tunnel_info_t->src_ip.ip.v4addr);
-        status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                            (const uint8_t *)&network_byte_order,
-                                            sizeof(uint32_t));
+        status = bf_rt_data_field_set_value_ptr(
+                                    data_hdl, data_field_id,
+                                    (const uint8_t *)&network_byte_order,
+                                    sizeof(uint32_t));
+
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
             goto dealloc_handle_session;
@@ -111,9 +114,11 @@ switch_status_t switch_pd_tunnel_entry(
         data_field_id = 2; // Action value dst_addr
 
         network_byte_order = ntohl(api_tunnel_info_t->dst_ip.ip.v4addr);
-        status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                            (const uint8_t *)&network_byte_order,
-                                            sizeof(uint32_t));
+        status = bf_rt_data_field_set_value_ptr(
+                                    data_hdl, data_field_id,
+                                    (const uint8_t *)&network_byte_order,
+                                    sizeof(uint32_t));
+
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
             goto dealloc_handle_session;
@@ -122,9 +127,11 @@ switch_status_t switch_pd_tunnel_entry(
         data_field_id = 3; // Action value dst_port
 
         uint16_t network_byte_order_udp = ntohs(api_tunnel_info_t->udp_port);
-        status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                            (const uint8_t *)&network_byte_order_udp,
-                                            sizeof(uint16_t));
+        status = bf_rt_data_field_set_value_ptr(
+                                    data_hdl, data_field_id,
+                                    (const uint8_t *)&network_byte_order_udp,
+                                    sizeof(uint16_t));
+
         if(status != BF_SUCCESS) {
             VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
             goto dealloc_handle_session;
@@ -214,7 +221,7 @@ switch_status_t switch_pd_tunnel_term_entry(
     // From p4 file the value expected is TUNNEL_TYPE_VXLAN=2
     status = bf_rt_key_field_set_value(key_hdl, field_id, 2);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to set value for key ID: %d for ipv4_tunnel_term_table",
+        VLOG_ERR("Unable to set value for key ID: %d of ipv4_tunnel_term_table",
                  field_id);
         goto dealloc_handle_session;
     }

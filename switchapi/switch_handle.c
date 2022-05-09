@@ -77,9 +77,9 @@ switch_status_t switch_handle_type_allocator_init(switch_device_t device,
   handle_info = SWITCH_MALLOC(device, sizeof(switch_handle_info_t), 1);
   if (!handle_info) {
     status = SWITCH_STATUS_NO_MEMORY;
-    VLOG_ERR("handle allocator init: Failed to allocate memory for handle %s, error: %s\n",
-                     switch_handle_type_to_string(type),
-                     switch_error_to_string(status));
+    VLOG_ERR("handle allocator init: Failed to allocate memory for "
+             "handle %s, error: %s\n", switch_handle_type_to_string(type),
+             switch_error_to_string(status));
     return status;
   }
 
@@ -90,9 +90,9 @@ switch_status_t switch_handle_type_allocator_init(switch_device_t device,
   if (status != SWITCH_STATUS_SUCCESS) {
     SWITCH_FREE(device, handle_info);
     status = SWITCH_STATUS_FAILURE;
-    VLOG_ERR("handle allocator init: Faile to allocate new api id for handle %s, error: %s\n",
-                     switch_handle_type_to_string(type),
-                     switch_error_to_string(status));
+    VLOG_ERR("handle allocator init: Faile to allocate new api id "
+             "for handle %s, error: %s\n", switch_handle_type_to_string(type),
+             switch_error_to_string(status));
     return status;
   }
 
@@ -162,9 +162,9 @@ switch_status_t switch_handle_type_free(switch_device_t device,
   bf_id_allocator_destroy(handle_info->new_allocator);
   status = SWITCH_ARRAY_DELETE(&device_ctx->handle_info_array, type);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle free: Failed to destroy allocator for handle %s, error: %s\n",
-                     switch_handle_type_to_string(type),
-                     switch_error_to_string(status));
+    VLOG_ERR("handle free: Failed to destroy allocator for "
+             "handle %s, error: %s\n", switch_handle_type_to_string(type),
+             switch_error_to_string(status));
     return status;
   }
   SWITCH_FREE(device, handle_info);
@@ -251,8 +251,8 @@ static switch_status_t _switch_handle_delete_contiguous(switch_device_t device,
 
   status = switch_device_context_get(device, &device_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle delete contiguous: Failed to get device context, error: %s\n",
-                     switch_error_to_string(status));
+    VLOG_ERR("handle delete contiguous: Failed to get device "
+             "context, error: %s\n", switch_error_to_string(status));
     return status;
   }
 
@@ -261,8 +261,8 @@ static switch_status_t _switch_handle_delete_contiguous(switch_device_t device,
       &device_ctx->handle_info_array, type, (void *)&handle_info);
 
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle delete contiguous: Failed to get handle info, error: %s\n",
-             switch_handle_type_to_string(type),
+    VLOG_ERR("handle delete contiguous: Failed to get handle info for type %s, "
+             "error: %s\n", switch_handle_type_to_string(type),
              switch_error_to_string(status));
     return status;
   }
@@ -291,8 +291,8 @@ static switch_handle_t _switch_handle_create(switch_device_t device,
 
   status = switch_device_context_get(device, &device_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle create: Failed to get device context, error: %s\n",
-              switch_handle_type_to_string(type),
+    VLOG_ERR("handle create: Failed to get device context for type %s, "
+             "error: %s\n", switch_handle_type_to_string(type),
               switch_error_to_string(status));
     return SWITCH_API_INVALID_HANDLE;
   }
@@ -302,7 +302,7 @@ static switch_handle_t _switch_handle_create(switch_device_t device,
 
   if (handle == SWITCH_API_INVALID_HANDLE) {
     status = SWITCH_STATUS_FAILURE;
-    VLOG_ERR("handle create: Invalid handle, error: %s\n",
+    VLOG_ERR("handle create: Invalid handle for type %s, error: %s\n",
               switch_handle_type_to_string(type),
               switch_error_to_string(status));
     return SWITCH_API_INVALID_HANDLE;
@@ -311,8 +311,8 @@ static switch_handle_t _switch_handle_create(switch_device_t device,
   i_info = SWITCH_MALLOC(device, size, 1);
   if (!i_info) {
     status = SWITCH_STATUS_NO_MEMORY;
-    VLOG_ERR("handle create: Failed to allocate memory, error: %s\n",
-              switch_handle_type_to_string(type),
+    VLOG_ERR("handle create: Failed to allocate memory for type %s, "
+             "error: %s\n", switch_handle_type_to_string(type),
               switch_error_to_string(status));
     _switch_handle_delete(device, handle);
     return SWITCH_API_INVALID_HANDLE;
@@ -323,7 +323,7 @@ static switch_handle_t _switch_handle_create(switch_device_t device,
   status = SWITCH_ARRAY_INSERT(handle_array, handle, (void *)i_info);
 
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle create: Failed to insert handle, error: %s\n",
+    VLOG_ERR("handle create: Failed to insert handle for type %s, error: %s\n",
               switch_handle_type_to_string(type),
               switch_error_to_string(status));
     SWITCH_FREE(device, i_info);
@@ -361,9 +361,9 @@ switch_status_t switch_handle_get(switch_device_t device,
   }
   status = switch_device_context_get(device, &device_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle get: Failed to get device context for handle type %s, error: %s\n",
-              switch_handle_type_to_string(type),
-              switch_error_to_string(status));
+    VLOG_ERR("handle get: Failed to get device context for handle "
+             "type %s, error: %s\n", switch_handle_type_to_string(type),
+             switch_error_to_string(status));
     return status;
   }
   handle_array = &device_ctx->handle_array[type];
@@ -401,25 +401,25 @@ switch_status_t switch_handle_delete_contiguous(switch_device_t device,
 
   type = switch_handle_type_get(handle);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle delete contiguous: failed to get handle type %s, error: %s\n",
-             switch_handle_type_to_string(type),
+    VLOG_ERR("handle delete contiguous: failed to get handle "
+             "type %s, error: %s\n", switch_handle_type_to_string(type),
              switch_error_to_string(status));
     return status;
   }
 
   status = SWITCH_ARRAY_DELETE(handle_array, handle);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle delete contiguous: failed to delete array for handle %s, error: %s\n",
-              switch_handle_type_to_string(type),
-              switch_error_to_string(status));
+    VLOG_ERR("handle delete contiguous: failed to delete array "
+             "for handle %s, error: %s\n", switch_handle_type_to_string(type),
+             switch_error_to_string(status));
     return status;
   }
 
   status = _switch_handle_delete_contiguous(device, handle, count);
   if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR("handle delete contiguous: failed to delete handle %s, error: %s\n",
-              switch_handle_type_to_string(type),
-              switch_error_to_string(status));
+    VLOG_ERR("handle delete contiguous: failed to delete "
+             "handle %s, error: %s\n", switch_handle_type_to_string(type),
+             switch_error_to_string(status));
     return status;
   }
   SWITCH_FREE(device, i_info);

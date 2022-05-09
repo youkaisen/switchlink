@@ -72,8 +72,8 @@ switch_status_t switch_l3_init(switch_device_t device) {
   if (!l3_ctx) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "l3 init: Failed to allocate memory for switch_l3_context_t on device %d "
-        ",error: %s\n",
+        "l3 init: Failed to allocate memory for switch_l3_context_t "
+        "on device %d ,error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -358,7 +358,8 @@ switch_status_t switch_api_l3_route_add(
 
   memset(&route_entry, 0, sizeof(route_entry));
   route_entry.vrf_handle = vrf_handle;
-  SWITCH_MEMCPY(&route_entry.ip, &api_route_entry->ip_address, sizeof(switch_ip_addr_t));
+  SWITCH_MEMCPY(&route_entry.ip, &api_route_entry->ip_address,
+                sizeof(switch_ip_addr_t));
 
   status = switch_route_table_hash_lookup(device, &route_entry, &route_handle);
   if (status == SWITCH_STATUS_SUCCESS) {
@@ -393,19 +394,19 @@ switch_status_t switch_api_l3_route_add(
     return status;
   }
 
-  //SWITCH_ASSERT(SWITCH_NHOP_HANDLE(api_route_entry->nhop_handle));
   if(api_route_entry->nhop_handle)
   {  
-    status = switch_pd_ipv4_table_entry(device, api_route_entry, true, SWITCH_ACTION_NHOP);
+    status = switch_pd_ipv4_table_entry(device, api_route_entry, true,
+                                        SWITCH_ACTION_NHOP);
     SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
       if(status != SWITCH_STATUS_SUCCESS)
         VLOG_ERR("ipv4 table update failed \n");
   }
 
-  //SWITCH_ASSERT(SWITCH_NHOP_HANDLE(api_route_entry->ecmp_group_id));
   if(api_route_entry->ecmp_group_id)
   {
-    status = switch_pd_ipv4_table_entry(device, api_route_entry, true, SWITCH_ACTION_ECMP);
+    status = switch_pd_ipv4_table_entry(device, api_route_entry, true,
+                                        SWITCH_ACTION_ECMP);
     SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
     if(status != SWITCH_STATUS_SUCCESS)
       VLOG_ERR("ipv4 table update failed \n");
@@ -456,7 +457,8 @@ switch_status_t switch_api_l3_route_delete(switch_device_t device,
   }
 
   route_entry.vrf_handle = api_route_entry->vrf_handle;
-  SWITCH_MEMCPY(&route_entry.ip, &api_route_entry->ip_address, sizeof(switch_ip_addr_t));
+  SWITCH_MEMCPY(&route_entry.ip, &api_route_entry->ip_address,
+                sizeof(switch_ip_addr_t));
   route_entry.neighbor_installed = api_route_entry->neighbor_installed;
 
   status = switch_route_table_hash_lookup(device, &route_entry, &route_handle);
@@ -480,7 +482,8 @@ switch_status_t switch_api_l3_route_delete(switch_device_t device,
   }
 
   if (route_info->nhop_handle) {
-    status = switch_pd_ipv4_table_entry(device, &route_info->api_route_info, false, SWITCH_ACTION_NONE);
+    status = switch_pd_ipv4_table_entry(device, &route_info->api_route_info,
+                                        false, SWITCH_ACTION_NONE);
     SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
     if(status != SWITCH_STATUS_SUCCESS)
       VLOG_ERR("ipv4 table delete] failed \n");

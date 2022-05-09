@@ -29,12 +29,12 @@
 #include <openvswitch/vlog.h>
 #include "switch_base_types.h"
 
-//static sai_api_t api_id = SAI_API_VIRTUAL_ROUTER;
-
 VLOG_DEFINE_THIS_MODULE(saivirtualrouter);
 
-static void sai_vrf_entry_attribute_parse(uint32_t attr_count,
-                                          const sai_attribute_t *attr_list) {
+static void
+sai_vrf_entry_attribute_parse(uint32_t attr_count,
+                              const sai_attribute_t *attr_list)
+{
   const sai_attribute_t *attribute;
   uint32_t i = 0;
 
@@ -67,11 +67,12 @@ static void sai_vrf_entry_attribute_parse(uint32_t attr_count,
 *  - SAI_STATUS_ADDR_NOT_FOUND if neither SAI_SWITCH_ATTR_SRC_MAC_ADDRESS nor
 *    SAI_VIRTUAL_ROUTER_ATTR_SRC_MAC_ADDRESS is set.
 */
-static sai_status_t sai_create_virtual_router_entry(
-    _Out_ sai_object_id_t *vr_id,
-    _In_ sai_object_id_t switch_id,
-    _In_ uint32_t attr_count,
-    _In_ const sai_attribute_t *attr_list) {
+static sai_status_t
+sai_create_virtual_router_entry(_Out_ sai_object_id_t *vr_id,
+                                _In_ sai_object_id_t switch_id,
+                                _In_ uint32_t attr_count,
+                                _In_ const sai_attribute_t *attr_list)
+{
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_vrf_t vrf_id = 0;
@@ -103,8 +104,9 @@ static sai_status_t sai_create_virtual_router_entry(
 *    SAI_STATUS_SUCCESS on success
 *    Failure status code on error
 */
-static sai_status_t sai_remove_virtual_router_entry(_In_ sai_object_id_t vr_id) {
-
+static sai_status_t
+sai_remove_virtual_router_entry(_In_ sai_object_id_t vr_id)
+{
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
@@ -128,7 +130,9 @@ sai_virtual_router_api_t vr_api = {
     .create_virtual_router = sai_create_virtual_router_entry,
     .remove_virtual_router = sai_remove_virtual_router_entry};
 
-sai_status_t sai_virtual_router_initialize(sai_api_service_t *sai_api_service) {
+sai_status_t
+sai_virtual_router_initialize(sai_api_service_t *sai_api_service)
+{
   VLOG_DBG("Initializing virtual router");
   sai_api_service->vr_api = vr_api;
   return SAI_STATUS_SUCCESS;

@@ -179,7 +179,7 @@ switch_status_t switch_api_neighbor_create(
       pd_neighbor_info.neighbor_handle = handle;
       pd_neighbor_info.nexthop_handle = nhop_handle;
 
-      //get rif_info to access port_id
+      /*get rif_info to access port_id */
       pd_neighbor_info.rif_handle = api_neighbor_info->rif_handle;
       status = switch_rif_get(device, pd_neighbor_info.rif_handle, &rif_info);
       CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
@@ -188,7 +188,8 @@ switch_status_t switch_api_neighbor_create(
       }
       pd_neighbor_info.port_id = rif_info->api_rif_info.phy_port_id;
 
-      SWITCH_MEMCPY(&pd_neighbor_info.dst_mac_addr, &api_neighbor_info->mac_addr, sizeof(switch_mac_addr_t));
+      SWITCH_MEMCPY(&pd_neighbor_info.dst_mac_addr,
+                    &api_neighbor_info->mac_addr, sizeof(switch_mac_addr_t));
 
       status = switch_routing_table_entry(device, &pd_neighbor_info, true);
       if (status != SWITCH_STATUS_SUCCESS) {
@@ -196,21 +197,23 @@ switch_status_t switch_api_neighbor_create(
         return status;
       }
 
-      //rmac_handle will have source mac info. get rmac_info from rmac_handle
+      /*rmac_handle will have source mac info. get rmac_info from rmac_handle */
       rmac_handle = rif_info->api_rif_info.rmac_handle;
       status = switch_rmac_get(device, rmac_handle, &rmac_info);
       CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
       SWITCH_LIST_GET_HEAD(rmac_info->rmac_list, node);
       rmac_entry = (switch_rmac_entry_t *)node->data;
 
-      // SRC MAC is picked from RMAC of RIF entry. This needs to be programmed
-      // only once, even though many neighbors learnt on same RIF.
+      /* SRC MAC is picked from RMAC of RIF entry. This needs to be programmed
+       * only once, even though many neighbors learnt on same RIF. */
       if (rmac_entry && !rmac_entry->is_rmac_pd_programmed) {
           switch_api_l2_info_t api_l2_rx_info;
           api_l2_rx_info.rif_handle = api_neighbor_info->rif_handle;
-          SWITCH_MEMCPY(&api_l2_rx_info.dst_mac, &(rmac_entry->mac), sizeof(switch_mac_addr_t));
+          SWITCH_MEMCPY(&api_l2_rx_info.dst_mac, &(rmac_entry->mac),
+                        sizeof(switch_mac_addr_t));
 
-          status = switch_pd_l2_rx_forward_table_entry(device, &api_l2_rx_info, true);
+          status = switch_pd_l2_rx_forward_table_entry(device, &api_l2_rx_info,
+                                                       true);
           if (status != SWITCH_STATUS_SUCCESS) {
             return status;
           }
@@ -226,7 +229,7 @@ switch_status_t switch_api_neighbor_create(
       }
   }
 
-  SWITCH_MEMCPY(&neighbor_info->switch_device_pd_routing_info,
+  SWITCH_MEMCPY(&neighbor_info->switch_pd_routing_info,
                 &pd_neighbor_info,
                 sizeof(switch_pd_routing_info_t));
   VLOG_INFO(
@@ -271,7 +274,7 @@ switch_status_t switch_api_neighbor_delete(
 
   if (SWITCH_NHOP_HANDLE(nhop_handle)) {
     status = switch_routing_table_entry(device,
-                                        &neighbor_info->switch_device_pd_routing_info,
+                                        &neighbor_info->switch_pd_routing_info,
                                         false);
     if(status != SWITCH_STATUS_SUCCESS)
       VLOG_ERR("routing tables update failed \n");

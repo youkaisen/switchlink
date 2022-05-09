@@ -179,7 +179,7 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
         return;
     }
     if_indextoname(nbh->ndm_ifindex, intf_name);
-    VLOG_DBG("neigh: Failed to get switchlink database interface info " \
+    VLOG_DBG("neigh: Failed to get switchlink database interface info "
              "for :%s\n", intf_name);
     return;
   }
@@ -233,15 +233,15 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
     if (bridge_h && mac_addr_valid) {
       mac_create(mac_addr, bridge_h, intf_h);
     } else if(mac_addr_valid && ifinfo.intf_type == SWITCHLINK_INTF_TYPE_L3) {
-      // Here we are creating FDB entry from neighbor table, check for
-      // type as SWITCHLINK_INTF_TYPE_L3
+      /* Here we are creating FDB entry from neighbor table, check for
+       * type as SWITCHLINK_INTF_TYPE_L3 */
       mac_create(mac_addr, bridge_h, intf_h);
     }
     if (ipaddr_valid) {
       if (mac_addr_valid) {
         neigh_create(g_default_vrf_h, &ipaddr, mac_addr, intf_h);
       } else {
-        // mac address is not valid, remove the neighbor entry
+        /* mac address is not valid, remove the neighbor entry */
         neigh_delete(g_default_vrf_h, &ipaddr, intf_h);
       }
     }

@@ -33,9 +33,12 @@ extern "C" {
  *  related to MAC programming
     The basic configuration on the port dictates the MAC programming.
     The modes can be set to one of 1x100G, 2x50G, 4x25G, 2x40G or 4x10G.
-    The ports can be configured with an administrative mode and default behavior can be set.
-    The tables that get modified in response to the port APIs are mostly the early stage tables.
-    The port can have a default, which generally allows tagging of untagged packets to this default
+    The ports can be configured with an administrative mode and default 
+    behavior can be set.
+    The tables that get modified in response to the port APIs are mostly
+    the early stage tables.
+    The port can have a default, which generally allows tagging of
+    untagged packets to this default
     domain for forwarding the packets through the device.
  *  @{
  */  // begin of Port

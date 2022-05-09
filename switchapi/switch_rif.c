@@ -144,8 +144,8 @@ switch_status_t switch_api_rif_create(
   status = switch_rif_get(device, *rif_handle, &rif_info);
   CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
 
-  // When multipipe support is available in P4-OVS, make port_id as 
-  // in_port_id and out_port_id. Use accordingly for respective pipelines.
+  /* When multipipe support is available in P4-OVS, make port_id as 
+   * in_port_id and out_port_id. Use accordingly for respective pipelines. */
   api_rif_info->port_id = -1;
   api_rif_info->phy_port_id = -1;
 

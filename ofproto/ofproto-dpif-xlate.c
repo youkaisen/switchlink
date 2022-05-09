@@ -2590,6 +2590,10 @@ is_admissible(struct xlate_ctx *ctx, struct xport *in_port,
 }
 
 #if P4SAI
+/* Get the target dp index or ifindex for a port.
+ * If tunnel netdev, get the ifindex of kernel port
+ * If vlan netdev, get the port ID from vlan number.
+ * */
 static uint32_t
 get_target_fdb_data(struct xport *port, mac_info_t *value)
 {
@@ -2601,7 +2605,7 @@ get_target_fdb_data(struct xport *port, mac_info_t *value)
     value->is_tunnel_port = port->is_tunnel;
 
     if (port->is_tunnel) {
-        struct netdev_tunnel_config *underlay_tnl = NULL;
+        const struct netdev_tunnel_config *underlay_tnl = NULL;
         underlay_tnl = netdev_get_tunnel_config(port->netdev);
         if (!underlay_tnl) {
             VLOG_ERR("Cannot get netdev tunnel config");
@@ -2622,7 +2626,6 @@ get_target_fdb_data(struct xport *port, mac_info_t *value)
         strcpy(port_num, port_name+strlen("vlan"));
         value->data.port_id = atoi(port_num);
     }
-    //return (uint32_t)underlay_ifindex;
     return 0;
 }
 
@@ -3087,7 +3090,7 @@ xlate_normal(struct xlate_ctx *ctx)
         && in_port->pt_mode != NETDEV_PT_LEGACY_L3) {
 #if P4SAI
         mac_info_t value;
-        //memset(&value, 0, sizeof(mac_info_t));
+        memset(&value, 0, sizeof(mac_info_t));
         struct xport *ovs_port = get_ofp_port(in_xbundle->xbridge,
                                               flow->in_port.ofp_port);
 
@@ -3095,7 +3098,7 @@ xlate_normal(struct xlate_ctx *ctx)
             update_learning_table(ctx, in_xbundle, flow->dl_src, vlan,
                                   is_grat_arp, &value);
         } else {
-            VLOG_ERR("Cannot program target with MAC entry");
+            VLOG_DBG("Cannot program target with MAC entry");
         }
 #else // P4SAI
         update_learning_table(ctx, in_xbundle, flow->dl_src, vlan,
@@ -8136,14 +8139,14 @@ xlate_mac_learning_update(const struct ofproto_dpif *ofproto,
 
 #if P4SAI
     mac_info_t value;
-    //memset(&value, 0, sizeof(mac_info_t));
+    memset(&value, 0, sizeof(mac_info_t));
     struct xport *ovs_port = get_ofp_port(xbundle->xbridge, in_port);
 
     if (!get_target_fdb_data(ovs_port, &value)) {
         update_learning_table__(xbundle->xbridge,
                                 xbundle, dl_src, vlan, is_grat_arp, &value);
     } else {
-        VLOG_ERR("Cannot program target with MAC entry");
+        VLOG_DBG("Cannot program target with MAC entry");
     }
 
 #else // P4SAI
@@ -8166,20 +8169,20 @@ xlate_add_static_mac_entry(const struct ofproto_dpif *ofproto,
 
 #if P4SAI
     mac_info_t value;
-    //memset(&value, 0x0, sizeof(mac_info_t));
+    memset(&value, 0, sizeof(mac_info_t));
     struct xport *ovs_port = get_ofp_port(xbundle->xbridge, in_port);
 
     if (!get_target_fdb_data(ovs_port, &value)) {
         return mac_learning_add_static_entry(ofproto->ml, dl_src, vlan,
                                              xbundle->ofbundle, &value);
     } else {
-        VLOG_ERR("Cannot program target with MAC entry");
+        VLOG_DBG("Cannot program target with MAC entry");
         return false;
     }
-#else
+#else // P4SAI
     return mac_learning_add_static_entry(ofproto->ml, dl_src, vlan,
                                          xbundle->ofbundle);
-#endif
+#endif // P4SAI
 }
 
 bool

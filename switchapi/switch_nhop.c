@@ -165,8 +165,8 @@ switch_status_t switch_nhop_init(switch_device_t device) {
     return status;
   }
 
-  status =
-      switch_handle_type_init(device, SWITCH_HANDLE_TYPE_NHOP, NEXTHOP_TABLE_SIZE);
+  status = switch_handle_type_init(device, SWITCH_HANDLE_TYPE_NHOP,
+                                   NEXTHOP_TABLE_SIZE);
 
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR("nhop init Failed for device %d\n",
@@ -450,8 +450,8 @@ switch_status_t switch_api_ecmp_member_add (
       return status;
     }
   }
-//TODO: add the code to distribute the hash among different neighbor IDs based on number of nhops here
-//update the table for each hash-nhop entry
+  /* TODO: add the code to distribute the hash among different neighbor IDs
+   * based on number of nhops here update the table for each hash-nhop entry */
   VLOG_INFO(
       "ecmp member add on device %d ecmp handle 0x%lx num nhops %d\n",
       device,
@@ -882,7 +882,6 @@ switch_status_t switch_api_nhop_create(
   pd_routing_info.nexthop_handle = handle;
 
   spath_info = &(SWITCH_NHOP_SPATH_INFO(nhop_info));
-//  spath_info->urpf_pd_hdl = SWITCH_PD_INVALID_HANDLE;
   spath_info->nhop_handle = handle;
   spath_info->tunnel = FALSE;
 
@@ -891,10 +890,12 @@ switch_status_t switch_api_nhop_create(
                 sizeof(switch_api_nhop_info_t));
   SWITCH_MEMCPY(&spath_info->nhop_key, &nhop_key, sizeof(nhop_key));
 
- //backend programming for nhop create is not needed because Neighbor create will call a nexthop create always before creating neighbor
- //So, backend programming should Happen with Neighbor create only, by the time neighbor create happens already nexthop would have been created. 
- //Vice-versa will not happen 
-  SWITCH_MEMCPY(&nhop_info->switch_device_pd_routing_info,
+ /* Backend programming for nhop create is not needed because Neighbor
+  * create will call a nexthop create always before creating neighbor.
+  * So, backend programming should happen with Neighbor create only,
+  * by the time neighbor create happens already nexthop would have been created. 
+  * Vice-versa will not happen */
+  SWITCH_MEMCPY(&nhop_info->switch_pd_routing_info,
                 &pd_routing_info,
                 sizeof(switch_pd_routing_info_t));
 
@@ -912,94 +913,6 @@ switch_status_t switch_api_nhop_create(
   return status;
 }
 
-#if 0
-switch_status_t switch_api_nhop_update_internal(
-    switch_device_t device,
-    switch_handle_t nhop_handle,
-    switch_uint64_t flags,
-    switch_api_nhop_info_t *api_nhop_info) {
-  switch_nhop_info_t *nhop_info = NULL;
-  switch_rif_info_t *rif_info = NULL;
-  switch_interface_info_t *intf_info = NULL;
-  switch_spath_info_t *spath_info = NULL;
-  switch_port_lag_index_t port_lag_index = 0;
-  switch_ifindex_t ifindex = 0;
-  switch_nhop_pd_action_t pd_action = 0;
-  switch_handle_t rif_handle = SWITCH_API_INVALID_HANDLE;
-  switch_handle_t intf_handle = SWITCH_API_INVALID_HANDLE;
-  switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  SWITCH_ASSERT(SWITCH_NHOP_HANDLE(nhop_handle));
-  status = switch_nhop_get(device, nhop_handle, &nhop_info);
-  if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "nhop update Failed on device %d nhop handle 0x%lx: "
-        "nhop get Failed:%s)\n",
-        device,
-        nhop_handle,
-        switch_error_to_string(status));
-    return status;
-  }
-
-  SWITCH_ASSERT(nhop_info->id_type == SWITCH_NHOP_ID_TYPE_ONE_PATH);
-  if ((SWITCH_NHOP_TYPE(nhop_info) == SWITCH_NHOP_TYPE_TUNNEL) ||
-      (SWITCH_NHOP_TYPE(nhop_info) == SWITCH_NHOP_TYPE_MPLS)) {
-    status = SWITCH_STATUS_NOT_SUPPORTED;
-    VLOG_ERR(
-        "nhop update Failed on device %d nhop handle 0x%lx: "
-        "nhop type not supported:%s)\n",
-        device,
-        nhop_handle,
-        switch_error_to_string(status));
-    return status;
-  }
-
-  spath_info = &(SWITCH_NHOP_SPATH_INFO(nhop_info));
-
-  if (flags & SWITCH_NHOP_ATTR_NHOP_TYPE) {
-    if (api_nhop_info->nhop_type == SWITCH_NHOP_TYPE_IP) {
-      pd_action = SWITCH_NHOP_PD_ACTION_NON_TUNNEL;
-      port_lag_index = spath_info->port_lag_index;
-      ifindex = spath_info->ifindex;
-      rif_handle = api_nhop_info->rif_handle;
-      status = switch_rif_get(device, rif_handle, &rif_info);
-      if (status == SWITCH_STATUS_SUCCESS) {
-        if (rif_info->api_rif_info.rif_type == SWITCH_RIF_TYPE_INTF) {
-          intf_handle = rif_info->api_rif_info.intf_handle;
-          status = switch_interface_get(device, intf_handle, &intf_info);
-          if (status == SWITCH_STATUS_SUCCESS) {
-            ifindex = intf_info->ifindex;
-            port_lag_index = intf_info->port_lag_index;
-          }
-        }
-      }
-    } else if (api_nhop_info->nhop_type == SWITCH_NHOP_TYPE_DROP) {
-      pd_action = SWITCH_NHOP_PD_ACTION_DROP;
-    } else {
-      pd_action = SWITCH_NHOP_PD_ACTION_GLEAN;
-    }
-  }
-
-  status = switch_nhop_update(
-      device, nhop_handle, ifindex, port_lag_index, pd_action);
-  if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "nhop update Failed on device %d nhop handle 0x%lx: "
-        "nhop update Failed:%s)\n",
-        device,
-        nhop_handle,
-        switch_error_to_string(status));
-    return status;
-  }
-
-  VLOG_DBG("nhop update on device %d nhop handle 0x%lx action %d\n",
-                   device,
-                   nhop_handle,
-                   SWITCH_NHOP_TYPE(nhop_info));
-
-  return status;
-}
-#endif
 switch_status_t switch_api_nhop_delete(
     const switch_device_t device, const switch_handle_t nhop_handle) {
   switch_nhop_context_t *nhop_ctx = NULL;
@@ -1133,144 +1046,3 @@ switch_status_t switch_api_nhop_id_type_get(
 
   return status;
 }
-
-#if 0
-switch_status_t switch_api_nhop_get(
-    switch_device_t device,
-    switch_handle_t nhop_handle,
-    switch_api_nhop_info_t *api_nhop_info) {
-  switch_nhop_info_t *nhop_info = NULL;
-  switch_spath_info_t *spath_info = NULL;
-  switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  SWITCH_ASSERT(SWITCH_NHOP_HANDLE(nhop_handle));
-  status = switch_nhop_get(device, nhop_handle, &nhop_info);
-  if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "nhop get Failed on device %d nhop handle 0x%lx "
-        "nhop get Failed:(%s)\n",
-        device,
-        nhop_handle,
-        switch_error_to_string(status));
-    return status;
-  }
-
-  spath_info = &nhop_info->spath;
-  SWITCH_MEMCPY(api_nhop_info,
-                &spath_info->api_nhop_info,
-                sizeof(switch_api_nhop_info_t));
-
-  return status;
-}
-#endif
-#if 0
-switch_status_t switch_nhop_update(switch_device_t device,
-                                   switch_handle_t nhop_handle,
-                                   switch_ifindex_t ifindex,
-                                   switch_port_lag_index_t port_lag_index,
-                                   switch_nhop_pd_action_t pd_action) {
-  switch_nhop_info_t *nhop_info = NULL;
-  switch_bd_info_t *bd_info = NULL;
-  switch_spath_info_t *spath_info = NULL;
-  switch_mgid_t mc_index = 0;
-  switch_tunnel_t tunnel_index = 0;
-  switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  SWITCH_ASSERT(SWITCH_NHOP_HANDLE(nhop_handle));
-  if (!SWITCH_NHOP_HANDLE(nhop_handle)) {
-    status = SWITCH_STATUS_INVALID_HANDLE;
-    VLOG_ERR(
-        "nhop ifindex update Failed on device %d "
-        "nhop handle 0x%lx ifindex %x: "
-        "nhop handle invalid(%s)\n",
-        device,
-        nhop_handle,
-        ifindex,
-        switch_error_to_string(status));
-    return status;
-  }
-
-  status = switch_nhop_get(device, nhop_handle, &nhop_info);
-  if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "nhop ifindex update Failed on device %d "
-        "nhop handle 0x%lx ifindex %x: "
-        "nhop get Failed(%s)\n",
-        device,
-        nhop_handle,
-        ifindex,
-        switch_error_to_string(status));
-    return status;
-  }
-
-  spath_info = &(SWITCH_NHOP_SPATH_INFO(nhop_info));
-
-  status = switch_bd_get(device, spath_info->bd_handle, &bd_info);
-  if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "nhop ifindex update Failed on device %d "
-        "nhop handle 0x%lx ifindex %x: "
-        "bd get Failed(%s)\n",
-        device,
-        nhop_handle,
-        ifindex,
-        switch_error_to_string(status));
-    return status;
-  }
-  mc_index = handle_to_id(bd_info->flood_handle);
-  spath_info->ifindex = ifindex;
-  spath_info->port_lag_index = port_lag_index;
-
-  status =
-      switch_pd_nexthop_table_entry_update(device,
-                                           handle_to_id(nhop_handle),
-                                           handle_to_id(spath_info->bd_handle),
-                                           spath_info->ifindex,
-                                           spath_info->port_lag_index,
-                                           pd_action,
-                                           mc_index,
-                                           tunnel_index,
-                                           spath_info->hw_entry,
-                                           spath_info->hw_entry1);
-  if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "nhop ifindex update Failed on device %d "
-        "nhop handle 0x%lx ifindex %x: "
-        "interface get Failed(%s)\n",
-        device,
-        nhop_handle,
-        ifindex,
-        switch_error_to_string(status));
-    return status;
-  }
-
-  /*
-   * update all the ecmp members using this next-hop.
-   */
-
-  status = switch_nhop_ecmp_members_update(device, nhop_info);
-  if (status != SWITCH_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "nhop ecmp member update Failed on device %d "
-        "nhop handle 0x%lx ifindex %x: port_lag_index: %x"
-        " with sttus(%s)\n",
-        device,
-        nhop_handle,
-        ifindex,
-        port_lag_index,
-        switch_error_to_string(status));
-    return status;
-  }
-
-  VLOG_DBG(
-      "nhop update successful on device %d "
-      "nhop handle 0x%lx ifindex %x: port_lag_index: %x",
-      device,
-      nhop_handle,
-      ifindex,
-      port_lag_index);
-
-  return status;
-}
-#endif
-

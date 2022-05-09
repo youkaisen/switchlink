@@ -41,45 +41,17 @@ switch_status_t switch_config_init(switch_config_t *switch_config) {
 
   config_info.api_switch_config.max_devices = SWITCH_MAX_DEVICE;
   config_info.api_switch_config.add_ports = FALSE;
-  config_info.api_switch_config.default_port_speed = SWITCH_PORT_SPEED_10G;
-  config_info.api_switch_config.program_smac = TRUE;
-  //config_info.api_switch_config.default_log_level = SWITCH_LOG_LEVEL_ERROR;
-  //config_info.api_switch_config.default_stp_state =
-  //    SWITCH_PORT_STP_STATE_FORWARDING;
-  //SWITCH_MEMCPY(config_info.api_switch_config.cpu_interface,
-  //              SWITCH_CPU_ETH_INTF_DEFAULT,
-  //              SWITCH_CPU_ETH_INTF_DEFAULT_LEN);
 
   if (switch_config) {
     SWITCH_ASSERT(switch_config->max_devices < SWITCH_MAX_DEVICE);
     if (switch_config->max_devices) {
       config_info.api_switch_config.max_devices = switch_config->max_devices;
     }
-
-    if (!switch_config->use_pcie) {
-      SWITCH_MEMCPY(config_info.api_switch_config.cpu_interface,
-                    switch_config->cpu_interface,
-                    SWITCH_HOSTIF_NAME_SIZE);
-    }
-
-    if (switch_config->add_ports) {
-      config_info.api_switch_config.add_ports = switch_config->add_ports;
-      config_info.api_switch_config.default_port_speed =
-          switch_config->default_port_speed;
-    }
-
-    config_info.api_switch_config.enable_ports = switch_config->enable_ports;
-    config_info.api_switch_config.use_pcie = switch_config->use_pcie;
-    config_info.api_switch_config.program_smac = switch_config->program_smac;
-    config_info.api_switch_config.acl_group_optimization =
-        switch_config->acl_group_optimization;
   }
 
   SWITCH_ASSERT(config_info.api_switch_config.max_devices != 0);
 
   config_info.config_inited = TRUE;
-
-  //switch_log_init(config_info.api_switch_config.default_log_level);
 
   return status;
 }

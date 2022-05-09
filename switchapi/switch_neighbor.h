@@ -72,7 +72,7 @@ typedef struct switch_neighbor_info_s {
   /** rif type */
   switch_rif_type_t rif_type;
 
-  switch_pd_routing_info_t switch_device_pd_routing_info;
+  switch_pd_routing_info_t switch_pd_routing_info;
 
 } switch_neighbor_info_t;
 

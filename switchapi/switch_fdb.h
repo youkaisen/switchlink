@@ -30,15 +30,15 @@ extern "C" {
 #define SWITCH_L2_HASH_KEY_SIZE sizeof(switch_mac_addr_t)
 
 #define SWITCH_L2_KEY_GET(_api_l2_info, _l2_key)                         \
-  {                                                                    \
-  do {                                                                 \
-       SWITCH_MEMSET(&_l2_key, 0x0, sizeof(switch_l2_key_t));             \
-       SWITCH_ASSERT(SWITCH_RIF_HANDLE(_api_l2_info->rif_handle));  \
-       _l2_key.rif_handle = _api_l2_info->rif_handle;                       \
-       SWITCH_MEMCPY(&_l2_key.mac,                               \
-                  &_api_l2_info->dst_mac,                              \
-                  sizeof(switch_mac_addr_t));                          \
-     } while(0);                                                              \
+  {                                                                      \
+  do {                                                                   \
+       SWITCH_MEMSET(&_l2_key, 0x0, sizeof(switch_l2_key_t));            \
+       SWITCH_ASSERT(SWITCH_RIF_HANDLE(_api_l2_info->rif_handle));       \
+       _l2_key.rif_handle = _api_l2_info->rif_handle;                    \
+       SWITCH_MEMCPY(&_l2_key.mac,                                       \
+                  &_api_l2_info->dst_mac,                                \
+                  sizeof(switch_mac_addr_t));                            \
+     } while(0);                                                         \
 } 
 
   /** l2 info handle wrappers */
@@ -56,19 +56,19 @@ extern "C" {
   switch_handle_create(                      \
       _device, SWITCH_HANDLE_TYPE_L2_FWD_RX, sizeof(switch_l2_info_t))
 
-#define switch_l2_tx_get(_device, _handle, _info)                    \
-  ({                                                                  \
-    switch_l2_info_t *_tmp_l2_info = NULL;                    \
-    (void)(_tmp_l2_info == *_info);                               \
-    switch_handle_get(                                                \
+#define switch_l2_tx_get(_device, _handle, _info)                        \
+  ({                                                                     \
+    switch_l2_info_t *_tmp_l2_info = NULL;                               \
+    (void)(_tmp_l2_info == *_info);                                      \
+    switch_handle_get(                                                   \
         _device, SWITCH_HANDLE_TYPE_L2_FWD_TX, _handle, (void **)_info); \
   })
 
-#define switch_l2_rx_get(_device, _handle, _info)                    \
-  ({                                                                  \
-    switch_l2_info_t *_tmp_l2_info = NULL;                    \
-    (void)(_tmp_l2_info == *_info);                               \
-    switch_handle_get(                                                \
+#define switch_l2_rx_get(_device, _handle, _info)                        \
+  ({                                                                     \
+    switch_l2_info_t *_tmp_l2_info = NULL;                               \
+    (void)(_tmp_l2_info == *_info);                                      \
+    switch_handle_get(                                                   \
         _device, SWITCH_HANDLE_TYPE_L2_FWD_RX, _handle, (void **)_info); \
   })
 

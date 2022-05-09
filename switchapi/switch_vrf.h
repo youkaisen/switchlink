@@ -41,8 +41,8 @@ extern "C" {
     _status = switch_device_api_context_get(                               \
         _device, SWITCH_API_TYPE_VRF, (void **)&_vrf_ctx);                 \
     if (_status == SWITCH_STATUS_SUCCESS) {                                \
-      switch_handle_get(                                                 \
-          _device, SWITCH_HANDLE_TYPE_VRF, _handle, (void **)_info); \
+      switch_handle_get(                                                   \
+          _device, SWITCH_HANDLE_TYPE_VRF, _handle, (void **)_info);       \
     }                                                                      \
   } while (0);
 

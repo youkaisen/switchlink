@@ -56,7 +56,8 @@ static switch_nhop_type_t sai_nhop_type_to_switch_nhop_type(
 *
 * Note: IP address expected in Network Byte Order.
 */
-static sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id,
+static sai_status_t sai_create_next_hop_entry(
+                                       _Out_ sai_object_id_t *next_hop_id,
                                        _In_ sai_object_id_t switch_id,
                                        _In_ uint32_t attr_count,
                                        _In_ const sai_attribute_t *attr_list) {
@@ -114,7 +115,8 @@ static sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id
   VLOG_DBG("Calling switch api nhop create");
   status = switch_api_nhop_create(0, &api_nhop_info, &next_hop_handle);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("Failed to create nexthop, error: %s", sai_status_to_string(status));
+    VLOG_ERR("Failed to create nexthop, error: %s",
+              sai_status_to_string(status));
   } else {
     *next_hop_id = next_hop_handle;
   }
@@ -133,7 +135,8 @@ static sai_status_t sai_create_next_hop_entry(_Out_ sai_object_id_t *next_hop_id
 *    SAI_STATUS_SUCCESS on success
 *    Failure status code on error
 */
-static sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
+static
+sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;

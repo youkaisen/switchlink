@@ -123,14 +123,10 @@ static sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
     status = sai_switch_status_to_sai_status(switch_status);
     /* Always return success as in case of fail SONiC will shutdown. */
     status = SAI_STATUS_SUCCESS;
-  // CR } else {
-  // CR  status = SAI_STATUS_INVALID_PARAMETER;
-  // CR  VLOG_ERR("nhop_handle is not available for the route: %s", entry_string);
-  // CR  return status;
-  //}
 
   return status;
 }
+
 /*
 * Routine Description:
 *    Create Route
@@ -147,7 +143,8 @@ static sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
 * Note: IP prefix/mask expected in Network Byte Order.
 *
 */
-static sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
+static
+sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
                                     _In_ uint32_t attr_count,
                                     _In_ const sai_attribute_t *attr_list) {
 
@@ -179,7 +176,8 @@ static sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_e
 *
 * Note: IP prefix/mask expected in Network Byte Order.
 */
-static sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
+static 
+sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;

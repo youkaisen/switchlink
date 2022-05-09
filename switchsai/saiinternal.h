@@ -17,14 +17,6 @@ limitations under the License.
 #include <saitypes.h>
 #include <sai.h>
 
-//#include <switchapi/switch_base_types.h>
-//#include <switchapi/switch_status.h>
-//#include <switchapi/switch_handle.h>
-//#include <switchapi/switch_acl.h>
-//#include <switchapi/switch_meter.h>
-//#include <switchapi/switch_port.h>
-//#include <switchapi/switch_hostif.h>
-//
 #include <util.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -34,9 +26,7 @@ limitations under the License.
 #include <arpa/inet.h>
 
 #include "switch_base_types.h"
-//#include <bfsys/bf_sal/bf_sys_intf.h>
-//#include <bfsys/bf_sal/bf_sys_mem.h>
-//
+
 #ifndef __SAIINTERNAL_H_
 #define __SAIINTERNAL_H_
 
@@ -109,8 +99,6 @@ typedef struct _sai_api_service_t {
   sai_tunnel_api_t tunnel_api;
 } sai_api_service_t;
 
-//extern switch_device_t device;
-
 typedef struct _sai_switch_notification_t {
   sai_switch_state_change_notification_fn on_switch_state_change;
   sai_fdb_event_notification_fn on_fdb_event;
@@ -120,8 +108,6 @@ typedef struct _sai_switch_notification_t {
 } sai_switch_notification_t;
 
 extern sai_switch_notification_t sai_switch_notifications;
-
-#define SWITCH_SAI_APP_ID 0x1
 
 sai_status_t sai_acl_initialize(sai_api_service_t *sai_api_service);
 sai_status_t sai_buffer_initialize(sai_api_service_t *sai_api_service);
@@ -159,8 +145,6 @@ char *sai_status_to_string(_In_ const sai_status_t status);
 
 char *sai_object_type_to_string(_In_ sai_object_type_t object_type);
 
-//sai_status_t sai_switch_status_to_sai_status(_In_ const switch_status_t status);
-
 sai_status_t sai_ipv4_prefix_length(_In_ sai_ip4_t ip4,
                                     _Out_ uint32_t *prefix_length);
 
@@ -193,19 +177,7 @@ sai_status_t sai_ip_prefix_to_switch_ip_addr(
 sai_status_t sai_ip_addr_to_switch_ip_addr(
     const _In_ sai_ip_address_t *sai_ip_addr, _Out_ switch_ip_addr_t *ip_addr);
 
-//sai_status_t sai_port_speed_to_switch_port_speed(
-  //  uint32_t sai_port_speed, _Out_ switch_port_speed_t *switch_port_speed);
-
-//sai_packet_action_t switch_packet_action_to_sai_packet_action(
-  //  switch_acl_action_t acl_action);
-
 sai_status_t sai_switch_status_to_sai_status(_In_ const switch_status_t status);
-
-//sai_status_t sai_switch_ip_addr_to_sai_ip_addr(
-  //  _Out_ sai_ip_address_t *sai_ip_addr, const _In_ switch_ip_addr_t *ip_addr);
-
-//sai_status_t sai_switch_port_enabled_to_sai_oper_status(
-  //  _In_ switch_port_oper_status_t oper_status, _Out_ sai_attribute_t *attr);
 
 const sai_attribute_t *get_attr_from_list(_In_ sai_attr_id_t attr_id,
                                           _In_ const sai_attribute_t *attr_list,
@@ -278,19 +250,6 @@ switch_uint32_t sai_acl_priority_to_switch_priority(sai_uint32_t);
 
 switch_uint32_t switch_sai_port_non_default_ppgs(void);
 bool switch_sai_default_initialize(void);
-
-//void sai_recv_hostif_packet_cb(switch_hostif_packet_t *hostif_packet);
-/*
-sai_status_t sai_switch_acl_actions_to_sai(
-    _In_ switch_acl_action_t *switch_actions,
-    _In_ uint32_t switch_actions_count,
-    _In_ sai_acl_stage_t stage,
-    _Out_ sai_acl_action_type_t *sai_actions,
-    _Inout_ uint32_t *sai_actions_count);
-
-sai_status_t sai_acl_get_number_of_supported_actions(
-    _Out_ uint32_t *actions_count);
-*/
 
 #if defined(STATIC_LINK_LIB) && defined(THRIFT_ENABLED)
 int start_p4_sai_thrift_rpc_server(char *port);

@@ -36,8 +36,8 @@ switch_status_t switch_vrf_init(switch_device_t device) {
   if (!vrf_ctx) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "vrf init: Failed to allocate memory switch_vrf_context_t on device %d: "
-        ", error: %s\n",
+        "vrf init: Failed to allocate memory switch_vrf_context_t on device %d:"
+        " , error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -233,8 +233,8 @@ switch_status_t switch_api_vrf_delete(
       device, SWITCH_API_TYPE_VRF, (void **)&vrf_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "vrf delete: Failed to get device context on device %d, vrf handle 0x%lx: "
-        ", error: %s\n",
+        "vrf delete: Failed to get device context on device %d, vrf "
+        "handle 0x%lx: , error: %s\n",
         device,
         vrf_handle,
         switch_error_to_string(status));

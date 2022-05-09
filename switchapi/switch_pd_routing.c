@@ -112,8 +112,8 @@ switch_status_t switch_pd_nexthop_table_entry(
 
       data_field_id = 2; // Action value neighbor_id
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
-                                          (api_nexthop_pd_info->neighbor_handle &
-                                          ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
+                                         (api_nexthop_pd_info->neighbor_handle &
+                                         ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
           goto dealloc_handle_session;
@@ -212,9 +212,11 @@ switch_status_t switch_pd_neighbor_table_entry(
 
   if (entry_add) {
       /* Add an entry to target */
-      VLOG_INFO("Populate set_outer_mac action in neighbor_mod_table for neighbor handle %x",
-                   api_neighbor_pd_info->neighbor_handle);
-      action_id = 31671750; //action id for neighbor_mod_table, action: set_outer_mac
+      VLOG_INFO("Populate set_outer_mac action in neighbor_mod_table for "
+                "neighbor handle %x", api_neighbor_pd_info->neighbor_handle);
+
+      action_id = 31671750; // action id for neighbor_mod_table,
+                            // action: set_outer_mac
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
@@ -223,9 +225,12 @@ switch_status_t switch_pd_neighbor_table_entry(
       }
 
       data_field_id = 1;
-      status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                          (const uint8_t *)&api_neighbor_pd_info->dst_mac_addr.mac_addr,
-                                          SWITCH_MAC_LENGTH);
+      status = bf_rt_data_field_set_value_ptr(
+                                data_hdl, data_field_id,
+                                (const uint8_t *)
+                                &api_neighbor_pd_info->dst_mac_addr.mac_addr,
+                                SWITCH_MAC_LENGTH);
+
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
           goto dealloc_handle_session;
@@ -317,7 +322,9 @@ switch_status_t switch_pd_rif_mod_start_entry(
   if (entry_add) {
     /* Add an entry to target */
     VLOG_INFO("Populate set_src_mac_start action in rif_mod_table_start");
-    action_id = 23093409; //action for rif_mod_table_start, action: set_src_mac_start
+
+    action_id = 23093409; // action for rif_mod_table_start,
+                          // action: set_src_mac_start
     status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                              &data_hdl);
     if(status != BF_SUCCESS) {
@@ -326,9 +333,12 @@ switch_status_t switch_pd_rif_mod_start_entry(
    }
 
    data_field_id = 1;
-   status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                      (const uint8_t *)&rmac_entry->mac.mac_addr+RMAC_START_OFFSET,
-                                      RMAC_BYTES_OFFSET);
+   status = bf_rt_data_field_set_value_ptr(
+                                data_hdl, data_field_id,
+                                (const uint8_t *)
+                                &rmac_entry->mac.mac_addr+RMAC_START_OFFSET,
+                                RMAC_BYTES_OFFSET);
+
     if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
       goto dealloc_handle_session;
@@ -420,7 +430,9 @@ switch_status_t switch_pd_rif_mod_mid_entry(
   if (entry_add) {
     /* Add an entry to target */
     VLOG_INFO("Populate set_src_mac_mid action in rif_mod_table_mid");
-    action_id = 30315892; //action for rif_mod_table_mid table, action: set_src_mac_mid
+
+    action_id = 30315892; // action for rif_mod_table_mid table,
+                          // action: set_src_mac_mid
     status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                               &data_hdl);
     if(status != BF_SUCCESS) {
@@ -429,9 +441,12 @@ switch_status_t switch_pd_rif_mod_mid_entry(
     }
 
     data_field_id = 1;
-    status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                        (const uint8_t *)&rmac_entry->mac.mac_addr+RMAC_MID_OFFSET,
-                                        RMAC_BYTES_OFFSET);
+    status = bf_rt_data_field_set_value_ptr(
+                                data_hdl, data_field_id,
+                                (const uint8_t *)
+                                &rmac_entry->mac.mac_addr+RMAC_MID_OFFSET,
+                                RMAC_BYTES_OFFSET);
+
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
         goto dealloc_handle_session;
@@ -523,7 +538,9 @@ switch_status_t switch_pd_rif_mod_end_entry(
   if (entry_add) {
       /* Add an entry to target */
       VLOG_INFO("Populate set_src_mac_last action in rif_mod_table_last");
-      action_id = 32740970; //action for rif_mod_table_last, action: set_src_mac_last
+
+      action_id = 32740970; // action for rif_mod_table_last
+                            // action: set_src_mac_last
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
@@ -532,9 +549,12 @@ switch_status_t switch_pd_rif_mod_end_entry(
       }
 
       data_field_id = 1;
-      status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id,
-                                              (const uint8_t *)&rmac_entry->mac.mac_addr+RMAC_END_OFFSET,
-                                               RMAC_BYTES_OFFSET);
+      status = bf_rt_data_field_set_value_ptr(
+                                data_hdl, data_field_id,
+                                (const uint8_t *)
+                                &rmac_entry->mac.mac_addr+RMAC_END_OFFSET,
+                                RMAC_BYTES_OFFSET);
+
       if(status != BF_SUCCESS) {
           VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
           goto dealloc_handle_session;
@@ -613,14 +633,16 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
       goto dealloc_handle_session;
   }
 
-  // CR: double check if api_route_entry->ip_address.ip.v4addr is actually a
-  // route, check how mask need to be passed
   field_id = 1; // Match type ipv4_dst_match
-  // Use LPM API for LPM match type
+
+  /* Use LPM API for LPM match type*/
   network_byte_order = ntohl(api_route_entry->ip_address.ip.v4addr);
-  status = bf_rt_key_field_set_value_lpm_ptr(key_hdl, field_id, (const uint8_t *)&network_byte_order,
-                                            (const uint16_t)api_route_entry->ip_address.prefix_len,
-                                            sizeof(uint32_t));
+  status = bf_rt_key_field_set_value_lpm_ptr(
+                        key_hdl, field_id,
+                        (const uint8_t *)&network_byte_order,
+                        (const uint16_t)api_route_entry->ip_address.prefix_len,
+                        sizeof(uint32_t));
+
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to set value for key ID: %d for ipv4_table", field_id);
       goto dealloc_handle_session;
@@ -629,10 +651,12 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
   if (entry_add) {
     if(action == SWITCH_ACTION_NHOP)
     {
-      VLOG_INFO("Populate set_nexthop_id action in ipv4_table for route handle %x",
-                api_route_entry->route_handle);
+      VLOG_INFO("Populate set_nexthop_id action in ipv4_table for "
+                "route handle %x", api_route_entry->route_handle);
+
       /* Add an entry to target */
       action_id = 29883644; //action id for ipv_table, action: set_nexthop_id
+
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {

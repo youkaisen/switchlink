@@ -131,7 +131,8 @@ static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
 *    SAI_STATUS_SUCCESS on success
 *    Failure status code on error
 */
-static sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry) {
+static sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry)
+{
   switch_api_l2_info_t mac_entry;
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;

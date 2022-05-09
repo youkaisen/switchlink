@@ -43,7 +43,6 @@ const bool bf_switchd_background = true;
 VLOG_DEFINE_THIS_MODULE(p4proto);
 
 /*TODO: Define SWITCHLINK_ENABLE flag?*/
-//extern int switchlink_init(void);
 extern void *switchlink_main(void *);
 
 /* This URL is used by external gNMI, gNOI and P4Runtime clients.
@@ -103,7 +102,7 @@ p4proto_init(void)
    if (with_switchlink) {
         rc = pthread_create(&switchlink_tid, NULL, switchlink_main, NULL);
         if (rc) {
-            VLOG_DBG("Switchlink thread creation failed, error %d", rc);
+            VLOG_ERR("Switchlink thread creation failed, error %d", rc);
             return;
         }
 
@@ -117,7 +116,7 @@ p4proto_init(void)
 
     rc = pthread_create(&p4_server_tid, NULL, p4_server_start, NULL);
     if (rc) {
-        VLOG_DBG("P4 Server thread creation failed, error %d", rc);
+        VLOG_ERR("P4 Server thread creation failed, error %d", rc);
         return;
     }
 

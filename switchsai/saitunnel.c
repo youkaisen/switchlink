@@ -26,7 +26,9 @@ limitations under the License.
 
 VLOG_DEFINE_THIS_MODULE(saitunnel);
 
-char *sai_status_to_string(_In_ const sai_status_t status) {
+char *
+sai_status_to_string(_In_ const sai_status_t status)
+{
     switch (status) {
         case SAI_STATUS_INVALID_PARAMETER:
             return "invalid parameter";
@@ -39,9 +41,10 @@ char *sai_status_to_string(_In_ const sai_status_t status) {
 }
 
 
-sai_status_t sai_ip_addr_to_switch_ip_addr(
-                                      const _In_ sai_ip_address_t *sai_ip_addr,
-                                      _Out_ switch_ip_addr_t *ip_addr) {
+sai_status_t
+sai_ip_addr_to_switch_ip_addr(const _In_ sai_ip_address_t *sai_ip_addr,
+                              _Out_ switch_ip_addr_t *ip_addr)
+{
     if (sai_ip_addr->addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
         ip_addr->type = SWITCH_API_IP_ADDR_V4;
         ip_addr->ip.v4addr = ntohl(sai_ip_addr->addr.ip4);
@@ -54,8 +57,9 @@ sai_status_t sai_ip_addr_to_switch_ip_addr(
     return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t sai_switch_status_to_sai_status(_In_ const switch_status_t
-                                                 status) {
+sai_status_t
+sai_switch_status_to_sai_status(_In_ const switch_status_t status)
+{
     switch (status) {
         case SWITCH_STATUS_SUCCESS:
             return SAI_STATUS_SUCCESS;
@@ -70,8 +74,10 @@ sai_status_t sai_switch_status_to_sai_status(_In_ const switch_status_t
     }
 }
 
-static sai_status_t sai_tunnel_to_switch_tunnel_type(
-    sai_tunnel_type_t sai_tunnel, switch_tunnel_type_t *switch_tunnel) {
+static sai_status_t
+sai_tunnel_to_switch_tunnel_type(sai_tunnel_type_t sai_tunnel,
+                                 switch_tunnel_type_t *switch_tunnel)
+{
   sai_status_t status = SAI_STATUS_SUCCESS;
 
   switch (sai_tunnel) {
@@ -93,10 +99,11 @@ static sai_status_t sai_tunnel_to_switch_tunnel_type(
   return status;
 }
 
-static sai_status_t sai_tunnel_attribute_parse(uint32_t attr_count,
-                                               const sai_attribute_t *attr_list,
-                                               switch_api_tunnel_info_t
-                                                   *tunnel_info) {
+static sai_status_t
+sai_tunnel_attribute_parse(uint32_t attr_count,
+                           const sai_attribute_t *attr_list,
+                           switch_api_tunnel_info_t *tunnel_info)
+{
   const sai_attribute_t *attribute = NULL;
   sai_status_t status = SAI_STATUS_SUCCESS;
   uint32_t index = 0;
@@ -175,10 +182,12 @@ static sai_status_t sai_tunnel_attribute_parse(uint32_t attr_count,
  *
  * @return #SAI_STATUS_SUCCESS on success, failure status code on error
  */
-static sai_status_t sai_create_tunnel(_Out_ sai_object_id_t *tunnel_id,
-                          _In_ sai_object_id_t switch_id,
-                                      _In_ uint32_t attr_count,
-                                      _In_ const sai_attribute_t *attr_list) {
+static sai_status_t
+sai_create_tunnel(_Out_ sai_object_id_t *tunnel_id,
+                  _In_ sai_object_id_t switch_id,
+                  _In_ uint32_t attr_count,
+                  _In_ const sai_attribute_t *attr_list)
+{
   switch_api_tunnel_info_t tunnel_info = {0};
   switch_handle_t tunnel_handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
@@ -216,7 +225,9 @@ static sai_status_t sai_create_tunnel(_Out_ sai_object_id_t *tunnel_id,
  *
  * @return #SAI_STATUS_SUCCESS on success, failure status code on error
  */
-static sai_status_t sai_remove_tunnel(_In_ sai_object_id_t tunnel_handle) {
+static sai_status_t
+sai_remove_tunnel(_In_ sai_object_id_t tunnel_handle)
+{
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
@@ -233,7 +244,9 @@ static sai_status_t sai_remove_tunnel(_In_ sai_object_id_t tunnel_handle) {
   return status;
 }
 
-static char *sai_tunnel_string(sai_tunnel_type_t sai_tunnel_type) {
+static char *
+sai_tunnel_string(sai_tunnel_type_t sai_tunnel_type)
+{
   switch (sai_tunnel_type) {
     case SAI_TUNNEL_TYPE_IPINIP:
       return "IPinIP";
@@ -250,9 +263,10 @@ static char *sai_tunnel_string(sai_tunnel_type_t sai_tunnel_type) {
   }
 }
 
-static sai_status_t sai_tunnel_term_to_switch_type(
-    sai_tunnel_term_table_entry_type_t sai_type,
-    switch_tunnel_term_entry_type_t *switch_type) {
+static sai_status_t
+sai_tunnel_term_to_switch_type(sai_tunnel_term_table_entry_type_t sai_type,
+                               switch_tunnel_term_entry_type_t *switch_type)
+{
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch (sai_type) {
     case SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2P:
@@ -269,8 +283,9 @@ static sai_status_t sai_tunnel_term_to_switch_type(
   return status;
 }
 
-static char *switch_tunnel_term_type_to_string(
-    switch_tunnel_term_entry_type_t switch_type) {
+static char *
+switch_tunnel_term_type_to_string(switch_tunnel_term_entry_type_t switch_type)
+{
   switch (switch_type) {
     case SWITCH_TUNNEL_TERM_ENTRY_TYPE_P2P:
       return "term_type_p2p";
@@ -281,10 +296,12 @@ static char *switch_tunnel_term_type_to_string(
   }
 }
 
-static sai_status_t sai_tunnel_term_attribute_parse(uint32_t attr_count,
-                                               const sai_attribute_t *attr_list,
-                                               switch_api_tunnel_term_info_t
-                                               *tunnel_term_info) {
+static sai_status_t
+sai_tunnel_term_attribute_parse(uint32_t attr_count,
+                                const sai_attribute_t *attr_list,
+                                switch_api_tunnel_term_info_t
+                                *tunnel_term_info)
+{
   switch_tunnel_term_entry_type_t switch_tunnel_term_type = 0;
   switch_tunnel_type_t switch_tunnel_type = 0;
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -346,11 +363,12 @@ static sai_status_t sai_tunnel_term_attribute_parse(uint32_t attr_count,
  *
  * @return #SAI_STATUS_SUCCESS on success, failure status code on error
  */
-static sai_status_t sai_create_tunnel_term_table_entry(
-    _Out_ sai_object_id_t *tunnel_term_id,
-    _In_ sai_object_id_t switch_id,
-    _In_ uint32_t attr_count,
-    _In_ const sai_attribute_t *attr_list) {
+static sai_status_t
+sai_create_tunnel_term_table_entry(_Out_ sai_object_id_t *tunnel_term_id,
+                                   _In_ sai_object_id_t switch_id,
+                                   _In_ uint32_t attr_count,
+                                   _In_ const sai_attribute_t *attr_list)
+{
   switch_handle_t tunnel_term_handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
   switch_api_tunnel_term_info_t api_term_info = {0};
@@ -360,16 +378,17 @@ static sai_status_t sai_create_tunnel_term_table_entry(
 
   status = sai_tunnel_term_attribute_parse(attr_count, attr_list, &api_term_info);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "Failed to parse atributes when creating tunnel term table entry, error: %s \n",
-        sai_status_to_string(status));
+    VLOG_ERR("Failed to parse atributes when creating tunnel term "
+             "table entry, error: %s \n", sai_status_to_string(status));
     return status;
   }
 
-  switch_status = switch_api_tunnel_term_create(switch_id, &api_term_info, &tunnel_term_handle);
+  switch_status = switch_api_tunnel_term_create(switch_id, &api_term_info,
+                                                &tunnel_term_handle);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("Failed to create tunnel term table entry, error: %s", sai_status_to_string(status));
+    VLOG_ERR("Failed to create tunnel term table entry, "
+             "error: %s", sai_status_to_string(status));
     return status;
   }
 
@@ -378,7 +397,6 @@ static sai_status_t sai_create_tunnel_term_table_entry(
   return status;
 }
 
-#if 0
 /**
  * @brief Remove tunnel termination table entry
  *
@@ -386,44 +404,9 @@ static sai_status_t sai_create_tunnel_term_table_entry(
  *
  * @return #SAI_STATUS_SUCCESS on success, failure status code on error
  */
-static sai_status_t sai_remove_tunnel_term_table_entry(_In_ sai_object_id_t switch_id,
-                                      _In_ uint32_t attr_count,
-                                      _In_ const sai_attribute_t *attr_list) {
-  sai_status_t status = SAI_STATUS_SUCCESS;
-  switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
-
-  switch_api_tunnel_term_info_t tunnel_info = {0};
-
-  SAI_MEMSET(&tunnel_info, 0, sizeof(switch_api_tunnel_term_info_t));
-  status = sai_tunnel_term_attribute_parse(attr_count, attr_list, &tunnel_info);
-  if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR(
-        "sai tunnel create failed: "
-        "parsing failed:(%s)\n",
-        sai_status_to_string(status));
-    return status;
-  }
-
-  switch_status = switch_api_tunnel_term_delete(switch_id, &tunnel_info.tunnel_handle);
-  status = sai_switch_status_to_sai_status(switch_status);
-  if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("Failed to delete tunnel term table entry");
-    return status;
-  }
-
-  //VLOG_DBG("Tunnel term table entry delete success, handle 0x%lx",);
-  return status;
-}
-#endif
-
-/**
- * @brief Remove tunnel termination table entry
- *
- * @param[in] tunnel_term_table_entry_id Tunnel termination table entry id
- *
- * @return #SAI_STATUS_SUCCESS on success, failure status code on error
- */
-static sai_status_t sai_remove_tunnel_term_table_entry(_In_ sai_object_id_t tunnel_term_handle) {
+static sai_status_t
+sai_remove_tunnel_term_table_entry(_In_ sai_object_id_t tunnel_term_handle)
+{
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
@@ -435,7 +418,8 @@ static sai_status_t sai_remove_tunnel_term_table_entry(_In_ sai_object_id_t tunn
     return status;
   }
 
-  VLOG_DBG("Tunnel term table entry delete success, handle 0x%lx", tunnel_term_handle);
+  VLOG_DBG("Tunnel term table entry delete success, handle 0x%lx",
+            tunnel_term_handle);
   return status;
 }
 
@@ -448,7 +432,9 @@ sai_tunnel_api_t tunnel_api = {
     .create_tunnel_term_table_entry = sai_create_tunnel_term_table_entry,
     .remove_tunnel_term_table_entry = sai_remove_tunnel_term_table_entry};
 
-sai_status_t sai_tunnel_initialize(sai_api_service_t *sai_api_service) {
+sai_status_t
+sai_tunnel_initialize(sai_api_service_t *sai_api_service)
+{
   VLOG_DBG("Initializing tunnel");
   sai_api_service->tunnel_api = tunnel_api;
   return SAI_STATUS_SUCCESS;

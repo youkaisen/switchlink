@@ -540,11 +540,6 @@ switch_status_t switch_api_device_add(switch_device_t device) {
   device_ctx->device_id = device;
   device_ctx->warm_init = false;
 
-  for (index = 0; index < SWITCH_MAX_PORTS; index++) {
-    device_ctx->fp_list[index] = SWITCH_PORT_INVALID;
-    device_ctx->dp_list[index] = SWITCH_PORT_INVALID;
-  }
-
   status = switch_device_init(device, table_sizes);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR("device add failed for device %d: %s",

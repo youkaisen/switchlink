@@ -136,8 +136,8 @@ static void tunnel_interface_create(
                                                 &(tnl_intf->orif_h),
                                                 &(tnl_intf->tnl_term_h));
     if (status) {
-      VLOG_ERR("newlink: Failed to create switchlink tunnel interface :%s, error: %d",
-                tnl_intf->ifname, status);
+      VLOG_ERR("newlink: Failed to create switchlink tunnel interface :%s, "
+               "error: %d", tnl_intf->ifname, status);
       return;
     }
 
@@ -395,7 +395,7 @@ vxlan_dump_cache(struct unixctl_conn *conn, int argc OVS_UNUSED,
   if (status == SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND) {
     ds_put_format(&results, "\nCannot find config for interface %s", argv[1]);
   } else {
-//    ds_put_format(&results, "\nConfig for VxLAN port %s is:", argv[1]);
+    //    ds_put_format(&results, "\nConfig for VxLAN port %s is:", argv[1]);
     ds_put_format(&results, "\n\tDestination port ID: %d", tnl_ifinfo.dst_port);
     ds_put_format(&results, "\n\tDestination IP: %x", tnl_ifinfo.dst_ip.ip.v4addr.s_addr);
     ds_put_format(&results, "\n\tSource IP: %x", tnl_ifinfo.src_ip.ip.v4addr.s_addr);

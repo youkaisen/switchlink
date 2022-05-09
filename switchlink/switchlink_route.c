@@ -344,8 +344,8 @@ void process_route_msg(struct nlmsghdr *nlmsg, int type) {
       switchlink_db_status_t status;
       status = switchlink_db_interface_get_info(oif, &ifinfo);
       if (status != SWITCHLINK_DB_STATUS_SUCCESS) {
-        VLOG_ERR("route: Failed to get switchlink DB interface info, error: %d \n",
-             status);
+        VLOG_ERR("route: Failed to get switchlink DB interface info, "
+                 "error: %d \n", status);
         return;
       }
     }

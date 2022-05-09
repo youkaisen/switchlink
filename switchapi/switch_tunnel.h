@@ -21,7 +21,7 @@ limitations under the License.
 #include "switch_base_types.h"
 #include "switch_handle.h"
 #include "switch_interface.h"
-#include "switch_tunnel_int.h"
+#include "switch_types_int.h"
 
 #ifdef __cplusplus
 extern "C" {

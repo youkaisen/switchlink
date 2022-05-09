@@ -22,9 +22,7 @@ limitations under the License.
  */
 #include <target-utils/third-party/judy-1.0.5/src/Judy.h>
 #include <target-utils/third-party/tommyds/tommyds/tommyhashtbl.h>
-//#include <switchlink/tommyds/tommyhashtbl.h>
 #include <target-utils/third-party/tommyds/tommyds/tommylist.h>
-//#include <switchlink/tommyds/tommylist.h>
 #include <target-sys/bf_sal/bf_sys_mem.h>
 #include <target-sys/bf_sal/bf_sys_timer.h>
 #ifdef STATIC_LINK_LIB

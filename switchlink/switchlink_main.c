@@ -234,8 +234,8 @@ static void switchlink_nl_sock_intf_init(void) {
   nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_IFADDR, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_ROUTE, 0);
   //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_RULE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_IFADDR, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_ROUTE, 0);
+  //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_IFADDR, 0);
+  //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_ROUTE, 0);
   //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_RULE, 0);
 
   // set socket to be non-blocking
@@ -366,28 +366,6 @@ void *switchlink_main(void *args) {
   pthread_mutex_unlock(&cookie_mutex);
 
   return NULL;
-}
-
-//void *switchlink_init(void *args) {
-int switchlink_init(void) {
-
-  pthread_mutex_init(&cookie_mutex, NULL);
-  pthread_cond_init(&cookie_cv, NULL);
-  int status = pthread_create(&switchlink_thread, NULL, switchlink_main, NULL);
-  if (status) {
-    VLOG_ERR("Failed to create switchlink main thread, error %d", status);
-    return 0;
-  }
-  pthread_mutex_lock(&cookie_mutex);
-  while (!cookie) {
-    pthread_cond_wait(&cookie_cv, &cookie_mutex);
-  }
-  pthread_mutex_unlock(&cookie_mutex);
-  pthread_mutex_destroy(&cookie_mutex);
-  pthread_cond_destroy(&cookie_cv);
-  return status;
-
-  return 0;
 }
 
 int switchlink_stop(void) {

@@ -151,12 +151,6 @@ typedef struct switch_ecmp_member_s {
  */
 switch_status_t switch_ecmp_member_handle_init(switch_device_t device);
 
-
-/**
- * create ecmp group handle
- */
-switch_status_t switch_api_ecmp_create (const switch_device_t device,
-                                                switch_handle_t *ecmp_handle);
 /**
  Create a Nexthop
  @param device - device to program the nexthop
@@ -167,17 +161,6 @@ switch_status_t switch_api_nhop_create(
     const switch_api_nhop_info_t *api_nhop_info,
     switch_handle_t *nhop_handle);
 
-
-/**
- * Adds provided nhop into an ecmp group
- * and updates the table with hash and nhop id
- */
-switch_status_t switch_api_ecmp_member_add (
-    const switch_device_t device,
-    const switch_handle_t ecmp_handle,
-    const switch_uint32_t num_nhops,
-    const switch_handle_t *nhop_handles,
-    switch_handle_t *member_handle);
 
 /**
  Update a Nexthop

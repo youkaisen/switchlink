@@ -46,8 +46,8 @@ switch_status_t switch_rmac_init(switch_device_t device) {
   if (!rmac_ctx) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "rmac_init:Failed to allocate memory for switch_rmac_context_t on device %d "
-        ",error: %s\n",
+        "rmac_init:Failed to allocate memory for switch_rmac_context_t "
+        "on device %d ,error: %s\n",
         device,
         switch_error_to_string(status));
     return status;
@@ -64,8 +64,8 @@ switch_status_t switch_rmac_init(switch_device_t device) {
     return status;
   }
 
-  status =
-      switch_handle_type_init(device, SWITCH_HANDLE_TYPE_RMAC, 16384); //TODO: need to check the table size field
+  /* TODO: need to check the table size field */
+  status = switch_handle_type_init(device, SWITCH_HANDLE_TYPE_RMAC, 16384);
 
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
@@ -196,8 +196,8 @@ switch_status_t switch_api_router_mac_group_delete(
   if (status != SWITCH_STATUS_SUCCESS) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "rmac group delete: Failed to get rmac info on device %d rmac hadle 0x%lx: "
-        ",error: %s\n",
+        "rmac group delete: Failed to get rmac info on device %d rmac hadle "
+        "0x%lx: ,error: %s\n",
         device,
         rmac_handle,
         switch_error_to_string(status));
@@ -223,7 +223,7 @@ switch_status_t switch_api_router_mac_group_delete(
   status = switch_rmac_handle_delete(device, rmac_handle);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR(
-        "rmac group delete: Failed to delete rmac handle 0x%lx: on device %d  "
+        "rmac group delete: Failed to delete rmac handle 0x%lx: on device %d "
         ",error: %s\n",
         rmac_handle,
         device,
@@ -256,7 +256,7 @@ switch_status_t switch_api_router_mac_delete(
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "router mac delete: Invalid rmac handle 0x%lx, mac %s: on device %d"
+        "router mac delete: Invalid rmac handle 0x%lx, mac %s: on device %d "
         ",error: %s\n",
         rmac_handle,
         switch_macaddress_to_string(mac),
@@ -289,8 +289,8 @@ switch_status_t switch_api_router_mac_delete(
   if (!entry_found) {
     status = SWITCH_STATUS_ITEM_NOT_FOUND;
     VLOG_ERR(
-        "router mac delete: Failed to find rmac entry on device %d, rmac handle 0x%lx, mac %s: "
-        ",error: %s\n",
+        "router mac delete: Failed to find rmac entry on device %d, rmac "
+        "handle 0x%lx, mac %s: ,error: %s\n",
         device,
         rmac_handle,
         switch_macaddress_to_string(mac),
@@ -364,8 +364,8 @@ switch_status_t switch_api_router_mac_add(
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
-        "router mac add: Failed to get rmac info on device %d, rmac handle 0x%lx: "
-        ",error: %s\n",
+        "router mac add: Failed to get rmac info on device %d, rmac "
+        "handle 0x%lx: ,error: %s\n",
         device,
         rmac_handle,
         switch_error_to_string(status));
@@ -396,8 +396,8 @@ switch_status_t switch_api_router_mac_add(
   if (!rmac_entry) {
     status = SWITCH_STATUS_NO_MEMORY;
     VLOG_ERR(
-        "router mac add: Failed to allocate memory for switch_rmac_entry_t on device"
-        "%d rmac handle 0x%lx: ,error: %s\n",
+        "router mac add: Failed to allocate memory for switch_rmac_entry_t "
+        "on device %d rmac handle 0x%lx: ,error: %s\n",
         device,
         rmac_handle,
         switch_error_to_string(status));
