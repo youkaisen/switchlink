@@ -41,6 +41,29 @@ def gnmi_get_params_verify(params):
 
     return False
 
+def gnmi_get_params_elemt_value(params, elemt):
+    port_config = PortConfig()
+    elemt_value_list=[]
+    results=[]
+    for param in params:
+        mandatory_param = ",".join(param.split(',')[:2])
+
+        passed=True
+
+        value = port_config.GNMICLI.gnmi_cli_get(mandatory_param, elemt).strip()
+        if value :
+           elemt_value_list.append(value)
+        else:
+            passed=False
+            
+        results.append(passed)
+    port_config.GNMICLI.tear_down()
+ 
+    if [x for x in results if not x]:
+        return False
+    
+    return elemt_value_list
+
 
 def ip_set_ipv4(interface_ip_list):
     port_config = PortConfig()
