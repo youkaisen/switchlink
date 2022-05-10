@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 #include <sairoute.h>
 #include <config.h>
-#include "saiinternal.h"
 #include <switchapi/switch_device.h>
 #include <switchapi/switch_rif.h>
 #include <switchapi/switch_interface.h>
 #include <switchapi/switch_l3.h>
 #include <openvswitch/vlog.h>
+
+#include "saiinternal.h"
 
 VLOG_DEFINE_THIS_MODULE(sairoute);
 
@@ -117,7 +118,6 @@ static sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
     api_route_entry.neighbor_installed = FALSE;
     memcpy(&api_route_entry.ip_address, &ip_addr, sizeof(switch_ip_addr_t));
 
-    VLOG_DBG("Add route via switch_api_l3_route_add for: %s", entry_string);
     switch_status = switch_api_l3_route_add(0, &api_route_entry);
 
     status = sai_switch_status_to_sai_status(switch_status);
@@ -128,21 +128,21 @@ static sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
 }
 
 /*
-* Routine Description:
-*    Create Route
-*
-* Arguments:
-*    [in] route_entry - route entry
-*    [in] attr_count - number of attributes
-*    [in] attr_list - array of attributes
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*
-* Note: IP prefix/mask expected in Network Byte Order.
-*
-*/
+ * Routine Description:
+ *    Create Route
+ *
+ * Arguments:
+ *    [in] route_entry - route entry
+ *    [in] attr_count - number of attributes
+ *    [in] attr_list - array of attributes
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
+ * Note: IP prefix/mask expected in Network Byte Order.
+ *
+ */
 static
 sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
                                     _In_ uint32_t attr_count,
@@ -164,18 +164,18 @@ sai_status_t sai_create_route_entry(_In_ const sai_route_entry_t *route_entry,
 }
 
 /*
-* Routine Description:
-*    Remove Route
-*
-* Arguments:
-*    [in] route_entry - route entry
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*
-* Note: IP prefix/mask expected in Network Byte Order.
-*/
+ * Routine Description:
+ *    Remove Route
+ *
+ * Arguments:
+ *    [in] route_entry - route entry
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
+ * Note: IP prefix/mask expected in Network Byte Order.
+ */
 static 
 sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
 
@@ -197,7 +197,6 @@ sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
   memcpy(&api_route_entry.ip_address, &ip_addr, sizeof(switch_ip_addr_t));
   api_route_entry.neighbor_installed = FALSE;
 
-  VLOG_DBG("Delete l3 route via switch_api_l3_route_delete");
   switch_status = switch_api_l3_route_delete(0, &api_route_entry);
   status = sai_switch_status_to_sai_status(switch_status);
 
@@ -210,14 +209,13 @@ sai_status_t sai_remove_route_entry(_In_ const sai_route_entry_t *route_entry) {
 }
 
 /*
-*  Router entry methods table retrieved with sai_api_query()
-*/
+ *  Router entry methods table retrieved with sai_api_query()
+ */
 sai_route_api_t route_api = {
     .create_route_entry = sai_create_route_entry,
     .remove_route_entry = sai_remove_route_entry};
 
 sai_status_t sai_route_initialize(sai_api_service_t *sai_api_service) {
-  VLOG_DBG("Initializing route");
   sai_api_service->route_api = route_api;
   return SAI_STATUS_SUCCESS;
 }

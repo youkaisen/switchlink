@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include "switch_neighbor_int.h"
@@ -30,8 +30,6 @@ VLOG_DEFINE_THIS_MODULE(switch_neighbor);
 switch_status_t switch_neighbor_init(switch_device_t device) {
   switch_neighbor_context_t *neighbor_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   neighbor_ctx = SWITCH_MALLOC(device, sizeof(switch_neighbor_context_t), 0x1);
   if (!neighbor_ctx) {
@@ -73,8 +71,6 @@ switch_status_t switch_neighbor_free(switch_device_t device) {
   switch_neighbor_context_t *neighbor_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_NEIGHBOR, (void **)&neighbor_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
@@ -114,8 +110,6 @@ switch_status_t switch_api_neighbor_create(
   switch_rmac_info_t *rmac_info;
   switch_rmac_entry_t *rmac_entry = NULL;
   switch_node_t *node = NULL;
-
-  VLOG_DBG("%s", __func__);
 
   memset(&pd_neighbor_info, 0, sizeof(switch_pd_routing_info_t));
 
@@ -244,8 +238,6 @@ switch_status_t switch_api_neighbor_delete(
   switch_api_neighbor_info_t *api_neighbor_info = NULL;
   switch_handle_t nhop_handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_NEIGHBOR_HANDLE(neighbor_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;

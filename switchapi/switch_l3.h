@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #define __SWITCH_L3_H__
 
 #include <config.h>
+
 #include "switch_base_types.h"
 #include "switch_handle.h"
 #include "switch_l3_int.h"

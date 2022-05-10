@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <openvswitch/util.h>
@@ -24,6 +24,7 @@ limitations under the License.
 #include "switch_status.h"
 #include "switch_fdb.h"
 #include "switch_rif_int.h"
+#include "switch_pd_utils.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_fdb);
 
@@ -32,8 +33,6 @@ switch_status_t switch_l2_hash_key_init(void *args,
                                           switch_uint32_t *len) {
   switch_mac_addr_t *l2_key = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!args || !key || !len) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -52,7 +51,7 @@ switch_status_t switch_l2_hash_key_init(void *args,
 }
 
 switch_int32_t switch_l2_hash_compare(const void *key1, const void *key2) {
-  VLOG_DBG("%s", __func__);
+
 
   switch_l2_info_t *l2_info = (switch_l2_info_t *) key2;
   switch_mac_addr_t l2_mac;
@@ -71,8 +70,6 @@ switch_status_t switch_l2_init(switch_device_t device)
   switch_l2_context_t *l2_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_status_t tmp_status = SWITCH_STATUS_SUCCESS;
- 
-  VLOG_DBG("%s", __func__);
 
   l2_ctx = SWITCH_MALLOC(device, sizeof(switch_l2_context_t), 0x1);
   if (!l2_ctx) {
@@ -148,8 +145,6 @@ switch_status_t switch_l2_free(switch_device_t device)
   switch_l2_context_t *l2_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L2, (void **)&l2_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
@@ -203,8 +198,6 @@ switch_status_t switch_api_l2_handle_get(
   switch_l2_info_t *l2_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   if (!l2_key || !l2_handle) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
     VLOG_ERR("Failed to find l2 handle due to invalid parameters \n"
@@ -242,8 +235,6 @@ switch_status_t switch_api_l2_forward_create(
   switch_l2_info_t *l2_info = NULL;
   switch_l2_context_t *l2_ctx = NULL;
   switch_mac_addr_t l2_mac;
-
-  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L2, (void **)&l2_ctx);
@@ -410,8 +401,6 @@ switch_status_t switch_api_l2_forward_delete (
   switch_l2_context_t *l2_ctx = NULL;
   switch_mac_addr_t l2_mac;
   switch_l2_info_t *l2_info = NULL;
-
-  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L2, (void **)&l2_ctx);

@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifndef __SWITCH_PD_ROUTING_H__
 #define __SWITCH_PD_ROUTING_H__
@@ -95,6 +95,14 @@ switch_status_t switch_routing_table_entry (
         switch_device_t device,
         const switch_pd_routing_info_t *api_routing_info,
         bool entry_type);
+
+//Table name macros
+#define NEXTHOP_TABLE "nexthop_table"
+#define IPV4_TABLE "ipv4_table"
+#define NEIGHBOR_MOD_TABLE "neighbor_mod_table"
+#define RIF_MOD_TABLE_START "rif_mod_table_start"
+#define RIF_MOD_TABLE_MID "rif_mod_table_mid"
+#define RIF_MOD_TABLE_LAST "rif_mod_table_last"
 
 #ifdef  __cplusplus
 }

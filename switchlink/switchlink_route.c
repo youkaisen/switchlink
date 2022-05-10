@@ -1,24 +1,25 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <netlink/netlink.h>
 #include <netlink/msg.h>
+
 #include "util.h"
 #include "switchlink.h"
 #include "switchlink_link.h"
@@ -29,6 +30,17 @@ limitations under the License.
 #include "openvswitch/vlog.h"
 
 VLOG_DEFINE_THIS_MODULE(switchlink_route)
+
+/*
+ * Routine Description:
+ *    Delete ecmp and remove entry to the database
+ *
+ * Arguments:
+ *    [in] ecmp_h - route interface handle
+ *
+ * Return Values:
+ *    void
+ */
 
 static void ecmp_delete(switchlink_handle_t ecmp_h) {
   int32_t ref_count;
@@ -45,6 +57,21 @@ static void ecmp_delete(switchlink_handle_t ecmp_h) {
     switchlink_db_ecmp_delete(ecmp_h);
   }
 }
+
+/*
+ * Routine Description:
+ *    Create route and add entry to the database
+ *
+ * Arguments:
+ *    [in] vrf_h - vrf handle
+ *    [in] dst - IP address associated with route
+ *    [in] gateway - gateway associated with route
+ *    [in] ecmp_h - route interface handle
+ *    [in] intf_h - ecmp handle
+ *
+ * Return Values:
+ *    void
+ */
 
 void route_create(switchlink_handle_t vrf_h,
                   switchlink_ip_addr_t *dst,
@@ -119,6 +146,18 @@ void route_create(switchlink_handle_t vrf_h,
   }
 }
 
+/*
+ * Routine Description:
+ *    Delete route and remove entry from the database
+ *
+ * Arguments:
+ *    [in] vrf_h - vrf handle
+ *    [in] dst - IP address associated with route
+ *
+ * Return Values:
+ *    void
+ */
+
 void route_delete(switchlink_handle_t vrf_h, switchlink_ip_addr_t *dst) {
   if (!dst) {
     return;
@@ -147,6 +186,20 @@ void route_delete(switchlink_handle_t vrf_h, switchlink_ip_addr_t *dst) {
     }
   }
 }
+
+/*
+ * Routine Description:
+ *    Process ecmp netlink messages
+ *
+ * Arguments:
+ *    [in] family - INET family
+ *    [in] attr - netlink attribute
+ *    [in] vrf_h - vrf handle
+ *
+ * Return Values:
+ *    ecmp handle in case of sucess
+ *    0 in case of failure
+ */
 
 static switchlink_handle_t process_ecmp(uint8_t family,
                                         struct nlattr *attr,
@@ -213,6 +266,18 @@ static switchlink_handle_t process_ecmp(uint8_t family,
 /* TODO: P4-OVS: Dummy Processing of Netlink messages received
 * Support IPv4 Routing
 */
+
+/*
+ * Routine Description:
+ *    Process route netlink messages
+ *
+ * Arguments:
+ *    [in] nlmsg - netlink msg header
+ *    [in] type - type of entry (RTM_NEWROUTE/RTM_DELROUTE)
+ *
+ * Return Values:
+ *    void
+ */
 
 void process_route_msg(struct nlmsghdr *nlmsg, int type) {
   int hdrlen, attrlen;

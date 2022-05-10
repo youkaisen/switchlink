@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <openvswitch/vlog.h>
 #include "switch_internal.h"
@@ -55,8 +55,6 @@ switch_status_t switch_pd_nexthop_table_entry(
   dev_tgt.pipe_id = 0;
   dev_tgt.direction = 0xFF;
   dev_tgt.prsr_id = 0xFF;
-
-  VLOG_DBG("%s", __func__);
   
   status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                               &bfrt_info_hdl, &session);
@@ -66,7 +64,7 @@ switch_status_t switch_pd_nexthop_table_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, "nexthop_table",
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, NEXTHOP_TABLE,
                                        &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle for nexthop_table");
@@ -177,8 +175,6 @@ switch_status_t switch_pd_neighbor_table_entry(
   dev_tgt.direction = 0xFF;
   dev_tgt.prsr_id = 0xFF;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                              &bfrt_info_hdl, &session);
   if(status != BF_SUCCESS) {
@@ -187,7 +183,7 @@ switch_status_t switch_pd_neighbor_table_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, "neighbor_mod_table",
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, NEIGHBOR_MOD_TABLE,
                                        &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle for neighbor_mod_table");
@@ -213,7 +209,8 @@ switch_status_t switch_pd_neighbor_table_entry(
   if (entry_add) {
       /* Add an entry to target */
       VLOG_INFO("Populate set_outer_mac action in neighbor_mod_table for "
-                "neighbor handle %x", api_neighbor_pd_info->neighbor_handle);
+                "neighbor handle %x",
+                (unsigned int) api_neighbor_pd_info->neighbor_handle);
 
       action_id = 31671750; // action id for neighbor_mod_table,
                             // action: set_outer_mac
@@ -286,8 +283,6 @@ switch_status_t switch_pd_rif_mod_start_entry(
   dev_tgt.direction = 0xFF;
   dev_tgt.prsr_id = 0xFF;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                              &bfrt_info_hdl, &session);
   if(status != BF_SUCCESS) {
@@ -296,7 +291,7 @@ switch_status_t switch_pd_rif_mod_start_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, "rif_mod_table_start",
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, RIF_MOD_TABLE_START,
                                      &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle for rif_mod_table_start");
@@ -394,8 +389,6 @@ switch_status_t switch_pd_rif_mod_mid_entry(
   dev_tgt.direction = 0xFF;
   dev_tgt.prsr_id = 0xFF;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                            &bfrt_info_hdl, &session);
   if(status != BF_SUCCESS) {
@@ -404,7 +397,7 @@ switch_status_t switch_pd_rif_mod_mid_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, "rif_mod_table_mid",
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, RIF_MOD_TABLE_MID,
                                    &table_hdl);
   if(status != BF_SUCCESS) {
     VLOG_ERR("Unable to get table handle for rif_mod_table_mid");
@@ -502,8 +495,6 @@ switch_status_t switch_pd_rif_mod_end_entry(
   dev_tgt.direction = 0xFF;
   dev_tgt.prsr_id = 0xFF;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                              &bfrt_info_hdl, &session);
   if(status != BF_SUCCESS) {
@@ -512,7 +503,7 @@ switch_status_t switch_pd_rif_mod_end_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, "rif_mod_table_last",
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, RIF_MOD_TABLE_LAST,
                                      &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get rif_mod_table_last handle");
@@ -610,8 +601,6 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
   dev_tgt.direction = 0xFF;
   dev_tgt.prsr_id = 0xFF;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
   if(status != BF_SUCCESS) {
@@ -620,7 +609,7 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, "ipv4_table",
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, IPV4_TABLE,
                                        &table_hdl);
   if(status != BF_SUCCESS) {
       VLOG_ERR("Unable to get table handle for ipv4_table");
@@ -652,7 +641,8 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
     if(action == SWITCH_ACTION_NHOP)
     {
       VLOG_INFO("Populate set_nexthop_id action in ipv4_table for "
-                "route handle %x", api_route_entry->route_handle);
+                "route handle %x",
+                (unsigned int) api_route_entry->route_handle);
 
       /* Add an entry to target */
       action_id = 29883644; //action id for ipv_table, action: set_nexthop_id
@@ -727,8 +717,6 @@ switch_status_t switch_routing_table_entry (
 {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   //update nexthop table
   status = switch_pd_nexthop_table_entry(device, api_routing_info, entry_type);
   if(status != SWITCH_STATUS_SUCCESS){
@@ -752,8 +740,6 @@ switch_status_t switch_pd_rmac_table_entry (
         bool entry_type)
 {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!rmac_entry) {
       VLOG_ERR("Empty router_mac entry \n");

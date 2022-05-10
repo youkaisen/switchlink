@@ -1,35 +1,34 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
-#include "switch_rif.h"
 #include <openvswitch/util.h>
 #include <openvswitch/vlog.h>
 #include <net/if.h>
+#include <bf_types/bf_types.h>
 
 /* Local header includes */
+#include "bf_pal/bf_pal_port_intf.h"
 #include "switch_internal.h"
 #include "switch_rif_int.h"
 #include "switch_base_types.h"
 #include "switch_status.h"
 #include "switch_device.h"
 #include "switch_pd_utils.h"
-
-#include <bf_types/bf_types.h>
-#include "bf_pal/bf_pal_port_intf.h"
+#include "switch_rif.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_rif);
 
@@ -46,8 +45,6 @@ VLOG_DEFINE_THIS_MODULE(switch_rif);
  */
 switch_status_t switch_rif_init(switch_device_t device) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   status =
       switch_handle_type_init(device, SWITCH_HANDLE_TYPE_RIF, SWITCH_RIF_MAX);
@@ -72,8 +69,6 @@ switch_status_t switch_rif_init(switch_device_t device) {
 switch_status_t switch_rif_free(switch_device_t device) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_RIF);
   CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);
 
@@ -89,8 +84,6 @@ switch_status_t switch_api_rif_attribute_get(
     switch_api_rif_info_t *api_rif_info) {
   switch_rif_info_t *rif_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_RIF_HANDLE(rif_handle)) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -119,8 +112,6 @@ switch_status_t switch_api_rif_create(
     switch_handle_t *rif_handle) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_rif_info_t *rif_info = NULL;
-
-  VLOG_DBG("%s", __func__);
 
   if (api_rif_info->rmac_handle == SWITCH_API_INVALID_HANDLE) {
     status = switch_api_device_default_rmac_handle_get(
@@ -162,8 +153,6 @@ switch_status_t switch_api_rif_delete(switch_device_t device,
                                                switch_handle_t rif_handle) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_rif_info_t *rif_info = NULL;
-
-  VLOG_DBG("%s", __func__);
 
   status = switch_rif_get(device, rif_handle, &rif_info);
   CHECK_RET(status != SWITCH_STATUS_SUCCESS, status);

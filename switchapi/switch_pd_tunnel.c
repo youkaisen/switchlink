@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <openvswitch/vlog.h>
 #include "switch_tunnel.h"
@@ -64,7 +64,7 @@ switch_status_t switch_pd_tunnel_entry(
     }
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-    status = bf_rt_table_from_name_get(bfrt_info_hdl, "vxlan_encap_mod_table",
+    status = bf_rt_table_from_name_get(bfrt_info_hdl, VXLAN_ENCAP_MOD_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get table handle for vxlan_encap_mod_table");
@@ -88,7 +88,8 @@ switch_status_t switch_pd_tunnel_entry(
     if (entry_add) {
         /* Add an entry to target */
         VLOG_INFO("Populate vxlan encap action in vxlan_encap_mod_table for "
-                  "tunnel interface %x", api_tunnel_info_t->overlay_rif_handle);
+                  "tunnel interface %x",
+                  (unsigned int) api_tunnel_info_t->overlay_rif_handle);
 
         action_id = 20733968; // Action is vxlan_encap
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
@@ -204,7 +205,7 @@ switch_status_t switch_pd_tunnel_term_entry(
     }
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-    status = bf_rt_table_from_name_get(bfrt_info_hdl, "ipv4_tunnel_term_table",
+    status = bf_rt_table_from_name_get(bfrt_info_hdl, IPV4_TUNNEL_TERM_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get table handle for ipv4_tunnel_term_table");
@@ -255,7 +256,7 @@ switch_status_t switch_pd_tunnel_term_entry(
     if (entry_add) {
         VLOG_INFO("Populate decap_outer_ipv4 action in ipv4_tunnel_term_table "
                   "for tunnel interface %x",
-                   api_tunnel_term_info_t->tunnel_handle);
+                   (unsigned int) api_tunnel_term_info_t->tunnel_handle);
         /* Add an entry to target */
         action_id = 32579284; // Action is decap_outer_ipv4
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,

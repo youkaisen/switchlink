@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ static sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("Get default RMAC handle");
   switch_status = switch_api_device_default_rmac_handle_get(switch_id, rmac_h);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
@@ -52,7 +51,6 @@ static sai_status_t sai_create_rmac_internal(sai_object_id_t switch_id,
     switch (attribute->id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
 
-        VLOG_DBG("RMAC group create");
         switch_status = switch_api_router_mac_group_create(
             switch_id, SWITCH_RMAC_TYPE_ALL, rmac_h);
 
@@ -81,7 +79,6 @@ static sai_status_t sai_delete_rmac_internal(switch_handle_t rif_handle,
 
   switch_api_device_default_rmac_handle_get(0, &tmp_rmac_handle);
   if (tmp_rmac_handle != rmac_handle) {
-      VLOG_DBG("Delete router MAC");
       switch_status = switch_api_router_mac_group_delete(0, rif_handle,
                                                          rmac_handle);
       status = sai_switch_status_to_sai_status(switch_status);
@@ -95,18 +92,18 @@ static sai_status_t sai_delete_rmac_internal(switch_handle_t rif_handle,
 }
 
 /*
-* Routine Description:
-*    Create router interface.
-*
-* Arguments:
-*    [out] rif_id - router interface id
-*    [in] attr_count - number of attributes
-*    [in] attr_list - array of attributes
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*/
+ * Routine Description:
+ *    Create router interface.
+ *
+ * Arguments:
+ *    [out] rif_id - router interface id
+ *    [in] attr_count - number of attributes
+ *    [in] attr_list - array of attributes
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 static sai_status_t sai_create_router_interface(
     _Out_ sai_object_id_t *rif_id,
     _In_ sai_object_id_t switch_id,
@@ -185,8 +182,6 @@ static sai_status_t sai_create_router_interface(
 
     api_rif_info.rif_ifindex = attribute->value.u32;
 
-    VLOG_DBG("Calling switch api create router interface");
-
     switch_status = switch_api_rif_create(switch_id, &api_rif_info,
                                           &rif_handle);
     status = sai_switch_status_to_sai_status(switch_status);
@@ -200,6 +195,17 @@ static sai_status_t sai_create_router_interface(
   return (sai_status_t)status;
 }
 
+/*
+ * Routine Description:
+ *    Remove router interface.
+ *
+ * Arguments:
+ *    [in] rif_id - router interface id
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 static sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
 
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -207,7 +213,6 @@ static sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
   switch_handle_t rmac_handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("Get RIF attributes");
   switch_status = switch_api_rif_attribute_get(
       0, rif_id, (switch_uint64_t)UINT64_MAX, &api_rif_info);
   if ((status = sai_switch_status_to_sai_status(switch_status)) !=
@@ -224,7 +229,6 @@ static sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
                   sai_status_to_string(status));
   }
 
-  VLOG_DBG("Calling switch api delete router interface");
   switch_status = switch_api_rif_delete(0, (switch_handle_t)rif_id);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
@@ -236,15 +240,14 @@ static sai_status_t sai_remove_router_interface(_In_ sai_object_id_t rif_id) {
 }
 
 /*
-*  Routing interface methods table retrieved with sai_api_query()
-*/
+ *  Routing interface methods table retrieved with sai_api_query()
+ */
 sai_router_interface_api_t rif_api = {
     .create_router_interface = sai_create_router_interface,
     .remove_router_interface = sai_remove_router_interface};
 
 sai_status_t sai_router_interface_initialize(
     sai_api_service_t *sai_api_service) {
-  VLOG_DBG("Initializing router interface");
   sai_api_service->rif_api = rif_api;
   return SAI_STATUS_SUCCESS;
 }

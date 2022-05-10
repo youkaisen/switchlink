@@ -1,32 +1,32 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
+#include <openvswitch/util.h>
+#include <openvswitch/vlog.h>
+
+/* Local header includes */
 #include "switch_nhop.h"
 #include "switch_nhop_int.h"
-/* Local header includes */
 #include "switch_handle_int.h"
 #include "switch_internal.h"
 #include "switch_rif_int.h"
 #include "switch_rif.h"
 #include "switch_neighbor_int.h"
 #include "switch_pd_routing.h"
-
-#include <openvswitch/util.h>
-#include <openvswitch/vlog.h>
 
 VLOG_DEFINE_THIS_MODULE(switch_nhop);
 
@@ -37,8 +37,6 @@ switch_status_t switch_nhop_ecmp_member_list_add(
     switch_nhop_info_t *nhop_info,
     switch_handle_t ecmp_mem_handle) {
   PWord_t PValue;
-
-  VLOG_DBG("%s", __func__);
 
   JLI(PValue, SWITCH_NHOP_ECMP_MEMBER_REF_LIST(nhop_info), ecmp_mem_handle);
   if (PValue == PJERR) {
@@ -66,8 +64,6 @@ switch_status_t switch_nhop_ecmp_member_list_add(
 switch_status_t switch_ecmp_member_handle_init(switch_device_t device) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_handle_type_init(
       device, SWITCH_HANDLE_TYPE_ECMP_MEMBER, ECMP_HASH_TABLE_SIZE);
 
@@ -86,8 +82,6 @@ switch_status_t switch_nhop_hash_key_init(void *args,
                                           switch_uint32_t *len) {
   switch_nhop_key_t *nhop_key = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!args || !key || !len) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -112,8 +106,6 @@ switch_status_t switch_nhop_hash_key_init(void *args,
 }
 
 switch_int32_t switch_nhop_hash_compare(const void *key1, const void *key2) {
-  VLOG_DBG("%s", __func__);
-
   switch_nhop_info_t *nhop_info = (switch_nhop_info_t *) key2;
   switch_nhop_key_t nhop_key;
 
@@ -130,8 +122,6 @@ switch_int32_t switch_nhop_hash_compare(const void *key1, const void *key2) {
 switch_status_t switch_nhop_init(switch_device_t device) {
   switch_nhop_context_t *nhop_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   nhop_ctx = SWITCH_MALLOC(device, sizeof(switch_nhop_context_t), 0x1);
   if (!nhop_ctx) {
@@ -189,8 +179,6 @@ switch_status_t switch_nhop_free(switch_device_t device) {
   switch_nhop_context_t *nhop_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_NHOP, (void **)&nhop_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
@@ -234,8 +222,6 @@ switch_status_t switch_api_nhop_handle_get(
   switch_nhop_info_t *nhop_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   if (!nhop_key || !nhop_handle) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
     VLOG_ERR("nhop key find Failed \n");
@@ -267,8 +253,6 @@ switch_status_t switch_api_neighbor_handle_get (
   switch_nhop_info_t *nhop_info = NULL;
   switch_spath_info_t *spath_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
   
   if (!SWITCH_NHOP_HANDLE(nhop_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
@@ -304,8 +288,6 @@ switch_status_t switch_api_ecmp_create (const switch_device_t device,
   switch_ecmp_info_t *ecmp_info = NULL;
   switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   handle = switch_ecmp_group_handle_create(device, 0);
   if (handle == SWITCH_API_INVALID_HANDLE) {
@@ -354,8 +336,6 @@ switch_status_t switch_api_ecmp_member_add (
   switch_uint32_t index = 0;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_ecmp_info_t *ecmp_info = NULL;
-
-  VLOG_DBG("%s", __func__);
 
   if (num_nhops == 0 || !nhop_handles || !ecmp_handle) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -472,8 +452,6 @@ switch_status_t switch_ecmp_member_get_from_nhop(
   bool member_found = FALSE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   if (!ecmp_member) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
     VLOG_ERR("Failed to get ecmp member on device %d: %s",
@@ -532,8 +510,6 @@ switch_status_t switch_nhop_ecmp_member_list_remove(
     switch_handle_t ecmp_mem_handle) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   int Rc_int;
   JLD(Rc_int, SWITCH_NHOP_ECMP_MEMBER_REF_LIST(nhop_info), ecmp_mem_handle);
   if (Rc_int != 1) {
@@ -570,8 +546,6 @@ switch_status_t switch_api_ecmp_member_delete(
   switch_handle_t member_handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_uint32_t index = 0;
-
-  VLOG_DBG("%s", __func__);
 
   if (num_nhops == 0 || !nhop_handles) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -705,8 +679,6 @@ switch_status_t switch_api_ecmp_members_delete (
   switch_uint32_t index = 0;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   SWITCH_ASSERT(SWITCH_ECMP_HANDLE(ecmp_handle));
   if (!SWITCH_ECMP_HANDLE(ecmp_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
@@ -795,8 +767,6 @@ switch_status_t switch_api_nhop_create(
   switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_pd_routing_info_t pd_routing_info; //TODO
-
-  VLOG_DBG("%s", __func__);
 
   memset(&pd_routing_info, 0, sizeof(switch_pd_routing_info_t));
 
@@ -922,7 +892,7 @@ switch_status_t switch_api_nhop_delete(
   switch_nhop_key_t nhop_key = {0};
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
+
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_NHOP, (void **)&nhop_ctx);
@@ -1008,8 +978,6 @@ switch_status_t switch_api_nhop_id_type_get(
     switch_nhop_id_type_t *nhop_type) {
   switch_nhop_info_t *nhop_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!nhop_type || !nhop_handle) {
     status = SWITCH_STATUS_INVALID_PARAMETER;

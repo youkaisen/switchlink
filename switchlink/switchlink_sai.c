@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <stdint.h>
@@ -68,6 +68,18 @@ static inline struct in6_addr ipv6_prefix_len_to_mask(uint32_t prefix_len) {
   return mask;
 }
 
+/*
+ * Routine Description:
+ *    Remove FDB entry
+ *
+ * Arguments:
+ *    [in] fdb_entry - fdb entry
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
+
 int switchlink_vrf_create(switchlink_handle_t *vrf_h) {
   sai_status_t status = SAI_STATUS_SUCCESS;
   sai_attribute_t attr_list[2];
@@ -78,10 +90,21 @@ int switchlink_vrf_create(switchlink_handle_t *vrf_h) {
   attr_list[1].id = SAI_VIRTUAL_ROUTER_ATTR_ADMIN_V6_STATE;
   attr_list[1].value.booldata = true;
 
-  VLOG_DBG("Create VRF is requested");
   status = vrf_api->create_virtual_router(vrf_h, 0, 2, attr_list);
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
+
+/*
+ * Routine Description:
+ *    Remove FDB entry
+ *
+ * Arguments:
+ *    [in] fdb_entry - fdb entry
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 
 int switchlink_tuntap_create(switchlink_db_tuntap_info_t *tunp,
                                 switchlink_handle_t *tunp_h) {
@@ -101,6 +124,19 @@ int switchlink_tuntap_create(switchlink_db_tuntap_info_t *tunp,
 
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
+
+/*
+ * Routine Description:
+ *    Create router interface
+ *
+ * Arguments:
+ *    [in] intf - router interface info
+ *    [out] intf_h - router interface handle
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
 
 int switchlink_interface_create(switchlink_db_interface_info_t *intf,
                                 switchlink_handle_t *intf_h) {
@@ -132,6 +168,19 @@ int switchlink_interface_create(switchlink_db_interface_info_t *intf,
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
+/*
+ * Routine Description:
+ *    Remove router interface
+ *
+ * Arguments:
+ *    [in] intf - router interface info
+ *    [in] intf_h - router interface handle
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
+
 int switchlink_interface_delete(switchlink_db_interface_info_t *intf,
                                 switchlink_handle_t intf_h) {
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -141,8 +190,21 @@ int switchlink_interface_delete(switchlink_db_interface_info_t *intf,
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
+/*
+ * Routine Description:
+ *    Create tunnel
+ *
+ * Arguments:
+ *    [in] tnl_intf - tunnel interface info
+ *    [in] tnl_intf_h - tunnel interface handle
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
+
 sai_status_t switchlink_create_tunnel(
-                            switchlink_db_tunnel_interface_info_t *tnl_intf,
+          switchlink_db_tunnel_interface_info_t *tnl_intf,
           switchlink_handle_t *tnl_intf_h) {
     sai_attribute_t attr_list[10];
     int ac = 0;
@@ -173,6 +235,19 @@ sai_status_t switchlink_create_tunnel(
 
     return tunnel_api->create_tunnel(tnl_intf_h, 0, ac, attr_list);
 }
+
+/*
+ * Routine Description:
+ *    Create tunnel termination table entry
+ *
+ * Arguments:
+ *    [in] tnl_intf - tunnel term interface info
+ *    [in] tnl_term_intf_h - tunnel term interface handle
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 
 sai_status_t switchlink_create_term_table_entry(
                             switchlink_db_tunnel_interface_info_t *tnl_intf,
@@ -205,6 +280,21 @@ sai_status_t switchlink_create_term_table_entry(
                                                       attr_list);
 }
 
+/*
+ * Routine Description:
+ *    Wrapper function to create tunnel interface and create tunnel 
+ *    term table entry
+ *
+ * Arguments:
+ *    [in] tnl_intf - tunnel interface info
+ *    [in] tnl_intf_h - tunnel interface handle
+ *    [in] tnl_term_h - tunnel term handle
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
+
 int switchlink_tunnel_interface_create(
                                 switchlink_db_tunnel_interface_info_t *tnl_intf,
                                 switchlink_handle_t *tnl_intf_h,
@@ -230,16 +320,55 @@ int switchlink_tunnel_interface_create(
     return 0;
 }
 
+/*
+ * Routine Description:
+ *    Remove tunnel term table entry
+ *
+ * Arguments:
+ *    [in] tnl_intf - tunnel interface info
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
+
 sai_status_t switchlink_remove_tunnel_term_table_entry(
                         switchlink_db_tunnel_interface_info_t *tnl_intf) {
     return tunnel_api->remove_tunnel_term_table_entry(tnl_intf->tnl_term_h);
 }
+
+/*
+ * Routine Description:
+ *    Remove tunnel interface
+ *
+ * Arguments:
+ *    [in] tnl_intf - tunnel interface info
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 
 sai_status_t switchlink_remove_tunnel(
                         switchlink_db_tunnel_interface_info_t *tnl_intf) {
 
   return tunnel_api->remove_tunnel(tnl_intf->orif_h);
 }
+
+/*
+ * Routine Description:
+ *    Wrapper function to delete tunnel interface and delete tunnel 
+ *    term table entry
+ *
+ * Arguments:
+ *    [in] tnl_intf - tunnel interface info
+ *    [in] tnl_intf_h - tunnel interface handle
+ *    [in] tnl_term_h - tunnel term handle
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
 
 int switchlink_tunnel_interface_delete(switchlink_db_tunnel_interface_info_t
                                        *tnl_intf) {
@@ -267,6 +396,19 @@ int switchlink_tunnel_interface_delete(switchlink_db_tunnel_interface_info_t
   return 0;
 }
 
+/*
+ * Routine Description:
+ *    Create FDB entry
+ *
+ * Arguments:
+ *    [in] mac_addr - MAC address
+ *    [in] bridge_h - bridge handle
+ *    [in] intf_h - interface handle
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
 
 int switchlink_mac_create(switchlink_mac_addr_t mac_addr,
                           switchlink_handle_t bridge_h,
@@ -288,6 +430,19 @@ int switchlink_mac_create(switchlink_mac_addr_t mac_addr,
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
+/*
+ * Routine Description:
+ *    Delete FDB entry
+ *
+ * Arguments:
+ *    [in] mac_addr - MAC address
+ *    [in] bridge_h - bridge handle
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
+
 int switchlink_mac_delete(switchlink_mac_addr_t mac_addr,
                           switchlink_handle_t bridge_h) {
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -299,6 +454,18 @@ int switchlink_mac_delete(switchlink_mac_addr_t mac_addr,
   status = fdb_api->remove_fdb_entry(&fdb_entry);
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
+
+/*
+ * Routine Description:
+ *    Create nexthop entry
+ *
+ * Arguments:
+ *    [in] neigh_info - neighbor interface info
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
 
 int switchlink_nexthop_create(switchlink_db_neigh_info_t *neigh_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -325,11 +492,35 @@ int switchlink_nexthop_create(switchlink_db_neigh_info_t *neigh_info) {
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
+/*
+ * Routine Description:
+ *    Delete nexthop entry
+ *
+ * Arguments:
+ *    [in] neigh_info - neighbor interface info
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
+
 int switchlink_nexthop_delete(switchlink_db_neigh_info_t *neigh_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
   status = nhop_api->remove_next_hop(neigh_info->nhop_h);
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
+
+/*
+ * Routine Description:
+ *    Create neighbor entry
+ *
+ * Arguments:
+ *    [in] neigh_info - neighbor interface info
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
 
 int switchlink_neighbor_create(switchlink_db_neigh_info_t *neigh_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -358,6 +549,18 @@ int switchlink_neighbor_create(switchlink_db_neigh_info_t *neigh_info) {
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
+/*
+ * Routine Description:
+ *    Remove neighbor entry
+ *
+ * Arguments:
+ *    [in] neigh_info - neighbor interface info
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
+
 int switchlink_neighbor_delete(switchlink_db_neigh_info_t *neigh_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
 
@@ -372,6 +575,17 @@ int switchlink_neighbor_delete(switchlink_db_neigh_info_t *neigh_info) {
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
+/*
+ * Routine Description:
+ *    Create route entry
+ *
+ * Arguments:
+ *    [in] route_info - route info
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
 
 int switchlink_route_create(switchlink_db_route_info_t *route_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -411,6 +625,18 @@ int switchlink_route_create(switchlink_db_route_info_t *route_info) {
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
+/*
+ * Routine Description:
+ *    Delete route entry
+ *
+ * Arguments:
+ *    [in] route_info - route info
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
+
 int switchlink_route_delete(switchlink_db_route_info_t *route_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
 
@@ -438,6 +664,18 @@ int switchlink_route_delete(switchlink_db_route_info_t *route_info) {
   status = route_api->remove_route_entry(&route_entry);
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
+
+/*
+ * Routine Description:
+ *    Create ecmp by creating nexthop group
+ *
+ * Arguments:
+ *    [in] ecmp_info - ecmp_info
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
 
 int switchlink_ecmp_create(switchlink_db_ecmp_info_t *ecmp_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
@@ -467,6 +705,18 @@ int switchlink_ecmp_create(switchlink_db_ecmp_info_t *ecmp_info) {
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
+/*
+ * Routine Description:
+ *    Delete ecmp by deleting nexthop group
+ *
+ * Arguments:
+ *    [in] ecmp_info - ecmp_info
+ *
+ * Return Values:
+ *    0 on success
+ *   -1 in case of error
+ */
+
 int switchlink_ecmp_delete(switchlink_db_ecmp_info_t *ecmp_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
   uint8_t index = 0;
@@ -477,6 +727,17 @@ int switchlink_ecmp_delete(switchlink_db_ecmp_info_t *ecmp_info) {
   status = nhop_group_api->remove_next_hop_group(ecmp_info->ecmp_h);
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
+
+/*
+ * Routine Description:
+ *    Initialize SAI API's
+ *
+ * Arguments:
+ *    void
+ *
+ * Return Values:
+ *    void
+ */
 
 void switchlink_api_init(void) {
   sai_status_t status = SAI_STATUS_SUCCESS;

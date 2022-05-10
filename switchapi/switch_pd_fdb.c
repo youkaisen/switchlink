@@ -1,28 +1,24 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <openvswitch/vlog.h>
-#include "switch_internal.h"
-#include "switch_fdb.h"
-#include "switch_rif_int.h"
-#include "switch_base_types.h"
 #include <config.h>
-
 #include <bf_types/bf_types.h>
 #include <port_mgr/dpdk/bf_dpdk_port_if.h>
+
 #include "bf_rt/bf_rt_common.h"
 #include "bf_rt/bf_rt_session.h"
 #include "bf_rt/bf_rt_init.h"
@@ -31,6 +27,10 @@ limitations under the License.
 #include "bf_rt/bf_rt_table_key.h"
 #include "bf_rt/bf_rt_table_data.h"
 #include "switch_pd_utils.h"
+#include "switch_internal.h"
+#include "switch_fdb.h"
+#include "switch_rif_int.h"
+#include "switch_base_types.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_pd_fdb);
 
@@ -69,7 +69,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
     }
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-    status = bf_rt_table_from_name_get(bfrt_info_hdl, "l2_fwd_tx_table",
+    status = bf_rt_table_from_name_get(bfrt_info_hdl, L2_FWD_TX_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get table handle for l2_fwd_tx_table");
@@ -95,7 +95,7 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         api_l2_tx_info->learn_from == SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE) {
 
         VLOG_INFO("Populate set_tunnel action in l2_fwd_tx_table for tunnel "
-                  "interface %x", (unsigned int) api_l2_tx_info->rif_handle);
+                  "interface %x", (unsigned int)api_l2_tx_info->rif_handle);
 
         action_id = 22384992; //action id for l2_fwd_tx_table, action:set_tunnel
 
@@ -106,7 +106,8 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 1; // action value tunnel_id
+        data_field_id = 1; // field value tunnel_id
+
         status = bf_rt_data_field_set_value_ptr (data_hdl, data_field_id,
                                                  0, sizeof(uint32_t));
         if(status != BF_SUCCESS) {
@@ -246,7 +247,7 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
     }
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-    status = bf_rt_table_from_name_get(bfrt_info_hdl, "l2_fwd_rx_table",
+    status = bf_rt_table_from_name_get(bfrt_info_hdl, L2_FWD_RX_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get table handle for l2_fwd_rx_table");
@@ -271,8 +272,8 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
 
     if (entry_add) {
         /* Add an entry to target */
-        VLOG_INFO("Populate l2_fwd action in l2_fwd_rx_table for rif handle %x",
-                   (unsigned int) api_l2_rx_info->rif_handle);
+        VLOG_INFO("Populate l2_fwd action in l2_fwd_rx_table for rif handle "
+                  "%x ", (unsigned int) api_l2_rx_info->rif_handle);
         action_id = 19169916; //action id for l2_fwd_rx_table, action: l2_fwd
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
@@ -365,7 +366,7 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
     status = bf_rt_table_from_name_get(bfrt_info_hdl,
-                                       "l2_fwd_rx_with_tunnel_table",
+                                       L2_FWD_RX_TUNNEL_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to get table handle for l2_fwd_rx_with_tunnel_table");

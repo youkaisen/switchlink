@@ -1,22 +1,23 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <openvswitch/vlog.h>
 #include <saiport.h>
+
 #include "saiinternal.h"
 #include "switch_port.h"
 #include "switch_base_types.h"
@@ -25,17 +26,17 @@ VLOG_DEFINE_THIS_MODULE(saiport);
 
 #define SAI_PORT_DEFAULT_MTU 9400
 /*
-* Routine Description:
-*   Set port attribute value.
-*
-* Arguments:
-*    [in] port_id - port id
-*    [in] attr - attribute
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*/
+ * Routine Description:
+ *   Set port attribute value.
+ *
+ * Arguments:
+ *    [in] port_id - port id
+ *    [in] attr - attribute
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 
 static sai_status_t sai_set_port_attribute(_In_ sai_object_id_t port_id,
                                     _In_ const sai_attribute_t *attr) {
@@ -44,18 +45,18 @@ static sai_status_t sai_set_port_attribute(_In_ sai_object_id_t port_id,
 }
 
 /*
-* Routine Description:
-*   Get port attribute value.
-*
-* Arguments:
-*    [in] port_id - port id
-*    [in] attr_count - number of attributes
-*    [inout] attr_list - array of attributes
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*/
+ * Routine Description:
+ *   Get port attribute value.
+ *
+ * Arguments:
+ *    [in] port_id - port id
+ *    [in] attr_count - number of attributes
+ *    [inout] attr_list - array of attributes
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 
 static sai_status_t sai_get_port_attribute(_In_ sai_object_id_t port_id,
                                     _In_ uint32_t attr_count,
@@ -64,16 +65,20 @@ static sai_status_t sai_get_port_attribute(_In_ sai_object_id_t port_id,
     return status;
 }
 
-/**
- * * @brief Create port
- * *
- * * @param[out] port_id Port id
- * * @param[in] switch_id Switch id
- * * @param[in] attr_count Number of attributes
- * * @param[in] attr_list Array of attributes
- * *
- * * @return #SAI_STATUS_SUCCESS on success Failure status code on error
- * */
+/*
+ * Routine Description:
+ *   Create port
+ *
+ * Arguments:
+ *    [out] port_id - port id
+ *    [in] switch_id - switch id
+ *    [in] attr_count - Number of attributes
+ *    [in] attr_list - Array of attributes
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
+
 static sai_status_t sai_create_port(_Out_ sai_object_id_t *port_id,
                              _In_ sai_object_id_t switch_id,
                              _In_ uint32_t attr_count,
@@ -124,20 +129,19 @@ static sai_status_t sai_remove_port(_In_ sai_object_id_t port_id) {
 }
 
 /*
-* Routine Description:
-*   Get port statistics counters.
-*
-* Arguments:
-*    [in] port_id - port id
-*    [in] counter_ids - specifies the array of counter ids
-*    [in] number_of_counters - number of counters in the array
-*    [out] counters - array of resulting counter values.
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*/
-
+ * Routine Description:
+ *   Get port statistics counters.
+ *
+ * Arguments:
+ *    [in] port_id - port id
+ *    [in] counter_ids - specifies the array of counter ids
+ *    [in] number_of_counters - number of counters in the array
+ *    [out] counters - array of resulting counter values.
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 
 static sai_status_t sai_get_port_stats(_In_ sai_object_id_t port_id,
                                 _In_ uint32_t number_of_counters,
@@ -147,14 +151,18 @@ static sai_status_t sai_get_port_stats(_In_ sai_object_id_t port_id,
     return status;
 }
 
-/**
- * @brief Clear port statistics counters.
+/*
+ * Routine Description:
+ *   Clear port statistics counters.
  *
- * @param[in] port_id Port id
- * @param[in] number_of_counters Number of counters in the array
- * @param[in] counter_ids Specifies the array of counter ids
+ * Arguments:
+ *    [in] port_id - port id
+ *    [in] number_of_counters - Number of counters in the array
+ *    [in] counter_ids - Specifies the array of counter ids
  *
- * @return #SAI_STATUS_SUCCESS on success, failure status code on error
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
  */
 
 static sai_status_t sai_clear_port_stats(_In_ sai_object_id_t port_id,
@@ -164,12 +172,16 @@ static sai_status_t sai_clear_port_stats(_In_ sai_object_id_t port_id,
     return status;
 }
 
-/**
- * @brief Clear port's all statistics counters.
+/*
+ * Routine Description:
+ *   Clear all port statistics counters.
  *
- * @param[in] port_id Port id
+ * Arguments:
+ *    [in] port_id - port id
  *
- * @return #SAI_STATUS_SUCCESS on success, failure status code on error
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
  */
 
 static sai_status_t sai_clear_port_all_stats(_In_ sai_object_id_t port_id) {
@@ -178,8 +190,8 @@ static sai_status_t sai_clear_port_all_stats(_In_ sai_object_id_t port_id) {
 }
 
 /*
-* Port methods table retrieved with sai_api_query()
-*/
+ * Port methods table retrieved with sai_api_query()
+ */
 sai_port_api_t port_api = {.create_port = sai_create_port,
                            .remove_port = sai_remove_port,
                            .set_port_attribute = sai_set_port_attribute,
@@ -189,7 +201,6 @@ sai_port_api_t port_api = {.create_port = sai_create_port,
                            .clear_port_all_stats = sai_clear_port_all_stats};
 
 sai_status_t sai_port_initialize(sai_api_service_t *sai_api_service) {
-  VLOG_DBG("Initializing port");
   sai_api_service->port_api = port_api;
   return SAI_STATUS_SUCCESS;
 }

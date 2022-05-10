@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  */
 
 #include <sainexthop.h>
-#include "saiinternal.h"
 #include <config.h>
 #include <switchapi/switch_nhop.h>
 #include <switchapi/switch_rif.h>
 #include <switchapi/switch_tunnel.h>
 #include <openvswitch/vlog.h>
+
+#include "saiinternal.h"
 
 VLOG_DEFINE_THIS_MODULE(sainexthop);
 
@@ -42,20 +43,20 @@ static switch_nhop_type_t sai_nhop_type_to_switch_nhop_type(
 }
 
 /*
-* Routine Description:
-*    Create next hop
-*
-* Arguments:
-*    [out] next_hop_id - next hop id
-*    [in] attr_count - number of attributes
-*    [in] attr_list - array of attributes
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*
-* Note: IP address expected in Network Byte Order.
-*/
+ * Routine Description:
+ *    Create next hop
+ *
+ * Arguments:
+ *    [out] next_hop_id - next hop id
+ *    [in] attr_count - number of attributes
+ *    [in] attr_list - array of attributes
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
+ * Note: IP address expected in Network Byte Order.
+ */
 static sai_status_t sai_create_next_hop_entry(
                                        _Out_ sai_object_id_t *next_hop_id,
                                        _In_ sai_object_id_t switch_id,
@@ -112,7 +113,6 @@ static sai_status_t sai_create_next_hop_entry(
 
   api_nhop_info.nhop_type = sai_nhop_type_to_switch_nhop_type(nhtype);
 
-  VLOG_DBG("Calling switch api nhop create");
   status = switch_api_nhop_create(0, &api_nhop_info, &next_hop_handle);
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR("Failed to create nexthop, error: %s",
@@ -125,16 +125,16 @@ static sai_status_t sai_create_next_hop_entry(
 }
 
 /*
-* Routine Description:
-*    Remove next hop
-*
-* Arguments:
-*    [in] next_hop_id - next hop id
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*/
+ * Routine Description:
+ *    Remove next hop
+ *
+ * Arguments:
+ *    [in] next_hop_id - next hop id
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 static
 sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
 
@@ -147,7 +147,6 @@ sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
 
-  VLOG_DBG("Calling switch api nhop delete");
   switch_status = switch_api_nhop_delete(0, (switch_handle_t)next_hop_id);
   status = sai_switch_status_to_sai_status(switch_status);
 
@@ -161,14 +160,13 @@ sai_status_t sai_remove_next_hop_entry(_In_ sai_object_id_t next_hop_id) {
 }
 
 /*
-*  Next Hop methods table retrieved with sai_api_query()
-*/
+ *  Next Hop methods table retrieved with sai_api_query()
+ */
 sai_next_hop_api_t nhop_api = {
     .create_next_hop = sai_create_next_hop_entry,
     .remove_next_hop = sai_remove_next_hop_entry};
 
 sai_status_t sai_next_hop_initialize(sai_api_service_t *sai_api_service) {
-  VLOG_DBG("Initializing nexthop");
   sai_api_service->nhop_api = nhop_api;
   return SAI_STATUS_SUCCESS;
 }

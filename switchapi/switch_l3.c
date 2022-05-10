@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-/* Local header includes */
 #include <config.h>
 #include <openvswitch/util.h>
 #include <openvswitch/vlog.h>
 
+/* Local header includes */
 #include "switch_internal.h"
 #include "switch_l3.h"
 #include "switch_pd_routing.h"
@@ -30,8 +30,6 @@ switch_status_t switch_route_table_entry_key_init(void *args,
                                                   switch_uint32_t *len) {
   switch_route_entry_t *route_entry = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!args || !key || !len) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -57,16 +55,12 @@ switch_status_t switch_route_table_entry_key_init(void *args,
 
 switch_int32_t switch_route_entry_hash_compare(const void *key1,
                                                const void *key2) {
-  VLOG_DBG("%s", __func__);
-
   return SWITCH_MEMCMP(key1, key2, SWITCH_ROUTE_HASH_KEY_SIZE);
 }
 
 switch_status_t switch_l3_init(switch_device_t device) {
   switch_l3_context_t *l3_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   l3_ctx = SWITCH_MALLOC(device, sizeof(switch_l3_context_t), 0x1);
   if (!l3_ctx) {
@@ -122,8 +116,6 @@ switch_status_t switch_l3_free(switch_device_t device) {
   switch_l3_context_t *l3_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_L3, (void **)&l3_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
@@ -167,8 +159,6 @@ switch_status_t switch_route_table_hash_lookup(
   switch_route_info_t *route_info = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   if (!route_entry) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
     VLOG_ERR(
@@ -205,8 +195,6 @@ switch_status_t switch_route_hashtable_insert(switch_device_t device,
   switch_route_info_t *route_info = NULL;
   switch_route_entry_t *route_entry = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_ROUTE_HANDLE(route_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
@@ -268,8 +256,6 @@ switch_status_t switch_route_hashtable_remove(switch_device_t device,
   switch_route_entry_t *route_entry = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   if (!SWITCH_ROUTE_HANDLE(route_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
     VLOG_ERR(
@@ -330,8 +316,6 @@ switch_status_t switch_api_l3_route_add(
   switch_route_entry_t route_entry;
   switch_handle_t vrf_handle;
   switch_handle_t route_handle;
-
-  VLOG_DBG("%s", __func__);
 
   if (!api_route_entry) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -443,8 +427,6 @@ switch_status_t switch_api_l3_route_delete(switch_device_t device,
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_route_entry_t route_entry;
   switch_handle_t route_handle;  
-
-  VLOG_DBG("%s", __func__);
 
   if (!api_route_entry) {
     status = SWITCH_STATUS_INVALID_PARAMETER;

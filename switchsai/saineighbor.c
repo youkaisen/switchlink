@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 #include <saineighbor.h>
-#include "saiinternal.h"
 #include <switchapi/switch_neighbor.h>
 #include <switchapi/switch_nhop.h>
 #include <switchapi/switch_rif.h>
@@ -23,6 +22,8 @@
 #include <arpa/inet.h>
 #include <config.h>
 #include <openvswitch/vlog.h>
+
+#include "saiinternal.h"
 
 VLOG_DEFINE_THIS_MODULE(saineighbor);
 
@@ -83,20 +84,20 @@ static void sai_neighbor_entry_nexthop_get(
 }
 
 /*
-* Routine Description:
-*    Create neighbor entry
-*
-* Arguments:
-*    [in] neighbor_entry - neighbor entry
-*    [in] attr_count - number of attributes
-*    [in] attrs - array of attributes
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*
-* Note: IP address expected in Network Byte Order.
-*/
+ * Routine Description:
+ *    Create neighbor entry
+ *
+ * Arguments:
+ *    [in] neighbor_entry - neighbor entry
+ *    [in] attr_count - number of attributes
+ *    [in] attrs - array of attributes
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
+ * Note: IP address expected in Network Byte Order.
+ */
 static sai_status_t sai_create_neighbor_entry(
     _In_ const sai_neighbor_entry_t *neighbor_entry,
     _In_ uint32_t attr_count,
@@ -125,7 +126,6 @@ static sai_status_t sai_create_neighbor_entry(
   sai_neighbor_entry_nexthop_get(&api_neighbor);
   sai_neighbor_entry_to_string(neighbor_entry, entry_string);
 
-  VLOG_DBG("Calling Switch API neighbor create for: %s", entry_string);
   status = switch_api_neighbor_create(0, &api_neighbor, &neighbor_handle);
   if (status != SAI_STATUS_SUCCESS) {
     VLOG_ERR("Failed to create neighbor entry, error: %s",
@@ -136,18 +136,18 @@ static sai_status_t sai_create_neighbor_entry(
 }
 
 /*
-* Routine Description:
-*    Remove neighbor entry
-*
-* Arguments:
-*    [in] neighbor_entry - neighbor entry
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*
-* Note: IP address expected in Network Byte Order.
-*/
+ * Routine Description:
+ *    Remove neighbor entry
+ *
+ * Arguments:
+ *    [in] neighbor_entry - neighbor entry
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
+ * Note: IP address expected in Network Byte Order.
+ */
 static sai_status_t sai_remove_neighbor_entry(
     _In_ const sai_neighbor_entry_t *neighbor_entry) {
 
@@ -166,11 +166,9 @@ static sai_status_t sai_remove_neighbor_entry(
   sai_neighbor_entry_parse(neighbor_entry, &api_neighbor);
   sai_neighbor_entry_nexthop_get(&api_neighbor);
 
-  VLOG_DBG("Get neighbor handle");
   switch_status = switch_api_neighbor_handle_get(
       0, api_neighbor.nhop_handle, &neighbor_handle);
 
-  VLOG_DBG("Calling Switch API neighbor delete");
   switch_status = switch_api_neighbor_delete(0, neighbor_handle);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
@@ -183,14 +181,13 @@ static sai_status_t sai_remove_neighbor_entry(
 }
 
 /*
-*  Neighbor methods table retrieved with sai_api_query()
-*/
+ *  Neighbor methods table retrieved with sai_api_query()
+ */
 sai_neighbor_api_t neighbor_api = {
     .create_neighbor_entry = sai_create_neighbor_entry,
     .remove_neighbor_entry = sai_remove_neighbor_entry};
 
 sai_status_t sai_neighbor_initialize(sai_api_service_t *sai_api_service) {
-  VLOG_DBG("Initializing neighbor");
   sai_api_service->neighbor_api = neighbor_api;
   return SAI_STATUS_SUCCESS;
 }

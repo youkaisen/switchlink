@@ -1,27 +1,25 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <openvswitch/vlog.h>
-#include "switch_internal.h"
-#include "switch_base_types.h"
-#include "switch_pd_utils.h"
 #include <config.h>
-
+#include <net/if.h>
 #include <bf_types/bf_types.h>
 #include <port_mgr/dpdk/bf_dpdk_port_if.h>
+
 #include "bf_rt/bf_rt_common.h"
 #include "bf_rt/bf_rt_session.h"
 #include "bf_rt/bf_rt_init.h"
@@ -29,6 +27,9 @@ limitations under the License.
 #include "bf_rt/bf_rt_table.h"
 #include "bf_rt/bf_rt_table_key.h"
 #include "bf_rt/bf_rt_table_data.h"
+#include "switch_internal.h"
+#include "switch_base_types.h"
+#include "switch_pd_utils.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_pd_utils);
 
@@ -38,8 +39,6 @@ bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
                                               bf_rt_info_hdl **bfrt_info_hdl_t,
                                               bf_rt_session_hdl **session_t) {
   bf_status_t status;
-  
-  VLOG_DBG("%s", __func__);
 
   status = bf_rt_session_create(session_t);
   if(status != BF_SUCCESS) {
@@ -64,8 +63,6 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
                                                 bool entry_type) {
 
   bf_status_t status;
-
-  VLOG_DBG("%s", __func__);
 
   if (entry_type) {
       // Data handle is created only when entry is added to backend
@@ -94,7 +91,6 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
 void
 switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
 {
-    VLOG_DBG("%s", __func__);
     char if_name[16] = {0};
     int i = 0;
     bf_dev_id_t bf_dev_id = 0;

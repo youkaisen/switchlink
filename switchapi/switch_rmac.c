@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include "switch_rmac.h"
@@ -39,8 +39,6 @@ VLOG_DEFINE_THIS_MODULE(switch_rmac);
 switch_status_t switch_rmac_init(switch_device_t device) {
   switch_rmac_context_t *rmac_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   rmac_ctx = SWITCH_MALLOC(device, sizeof(switch_rmac_context_t), 0x1);
   if (!rmac_ctx) {
@@ -95,8 +93,6 @@ switch_status_t switch_rmac_free(switch_device_t device) {
   switch_rmac_context_t *rmac_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_RMAC, (void **)&rmac_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
@@ -131,8 +127,6 @@ switch_status_t switch_api_router_mac_group_create(
   switch_rmac_info_t *rmac_info = NULL;
   switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   handle = switch_rmac_handle_create(device);
   if (handle == SWITCH_API_INVALID_HANDLE) {
@@ -178,8 +172,6 @@ switch_status_t switch_api_router_mac_group_delete(
   switch_rmac_entry_t *rmac_entry = NULL;
   switch_node_t *node = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
   
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
@@ -250,8 +242,6 @@ switch_status_t switch_api_router_mac_delete(
   switch_node_t *node = NULL;
   bool entry_found = FALSE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;
@@ -346,8 +336,6 @@ switch_status_t switch_api_router_mac_add(
   switch_rmac_entry_t *rmac_entry = NULL;
   switch_node_t *node = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_RMAC_HANDLE(rmac_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;

@@ -1,19 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <stdint.h>
@@ -26,6 +25,7 @@ limitations under the License.
 #include <linux/if_bridge.h>
 #include <linux/if.h>
 #include <linux/version.h>
+
 #include "util.h"
 #include "switchlink.h"
 #include "switchlink_int.h"
@@ -44,6 +44,17 @@ switchlink_handle_t g_default_bridge_h = 0;
 switchlink_handle_t g_cpu_rx_nhop_h = 0;
 
 VLOG_DEFINE_THIS_MODULE(switchlink_link);
+
+/*
+ * Routine Description:
+ *    Create tuntap interface
+ *
+ * Arguments:
+ *    [in] tunp - tuntap interface info
+ *
+ * Return Values:
+ *    void
+ */
 
 static void tuntap_create(switchlink_db_tuntap_info_t *tunp) {
   switchlink_db_status_t status;
@@ -67,6 +78,17 @@ static void tuntap_create(switchlink_db_tuntap_info_t *tunp) {
   }
   // update bridge and other domain for the tuntap port, as needed
 }
+
+/*
+ * Routine Description:
+ *    Wrapper function to create interface
+ *
+ * Arguments:
+ *    [in] intf - interface info
+ *
+ * Return Values:
+ *    void
+ */
 
 static void interface_create(switchlink_db_interface_info_t *intf) {
   switchlink_db_status_t status;
@@ -108,6 +130,17 @@ static void interface_create(switchlink_db_interface_info_t *intf) {
   }
 }
 
+/*
+ * Routine Description:
+ *    Wrapper function to delete interface
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *
+ * Return Values:
+ *    void
+ */
+
 static void interface_delete(uint32_t ifindex) {
   switchlink_db_interface_info_t intf;
   if (switchlink_db_interface_get_info(ifindex, &intf) ==
@@ -115,12 +148,21 @@ static void interface_delete(uint32_t ifindex) {
     return;
   }
 
-  VLOG_DBG("Switchlink Interface Delete: %s", intf.ifname);
-
   // delete the interface from backend and DB
   switchlink_interface_delete(&intf, intf.intf_h);
   switchlink_db_interface_delete(intf.ifindex);
 }
+
+/*
+ * Routine Description:
+ *    Create tunnel interface
+ *
+ * Arguments:
+ *    [in] tnl_intf - tunnel interface info
+ *
+ * Return Values:
+ *    void
+ */
 
 static void tunnel_interface_create(
                              switchlink_db_tunnel_interface_info_t *tnl_intf) {
@@ -150,6 +192,17 @@ static void tunnel_interface_create(
   return;
 }
 
+/*
+ * Routine Description:
+ *    Delete tunnel interface
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *
+ * Return Values:
+ *    void
+ */
+
 static void tunnel_interface_delete(uint32_t ifindex) {
   switchlink_db_tunnel_interface_info_t tnl_intf;
   if (switchlink_db_tunnel_interface_get_info(ifindex, &tnl_intf) ==
@@ -167,6 +220,17 @@ static void tunnel_interface_delete(uint32_t ifindex) {
 
   return;
 }
+
+/*
+ * Routine Description:
+ *    Get the link type
+ *
+ * Arguments:
+ *    [in] info_kind - link related info
+ *
+ * Return Values:
+ *    link type
+ */
 
 static switchlink_link_type_t get_link_type(char *info_kind) {
   switchlink_link_type_t link_type = SWITCHLINK_LINK_TYPE_ETH;
@@ -189,6 +253,18 @@ TODO: P4-OVS: Process Received Netlink messages here
 */
 
 // Support Port(tuntap), Routing and Vxlan features
+/*
+ * Routine Description:
+ *    Process link netlink messages
+ *
+ * Arguments:
+ *    [in] nlmsg - netlink msg header
+ *    [in] type - type of netlink messages
+ *
+ * Return Values:
+ *    void
+ */
+
 void process_link_msg(struct nlmsghdr *nlmsg, int type) {
   int hdrlen, attrlen;
   struct nlattr *attr, *nest_attr, *nest_attr_new;

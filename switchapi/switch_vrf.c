@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <openvswitch/util.h>
@@ -29,8 +29,6 @@ VLOG_DEFINE_THIS_MODULE(switch_vrf);
 switch_status_t switch_vrf_init(switch_device_t device) {
   switch_vrf_context_t *vrf_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   vrf_ctx = SWITCH_MALLOC(device, sizeof(switch_vrf_context_t), 0x1);
   if (!vrf_ctx) {
@@ -76,8 +74,6 @@ switch_status_t switch_vrf_free(switch_device_t device) {
   switch_vrf_context_t *vrf_ctx = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
-  VLOG_DBG("%s", __func__);
-
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_VRF, (void **)&vrf_ctx);
   if (status != SWITCH_STATUS_SUCCESS) {
@@ -115,8 +111,6 @@ switch_status_t switch_api_vrf_create(const switch_device_t device,
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
   switch_handle_t *tmp_vrf_handle = NULL;
-
-  VLOG_DBG("%s", __func__);
 
   status = switch_device_api_context_get(
       device, SWITCH_API_TYPE_VRF, (void **)&vrf_ctx);
@@ -215,8 +209,6 @@ switch_status_t switch_api_vrf_delete(
   switch_vrf_info_t *vrf_info = NULL;
   switch_handle_t *tmp_vrf_handle = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-
-  VLOG_DBG("%s", __func__);
 
   if (!SWITCH_VRF_HANDLE(vrf_handle)) {
     status = SWITCH_STATUS_INVALID_HANDLE;

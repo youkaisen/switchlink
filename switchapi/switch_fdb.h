@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,11 @@ extern "C" {
 
 #define SWITCH_L2_RX_HANDLE(handle)                            \
     SWITCH_HANDLE_VALID(handle, SWITCH_HANDLE_TYPE_L2_FWD_RX)
+
+//Table name macros
+#define L2_FWD_TX_TABLE "l2_fwd_tx_table"
+#define L2_FWD_RX_TABLE "l2_fwd_rx_table"
+#define L2_FWD_RX_TUNNEL_TABLE "l2_fwd_rx_with_tunnel_table"
 
 typedef enum switch_l2_info_type_s
 {

@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <stdint.h>
@@ -22,6 +22,7 @@ limitations under the License.
 #include <netlink/msg.h>
 #include <netlink/route/neighbour.h>
 #include <net/if.h>
+
 #include "util.h"
 #include "switchlink.h"
 #include "switchlink_link.h"
@@ -32,6 +33,18 @@ limitations under the License.
 #include "openvswitch/vlog.h"
 
 VLOG_DEFINE_THIS_MODULE(switchlink_neigh)
+
+/*
+ * Routine Description:
+ *    Delete MAC entry
+ *
+ * Arguments:
+ *    [in] mac_addr - MAC address associated with entry
+ *    [in] bridge_h - bridge handle
+ *
+ * Return Values:
+ *    void
+ */
 
 static void mac_delete(switchlink_mac_addr_t mac_addr,
                        switchlink_handle_t bridge_h) {
@@ -47,6 +60,19 @@ static void mac_delete(switchlink_mac_addr_t mac_addr,
   switchlink_mac_delete(mac_addr, bridge_h);
   switchlink_db_mac_delete(mac_addr, bridge_h);
 }
+
+/*
+ * Routine Description:
+ *    Create MAC entry
+ *
+ * Arguments:
+ *    [in] mac_addr - MAC address associated with entry
+ *    [in] bridge_h - bridge handle
+ *    [in] intf_h - interface handle
+ *
+ * Return Values:
+ *    void
+ */
 
 static void mac_create(switchlink_mac_addr_t mac_addr,
                        switchlink_handle_t bridge_h,
@@ -69,6 +95,19 @@ static void mac_create(switchlink_mac_addr_t mac_addr,
   switchlink_mac_create(mac_addr, bridge_h, intf_h);
   switchlink_db_mac_add(mac_addr, bridge_h, intf_h);
 }
+
+/*
+ * Routine Description:
+ *    Wrapper function to delete neighbor, nexthop, route entry
+ *
+ * Arguments:
+ *    [in] vrf_h - vrf handle
+ *    [in] ipaddr - IP address associated with neighbor entry
+ *    [in] intf_h - interface handle
+ *
+ * Return Values:
+ *    void
+ */
 
 static void neigh_delete(switchlink_handle_t vrf_h,
                          switchlink_ip_addr_t *ipaddr,
@@ -93,6 +132,20 @@ static void neigh_delete(switchlink_handle_t vrf_h,
   // delete the host route
   route_delete(g_default_vrf_h, ipaddr);
 }
+
+/*
+ * Routine Description:
+ *    Wrapper function to create neighbor, nexthop, route entry
+ *
+ * Arguments:
+ *    [in] vrf_h - vrf handle
+ *    [in] ipaddr - IP address associated with neighbor entry
+ *    [in] mac_addr - MAC address associated with neighbor entry
+ *    [in] intf_h - interface handle
+ *
+ * Return Values:
+ *    void
+ */
 
 void neigh_create(switchlink_handle_t vrf_h,
                   switchlink_ip_addr_t *ipaddr,
@@ -143,6 +196,19 @@ void neigh_create(switchlink_handle_t vrf_h,
 /* TODO: P4-OVS: Dummy Processing of Netlink messages received
  * Support IPv4 neigh/arp
  */
+
+/*
+ * Routine Description:
+ *    Process neighbor netlink messages
+ *
+ * Arguments:
+ *    [in] nlmsg - netlink msg header
+ *    [in] type - type of entry (RTM_NEWNEIGH/RTM_DELNEIGH)
+ *
+ * Return Values:
+ *    void
+ */
+
 void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
   int hdrlen, attrlen;
   struct nlattr *attr;

@@ -1,22 +1,23 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-Copyright(c) 2021 Intel Corporation.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <openvswitch/vlog.h>
 #include <saitunnel.h>
+
 #include "saiinternal.h"
 #include "switch_tunnel.h"
 #include "switch_base_types.h"
@@ -172,15 +173,20 @@ sai_tunnel_attribute_parse(uint32_t attr_count,
   return status;
 }
 
-/**
- * @brief Create tunnel
+/*
+ * Routine Description:
+ *    Create tunnel
  *
- * @param[out] tunnel_id Tunnel id
- * @param[in] switch_id Switch Id
- * @param[in] attr_count Number of attributes
- * @param[in] attr_list Array of attributes
+ * Arguments:
+ *    [out] tunnel_id - Tunnel id
+ *    [in] switch_id - Switch Id
+ *    [in] attr_count - Number of attributes
+ *    [in] attr_list - Array of attributes
  *
- * @return #SAI_STATUS_SUCCESS on success, failure status code on error
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
  */
 static sai_status_t
 sai_create_tunnel(_Out_ sai_object_id_t *tunnel_id,
@@ -218,12 +224,17 @@ sai_create_tunnel(_Out_ sai_object_id_t *tunnel_id,
   return status;
 }
 
-/**
- * @brief Remove tunnel
+/*
+ * Routine Description:
+ *    Remove tunnel
  *
- * @param[in] tunnel_handle Tunnel handle
+ * Arguments:
+ *    [in] tunnel_handle - tunnel handle
  *
- * @return #SAI_STATUS_SUCCESS on success, failure status code on error
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
  */
 static sai_status_t
 sai_remove_tunnel(_In_ sai_object_id_t tunnel_handle)
@@ -353,15 +364,20 @@ sai_tunnel_term_attribute_parse(uint32_t attr_count,
   return status;
 }
 
-/**
- * @brief Create tunnel termination table entry
+/*
+ * Routine Description:
+ *    Create tunnel termination table entry
  *
- * @param[out] tunnel_term_table_entry_id Tunnel termination table entry id
- * @param[in] switch_id Switch Id
- * @param[in] attr_count Number of attributes
- * @param[in] attr_list Array of attributes
+ * Arguments:
+ *    [out] tunnel_term_table_entry_id - Tunnel termination table entry id
+ *    [in] switch_id - Switch Id
+ *    [in] attr_count - Number of attributes
+ *    [in] attr_list - Array of attributes
  *
- * @return #SAI_STATUS_SUCCESS on success, failure status code on error
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
  */
 static sai_status_t
 sai_create_tunnel_term_table_entry(_Out_ sai_object_id_t *tunnel_term_id,
@@ -397,12 +413,17 @@ sai_create_tunnel_term_table_entry(_Out_ sai_object_id_t *tunnel_term_id,
   return status;
 }
 
-/**
- * @brief Remove tunnel termination table entry
+/*
+ * Routine Description:
+ *    Remove tunnel termination table entry
  *
- * @param[in] tunnel_term_table_entry_id Tunnel termination table entry id
+ * Arguments:
+ *    [in] tunnel_term_handle - Tunnel termination handle
  *
- * @return #SAI_STATUS_SUCCESS on success, failure status code on error
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ *
  */
 static sai_status_t
 sai_remove_tunnel_term_table_entry(_In_ sai_object_id_t tunnel_term_handle)
@@ -423,8 +444,8 @@ sai_remove_tunnel_term_table_entry(_In_ sai_object_id_t tunnel_term_handle)
   return status;
 }
 
-/**
- * @brief TUNNEL method table retrieved with sai_api_query()
+/*
+ *  TUNNEL method table retrieved with sai_api_query()
  */
 sai_tunnel_api_t tunnel_api = {
     .create_tunnel = sai_create_tunnel,
@@ -435,7 +456,6 @@ sai_tunnel_api_t tunnel_api = {
 sai_status_t
 sai_tunnel_initialize(sai_api_service_t *sai_api_service)
 {
-  VLOG_DBG("Initializing tunnel");
   sai_api_service->tunnel_api = tunnel_api;
   return SAI_STATUS_SUCCESS;
 }

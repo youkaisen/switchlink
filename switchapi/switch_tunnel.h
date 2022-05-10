@@ -1,19 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifndef __SWITCH_TUNNEL_H__
 #define __SWITCH_TUNNEL_H__
@@ -81,6 +80,10 @@ extern "C" {
   (_vni < ((1 << SWITCH_TUNNEL_VNI_SIZE) - 1))
 
 //#define SWITCH_TUNNEL_HANDLE_SIZE 16384
+
+// Table name macros
+#define VXLAN_ENCAP_MOD_TABLE "vxlan_encap_mod_table"
+#define IPV4_TUNNEL_TERM_TABLE "ipv4_tunnel_term_table"
 
 /** tunnel device context */
 typedef struct switch_tunnel_context_s {

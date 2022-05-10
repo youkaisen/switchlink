@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@
  */
 
 #include <saifdb.h>
-#include "saiinternal.h"
 #include <config.h>
 #include <switchapi/switch_fdb.h>
 #include <switchapi/switch_interface.h>
 #include <switchapi/switch_device.h>
 #include <linux/if_ether.h>
 #include <openvswitch/vlog.h>
+
+#include "saiinternal.h"
 
 VLOG_DEFINE_THIS_MODULE(saifdb);
 
@@ -64,18 +65,18 @@ static void sai_fdb_entry_attribute_parse(uint32_t attr_count,
 }
 
 /*
-* Routine Description:
-*    Create FDB entry
-*
-* Arguments:
-*    [in] fdb_entry - fdb entry
-*    [in] attr_count - number of attributes
-*    [in] attr_list - array of attributes
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*/
+ * Routine Description:
+ *    Create FDB entry
+ *
+ * Arguments:
+ *    [in] fdb_entry - fdb entry
+ *    [in] attr_count - number of attributes
+ *    [in] attr_list - array of attributes
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
                                   _In_ uint32_t attr_count,
                                   _In_ const sai_attribute_t *attr_list) {
@@ -103,7 +104,6 @@ static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
   mac_entry.type = SWITCH_L2_FWD_TX;
   mac_entry.learn_from = SWITCH_L2_FWD_LEARN_PHYSICAL_INTERFACE;
 
-  VLOG_DBG("Call switch API FDB entry create");
   switch_status = switch_api_l2_forward_create(0, &mac_entry,
                                                &mac_handle);
   status = sai_switch_status_to_sai_status(switch_status);
@@ -121,16 +121,16 @@ static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
 }
 
 /*
-* Routine Description:
-*    Remove FDB entry
-*
-* Arguments:
-*    [in] fdb_entry - fdb entry
-*
-* Return Values:
-*    SAI_STATUS_SUCCESS on success
-*    Failure status code on error
-*/
+ * Routine Description:
+ *    Remove FDB entry
+ * 
+ * Arguments:
+ *    [in] fdb_entry - fdb entry
+ *
+ * Return Values:
+ *    SAI_STATUS_SUCCESS on success
+ *    Failure status code on error
+ */
 static sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry)
 {
   switch_api_l2_info_t mac_entry;
@@ -148,7 +148,6 @@ static sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry)
   sai_fdb_entry_parse(fdb_entry, &mac_entry);
   mac_entry.type = SWITCH_L2_FWD_TX;
 
-  VLOG_DBG("Call switch API FDB entry delete");
   switch_status = switch_api_l2_forward_delete(0, &mac_entry);
   status = sai_switch_status_to_sai_status(switch_status);
 
@@ -163,13 +162,12 @@ static sai_status_t sai_remove_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry)
 }
 
 /*
-*  FDB methods table retrieved with sai_api_query()
-*/
+ *  FDB methods table retrieved with sai_api_query()
+ */
 sai_fdb_api_t fdb_api = {.create_fdb_entry = sai_create_fdb_entry,
                          .remove_fdb_entry = sai_remove_fdb_entry};
 
 sai_status_t sai_fdb_initialize(sai_api_service_t *sai_api_service) {
-  VLOG_DBG("initializing fdb");
   sai_api_service->fdb_api = fdb_api;
   return SAI_STATUS_SUCCESS;
 }

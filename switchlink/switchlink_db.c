@@ -1,28 +1,29 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
-#include "util.h"
 #include <target-utils/third-party/tommyds/tommyds/tommytrieinp.h>
 #include <target-utils/third-party/tommyds/tommyds/tommyhashlin.h>
 #include <target-utils/third-party/tommyds/tommyds/tommylist.h>
+
+#include "util.h"
 #include "xxhash.h"
 #include "switchlink.h"
 #include "switchlink_link.h"
@@ -45,11 +46,33 @@ static tommy_list switchlink_db_neigh_obj_list;
 static tommy_list switchlink_db_ecmp_obj_list;
 static tommy_list switchlink_db_route_obj_list;
 
+/*
+ * Routine Description:
+ *   Get object from database matching the handle
+ *
+ * Arguments:
+ *   [in] h - switchlink handle
+ *
+ * Return Values:
+ *    Object from the database matching the handle h
+ */
+
 static void *switchlink_db_handle_get_obj(switchlink_handle_t h) {
   void *obj;
   obj = tommy_trie_inplace_search(&switchlink_db_handle_obj_map, h);
   return obj;
 }
+/*
+ * Routine Description:
+ *   Add interface info to database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *    [in] intf_info - interface info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ */
 
 switchlink_db_status_t switchlink_db_interface_add(
     uint32_t ifindex, switchlink_db_interface_info_t *intf_info) {
@@ -66,6 +89,18 @@ switchlink_db_status_t switchlink_db_interface_add(
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *   Add tunnel tap interface info to database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *    [in] tunp_info - tunnel tap interface info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ */
+
 switchlink_db_status_t switchlink_db_tuntap_add(
     uint32_t ifindex, switchlink_db_tuntap_info_t *tunp_info) {
   switchlink_db_tuntap_obj_t *obj =
@@ -80,6 +115,19 @@ switchlink_db_status_t switchlink_db_tuntap_add(
                             obj->tunp_info.tunp_h);
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *   Get tunnel tap interface info from database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *   [out] tunp_info - tunnel tap interface info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
 
 switchlink_db_status_t switchlink_db_tuntap_get_info(
     uint32_t ifindex, switchlink_db_tuntap_info_t *tunp_info) {
@@ -96,6 +144,18 @@ switchlink_db_status_t switchlink_db_tuntap_get_info(
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *   Get interface info from database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *   [out] intf_info - interface info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
 
 switchlink_db_status_t switchlink_db_interface_get_info(
     uint32_t ifindex, switchlink_db_interface_info_t *intf_info) {
@@ -112,6 +172,19 @@ switchlink_db_status_t switchlink_db_interface_get_info(
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *   Get ifindex from database
+ *
+ * Arguments:
+ *    [in] intf_h - interface handle
+ *   [out] ifindex - interface index
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_interface_get_ifindex(
     switchlink_handle_t intf_h, uint32_t *ifindex) {
   switchlink_db_intf_obj_t *obj;
@@ -124,6 +197,19 @@ switchlink_db_status_t switchlink_db_interface_get_ifindex(
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *   Update interface info in database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *    [in] intf_info - interface info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_interface_update(
     uint32_t ifindex, switchlink_db_interface_info_t *intf_info) {
   switchlink_db_intf_obj_t *obj;
@@ -134,6 +220,18 @@ switchlink_db_status_t switchlink_db_interface_update(
   memcpy(&(obj->intf_info), intf_info, sizeof(switchlink_db_interface_info_t));
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *   Delete tunnel interface info from database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
 
 switchlink_db_status_t switchlink_db_interface_delete(uint32_t ifindex) {
   switchlink_db_intf_obj_t *obj;
@@ -146,6 +244,18 @@ switchlink_db_status_t switchlink_db_interface_delete(uint32_t ifindex) {
   switchlink_free(obj);
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *   Add tunnel interface info to database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *    [in] tunnel_intf_info - tunnel interface info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ */
 
 switchlink_db_status_t switchlink_db_tunnel_interface_add(
     uint32_t ifindex, switchlink_db_tunnel_interface_info_t *tnl_intf_info) {
@@ -163,6 +273,19 @@ switchlink_db_status_t switchlink_db_tunnel_interface_add(
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *   Get tunnel interface info from database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *   [out] tunnel_intf_info - tunnel interface info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_tunnel_interface_get_info(
     uint32_t ifindex, switchlink_db_tunnel_interface_info_t *tunnel_intf_info) {
   ovs_assert(tunnel_intf_info);
@@ -178,6 +301,18 @@ switchlink_db_status_t switchlink_db_tunnel_interface_get_info(
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *   Delete tunnel interface info from database
+ *
+ * Arguments:
+ *    [in] ifindex - interface index
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_tunnel_interface_delete(uint32_t ifindex) {
   switchlink_db_tunnel_intf_obj_t *obj;
   obj = tommy_trie_inplace_remove(&switchlink_db_tunnel_obj_map, ifindex);
@@ -189,6 +324,20 @@ switchlink_db_status_t switchlink_db_tunnel_interface_delete(uint32_t ifindex) {
   switchlink_free(obj);
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *    Get the hash for mac address 
+ *
+ * Arguments:
+ *    [in] mac_addr - MAC address
+ *    [in] bridge_h - bridge handle
+ *   [out] key - key used for hashing
+ *   [out] hash - hash computed from the key
+ *
+ * Return Values:
+ *    void
+ */
 
 static inline void switchlink_db_mac_key_hash(switchlink_mac_addr_t mac_addr,
                                               switchlink_handle_t bridge_h,
@@ -202,6 +351,22 @@ static inline void switchlink_db_mac_key_hash(switchlink_mac_addr_t mac_addr,
   }
 }
 
+/*
+ * Routine Description:
+ *    Compare the mac address with the one in database 
+ *
+ * Arguments:
+ *    [in] mac_addr - MAC address
+ *    [in] bridge_h - bridge handle
+ *   [out] key - key used for hashing
+ *   [out] hash - hash computed from the key
+ *
+ * Return Values:
+ *    0 if mac address matches
+ *    > 1 if key1 is greater than key2
+ *    < 1 if key1 is smaller than key2
+ */
+
 static inline int switchlink_db_mac_cmp(const void *key1, const void *arg) {
   switchlink_db_mac_obj_t *obj = (switchlink_db_mac_obj_t *)arg;
   uint8_t key2[SWITCHLINK_MAC_KEY_LEN];
@@ -209,6 +374,19 @@ static inline int switchlink_db_mac_cmp(const void *key1, const void *arg) {
   switchlink_db_mac_key_hash(obj->addr, obj->bridge_h, key2, NULL);
   return (memcmp(key1, key2, SWITCHLINK_MAC_KEY_LEN));
 }
+
+/*
+ * Routine Description:
+ *    Add mac entry to switchlink database
+ *
+ * Arguments:
+ *    [in] mac_addr - MAC address
+ *    [in] bridge_h - bridge handle
+ *    [in] intf_h - interface handle
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ */
 
 switchlink_db_status_t switchlink_db_mac_add(switchlink_mac_addr_t mac_addr,
                                              switchlink_handle_t bridge_h,
@@ -226,6 +404,20 @@ switchlink_db_status_t switchlink_db_mac_add(switchlink_mac_addr_t mac_addr,
   tommy_list_insert_tail(&switchlink_db_mac_obj_list, &obj->list_node, obj);
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *    Get interface handle for mac address from database
+ *
+ * Arguments:
+ *    [in] mac_addr - MAC address
+ *    [in] bridge_h - bridge handle
+ *   [out] intf_h - interface handle
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
 
 switchlink_db_status_t switchlink_db_mac_get_intf(
     switchlink_mac_addr_t mac_addr,
@@ -245,6 +437,18 @@ switchlink_db_status_t switchlink_db_mac_get_intf(
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *    Delete mac entry from switchlink database
+ *
+ * Arguments:
+ *    [in] bridge_h - bridge handle
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_mac_delete(switchlink_mac_addr_t mac_addr,
                                                 switchlink_handle_t bridge_h) {
   switchlink_db_mac_obj_t *obj;
@@ -263,6 +467,18 @@ switchlink_db_status_t switchlink_db_mac_delete(switchlink_mac_addr_t mac_addr,
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *    Add neighbor entry to switchlink database
+ *
+ * Arguments:
+ *    [in] neigh_info - neigh info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_neighbor_add(
     switchlink_db_neigh_info_t *neigh_info) {
   switchlink_db_neigh_obj_t *obj =
@@ -271,6 +487,18 @@ switchlink_db_status_t switchlink_db_neighbor_add(
   tommy_list_insert_tail(&switchlink_db_neigh_obj_list, &obj->list_node, obj);
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *    Get neighbor entry from switchlink database
+ *
+ * Arguments:
+ *    [out] neigh_info - neigh info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
 
 switchlink_db_status_t switchlink_db_neighbor_get_info(
     switchlink_db_neigh_info_t *neigh_info) {
@@ -293,6 +521,18 @@ switchlink_db_status_t switchlink_db_neighbor_get_info(
   return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
 }
 
+/*
+ * Routine Description:
+ *    Delete neighbor entry from switchlink database
+ *
+ * Arguments:
+ *    [in] neigh_info - neigh info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_neighbor_delete(
     switchlink_db_neigh_info_t *neigh_info) {
   tommy_node *node = tommy_list_head(&switchlink_db_neigh_obj_list);
@@ -312,6 +552,17 @@ switchlink_db_status_t switchlink_db_neighbor_delete(
   return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
 }
 
+/*
+ * Routine Description:
+ *    Add ecmp info to switchlink database
+ *
+ * Arguments:
+ *    [in] ecmp_info - ecmp info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ */
+
 switchlink_db_status_t switchlink_db_ecmp_add(
     switchlink_db_ecmp_info_t *ecmp_info) {
   ovs_assert(ecmp_info->num_nhops < SWITCHLINK_ECMP_NUM_MEMBERS_MAX);
@@ -326,6 +577,18 @@ switchlink_db_status_t switchlink_db_ecmp_add(
                             obj->ecmp_info.ecmp_h);
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *    Get ecmp info from switchlink database
+ *
+ * Arguments:
+ *    [out] ecmp_info - ecmp info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
 
 switchlink_db_status_t switchlink_db_ecmp_get_info(
     switchlink_db_ecmp_info_t *ecmp_info) {
@@ -356,6 +619,19 @@ switchlink_db_status_t switchlink_db_ecmp_get_info(
   return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
 }
 
+/*
+ * Routine Description:
+ *    Get ecmp handle info from switchlink database
+ *
+ * Arguments:
+ *    [in] ecmp_h - ecmp handle
+ *    [out] ecmp_info - ecmp info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_ecmp_handle_get_info(
     switchlink_handle_t ecmp_h, switchlink_db_ecmp_info_t *ecmp_info) {
   switchlink_db_ecmp_obj_t *obj;
@@ -369,6 +645,18 @@ switchlink_db_status_t switchlink_db_ecmp_handle_get_info(
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *    Increase ecmp reference from switchlink database
+ *
+ * Arguments:
+ *    [in] ecmp_h - ecmp handle
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_ecmp_ref_inc(switchlink_handle_t ecmp_h) {
   switchlink_db_ecmp_obj_t *obj;
   obj = switchlink_db_handle_get_obj(ecmp_h);
@@ -379,6 +667,19 @@ switchlink_db_status_t switchlink_db_ecmp_ref_inc(switchlink_handle_t ecmp_h) {
   obj->ref_count++;
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *    Decrease ecmp reference from switchlink database
+ *
+ * Arguments:
+ *    [in] ecmp_h - ecmp handle
+ *    [in/out] ref_count - reference count
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
 
 switchlink_db_status_t switchlink_db_ecmp_ref_dec(switchlink_handle_t ecmp_h,
                                                   int *ref_count) {
@@ -395,6 +696,18 @@ switchlink_db_status_t switchlink_db_ecmp_ref_dec(switchlink_handle_t ecmp_h,
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *    Delete ecmp entry from switchlink database
+ *
+ * Arguments:
+ *    [in] ecmp_h - ecmp handle
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_ecmp_delete(switchlink_handle_t ecmp_h) {
   switchlink_db_ecmp_obj_t *obj;
   obj = switchlink_db_handle_get_obj(ecmp_h);
@@ -409,6 +722,17 @@ switchlink_db_status_t switchlink_db_ecmp_delete(switchlink_handle_t ecmp_h) {
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
 
+/*
+ * Routine Description:
+ *    Add route entry to switchlink database
+ *
+ * Arguments:
+ *    [in] route_info - switchlink database route info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ */
+
 switchlink_db_status_t switchlink_db_route_add(
     switchlink_db_route_info_t *route_info) {
   switchlink_db_route_obj_t *obj =
@@ -417,6 +741,18 @@ switchlink_db_status_t switchlink_db_route_add(
   tommy_list_insert_tail(&switchlink_db_route_obj_list, &obj->list_node, obj);
   return SWITCHLINK_DB_STATUS_SUCCESS;
 }
+
+/*
+ * Routine Description:
+ *    Delete route entry from switchlink database
+ *
+ * Arguments:
+ *    [in] route_info - switchlink database route info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
 
 switchlink_db_status_t switchlink_db_route_delete(
     switchlink_db_route_info_t *route_info) {
@@ -437,6 +773,18 @@ switchlink_db_status_t switchlink_db_route_delete(
   return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
 }
 
+/*
+ * Routine Description:
+ *    Get route info from switchlink database
+ *
+ * Arguments:
+ *    [in/out] route_info - switchlink database route info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+
 switchlink_db_status_t switchlink_db_route_get_info(
     switchlink_db_route_info_t *route_info) {
   tommy_node *node = tommy_list_head(&switchlink_db_route_obj_list);
@@ -456,6 +804,17 @@ switchlink_db_status_t switchlink_db_route_get_info(
   }
   return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
 }
+
+/*
+ * Routine Description:
+ *    Initialize switchlink database
+ *
+ * Arguments:
+ *    void
+ *
+ * Return Values:
+ *    void
+ */
 
 void switchlink_db_init(void) {
   tommy_trie_inplace_init(&switchlink_db_handle_obj_map);

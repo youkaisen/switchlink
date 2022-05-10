@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2022 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-#include "switch_id.h"
-#include "switch_internal.h"
 #include <openvswitch/vlog.h>
 #include <config.h>
+
+/* Local header includes */
+#include "switch_id.h"
+#include "switch_internal.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,23 +1,23 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <openvswitch/vlog.h>
+
 #include "saiinternal.h"
-//#include "switchapi/switch.h"
 #include "switchapi/switch_handle.h"
 #include "switchapi/switch_nhop.h"
 #include "switch_base_types.h"
@@ -239,16 +239,16 @@ sai_status_t sai_api_query(_In_ sai_api_t sai_api_id,
 }
 
 /*
-* Routine Description:
-*     Query sai object type.
-*
-* Arguments:
-*     [in] sai_object_id_t
-*
-* Return Values:
-*    Return SAI_OBJECT_TYPE_NULL when sai_object_id is not valid.
-*    Otherwise, return a valid sai object type SAI_OBJECT_TYPE_XXX
-*/
+ * Routine Description:
+ *     Query sai object type.
+ *
+ * Arguments:
+ *     [in] sai_object_id_t
+ *
+ * Return Values:
+ *    Return SAI_OBJECT_TYPE_NULL when sai_object_id is not valid.
+ *    Otherwise, return a valid sai object type SAI_OBJECT_TYPE_XXX
+ */
 sai_object_type_t sai_object_type_query(_In_ sai_object_id_t sai_object_id) {
   sai_object_type_t object_type = SAI_OBJECT_TYPE_NULL;
   switch_nhop_id_type_t nhop_type = 0;
