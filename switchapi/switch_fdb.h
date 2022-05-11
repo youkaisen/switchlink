@@ -78,11 +78,6 @@ extern "C" {
 #define SWITCH_L2_RX_HANDLE(handle)                            \
     SWITCH_HANDLE_VALID(handle, SWITCH_HANDLE_TYPE_L2_FWD_RX)
 
-//Table name macros
-#define L2_FWD_TX_TABLE "l2_fwd_tx_table"
-#define L2_FWD_RX_TABLE "l2_fwd_rx_table"
-#define L2_FWD_RX_TUNNEL_TABLE "l2_fwd_rx_with_tunnel_table"
-
 typedef enum switch_l2_info_type_s
 {
     SWITCH_L2_FWD_NONE,

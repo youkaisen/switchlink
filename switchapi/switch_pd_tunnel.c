@@ -29,6 +29,7 @@
 #include "bf_rt/bf_rt_table_key.h"
 #include "bf_rt/bf_rt_table_data.h"
 #include "switch_pd_utils.h"
+#include "switch_pd_p4_name_mapping.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_pd_tunnel);
 
@@ -64,20 +65,33 @@ switch_status_t switch_pd_tunnel_entry(
     }
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-    status = bf_rt_table_from_name_get(bfrt_info_hdl, VXLAN_ENCAP_MOD_TABLE,
+    status = bf_rt_table_from_name_get(bfrt_info_hdl,
+                                       LNW_VXLAN_ENCAP_MOD_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get table handle for vxlan_encap_mod_table");
+        VLOG_ERR("Unable to get table handle for: %s",
+                  LNW_VXLAN_ENCAP_MOD_TABLE);
         goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to allocate key handle for vxlan_encap_mod_table");
+        VLOG_ERR("Unable to allocate key handle for: %s",
+                  LNW_VXLAN_ENCAP_MOD_TABLE);
         goto dealloc_handle_session;
     }
 
-    field_id = 1; // vendormeta_mod_data_ptr which is tunnel ID
+    status = bf_rt_key_field_id_get(
+                    table_hdl,
+                    LNW_VXLAN_ENCAP_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR,
+                    &field_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get field ID for key: %s",
+                  LNW_VXLAN_ENCAP_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY 1:%d", field_id);
+
     status = bf_rt_key_field_set_value(key_hdl, field_id, 0 /*vni value*/);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d for vxlan_encap_mod_table",
@@ -91,15 +105,35 @@ switch_status_t switch_pd_tunnel_entry(
                   "tunnel interface %x",
                   (unsigned int) api_tunnel_info_t->overlay_rif_handle);
 
-        action_id = 20733968; // Action is vxlan_encap
+        status = bf_rt_action_name_to_id(
+                            table_hdl,
+                            LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP,
+                            &action_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator ID for: %s",
+                      LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 20733968: %d", action_id);
+
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
+            VLOG_ERR("Unable to get data handler for acion: %s",
+                     LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP);
             goto dealloc_handle_session;
         }
 
-        data_field_id = 1; // Action value src_addr
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_VXLAN_ENCAP_PARAM_SRC_ADDR,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_VXLAN_ENCAP_PARAM_SRC_ADDR);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 1: %d", data_field_id);
 
         network_byte_order = ntohl(api_tunnel_info_t->src_ip.ip.v4addr);
         status = bf_rt_data_field_set_value_ptr(
@@ -112,7 +146,16 @@ switch_status_t switch_pd_tunnel_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 2; // Action value dst_addr
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_VXLAN_ENCAP_PARAM_DST_ADDR,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_ADDR);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 2: %d", data_field_id);
 
         network_byte_order = ntohl(api_tunnel_info_t->dst_ip.ip.v4addr);
         status = bf_rt_data_field_set_value_ptr(
@@ -125,7 +168,16 @@ switch_status_t switch_pd_tunnel_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 3; // Action value dst_port
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 3: %d", data_field_id);
 
         uint16_t network_byte_order_udp = ntohs(api_tunnel_info_t->udp_port);
         status = bf_rt_data_field_set_value_ptr(
@@ -138,7 +190,17 @@ switch_status_t switch_pd_tunnel_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 4; // // Action value vni
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_VXLAN_ENCAP_PARAM_VNI,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 4: %d", data_field_id);
+
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id, 0,
                                             sizeof(uint32_t));
         if(status != BF_SUCCESS) {
@@ -205,21 +267,34 @@ switch_status_t switch_pd_tunnel_term_entry(
     }
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-    status = bf_rt_table_from_name_get(bfrt_info_hdl, IPV4_TUNNEL_TERM_TABLE,
+    status = bf_rt_table_from_name_get(bfrt_info_hdl,
+                                       LNW_IPV4_TUNNEL_TERM_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get table handle for ipv4_tunnel_term_table");
+        VLOG_ERR("Unable to get table handle for: %s",
+                  LNW_IPV4_TUNNEL_TERM_TABLE);
         goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to allocate key handle for ipv4_tunnel_term_table");
+        VLOG_ERR("Unable to allocate key handle for: %s",
+                  LNW_IPV4_TUNNEL_TERM_TABLE);
         goto dealloc_handle_session;
     }
 
-    field_id = 1; // Match key local_metadata.tunnel.tun_type.
-    // From p4 file the value expected is TUNNEL_TYPE_VXLAN=2
+    status = bf_rt_key_field_id_get(
+                    table_hdl,
+                    LNW_IPV4_TUNNEL_TERM_TABLE_KEY_TUNNEL_TYPE,
+                    &field_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get field ID for key: %s",
+                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_TUNNEL_TYPE);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY 1:%d", field_id);
+
+    /* From p4 file the value expected is TUNNEL_TYPE_VXLAN=2 */
     status = bf_rt_key_field_set_value(key_hdl, field_id, 2);
     if(status != BF_SUCCESS) {
         VLOG_ERR("Unable to set value for key ID: %d of ipv4_tunnel_term_table",
@@ -227,10 +302,19 @@ switch_status_t switch_pd_tunnel_term_entry(
         goto dealloc_handle_session;
     }
 
-    field_id = 2; // Match key ipv4_src
+    status = bf_rt_key_field_id_get(
+                    table_hdl,
+                    LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_SRC,
+                    &field_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get field ID for key: %s",
+                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_SRC);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY 2:%d", field_id);
 
-    // This refers to incoming packet fields, where SIP will be the remote_ip
-    // configured while creating tunnel
+    /* This refers to incoming packet fields, where SIP will be the remote_ip
+     * configured while creating tunnel */
     network_byte_order = ntohl(api_tunnel_term_info_t->dst_ip.ip.v4addr);
     status = bf_rt_key_field_set_value_ptr(key_hdl, field_id,
                                            (const uint8_t *)&network_byte_order,
@@ -240,10 +324,19 @@ switch_status_t switch_pd_tunnel_term_entry(
         goto dealloc_handle_session;
     }
 
-    field_id = 3; // Match key ipv4_dst
+    status = bf_rt_key_field_id_get(
+                    table_hdl,
+                    LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_DST,
+                    &field_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get field ID for key: %s",
+                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_DST);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY 3:%d", field_id);
 
-    // This refers to incoming packet fields, where DIP will be the local_ip
-    // configured while creating tunnel
+    /* This refers to incoming packet fields, where DIP will be the local_ip
+     * configured while creating tunnel */
     network_byte_order = ntohl(api_tunnel_term_info_t->src_ip.ip.v4addr);
     status = bf_rt_key_field_set_value_ptr(key_hdl, field_id,
                                            (const uint8_t *)&network_byte_order,
@@ -257,8 +350,19 @@ switch_status_t switch_pd_tunnel_term_entry(
         VLOG_INFO("Populate decap_outer_ipv4 action in ipv4_tunnel_term_table "
                   "for tunnel interface %x",
                    (unsigned int) api_tunnel_term_info_t->tunnel_handle);
+
+        status = bf_rt_action_name_to_id(
+                            table_hdl,
+                            LNW_IPV4_TUNNEL_TERM_TABLE_ACTION_DECAP_OUTER_IPV4,
+                            &action_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator ID for: %s",
+                      LNW_IPV4_TUNNEL_TERM_TABLE_ACTION_DECAP_OUTER_IPV4);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 32579284: %d", action_id);
+
         /* Add an entry to target */
-        action_id = 32579284; // Action is decap_outer_ipv4
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -266,7 +370,17 @@ switch_status_t switch_pd_tunnel_term_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 1; // Action value tunnel_id
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_DECAP_OUTER_IPV4_PARAM_TUNNEL_ID,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_DECAP_OUTER_IPV4_PARAM_TUNNEL_ID);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 1: %d", data_field_id);
+
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                             api_tunnel_term_info_t->tunnel_id);
         if(status != BF_SUCCESS) {

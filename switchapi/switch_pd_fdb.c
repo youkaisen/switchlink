@@ -31,6 +31,7 @@
 #include "switch_fdb.h"
 #include "switch_rif_int.h"
 #include "switch_base_types.h"
+#include "switch_pd_p4_name_mapping.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_pd_fdb);
 
@@ -69,10 +70,11 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
     }
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-    status = bf_rt_table_from_name_get(bfrt_info_hdl, L2_FWD_TX_TABLE,
+    status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_L2_FWD_TX_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get table handle for l2_fwd_tx_table");
+        VLOG_ERR("Unable to get table handle for: %s",
+                 LNW_L2_FWD_TX_TABLE);
         goto dealloc_handle_session;
     }
 
@@ -82,7 +84,17 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         goto dealloc_handle_session;
     }
 
-    field_id = 1; // Filed type dst_mac
+    status = bf_rt_key_field_id_get(
+                    table_hdl,
+                    LNW_L2_FWD_TX_TABLE_KEY_DST_MAC,
+                    &field_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get field ID for key: %s",
+                  LNW_L2_FWD_TX_TABLE_KEY_DST_MAC);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY 1:%d", field_id);
+
     status = bf_rt_key_field_set_value_ptr (key_hdl, field_id, 
                             (const uint8_t *)&api_l2_tx_info->dst_mac.mac_addr,
                                         SWITCH_MAC_LENGTH);
@@ -97,7 +109,16 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         VLOG_INFO("Populate set_tunnel action in l2_fwd_tx_table for tunnel "
                   "interface %x", (unsigned int)api_l2_tx_info->rif_handle);
 
-        action_id = 22384992; //action id for l2_fwd_tx_table, action:set_tunnel
+        status = bf_rt_action_name_to_id(
+                            table_hdl,
+                            LNW_L2_FWD_TX_TABLE_ACTION_SET_TUNNEL,
+                            &action_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator ID for: %s",
+                      LNW_L2_FWD_TX_TABLE_ACTION_SET_TUNNEL);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 22384992: %d", action_id);
 
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
@@ -106,7 +127,16 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 1; // field value tunnel_id
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_SET_TUNNEL_PARAM_TUNNEL_ID,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_SET_TUNNEL_PARAM_TUNNEL_ID);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 1: %d", data_field_id);
 
         status = bf_rt_data_field_set_value_ptr (data_hdl, data_field_id,
                                                  0, sizeof(uint32_t));
@@ -115,7 +145,17 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 2; // action value dst_addr
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_SET_TUNNEL_PARAM_DST_ADDR,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_SET_TUNNEL_PARAM_DST_ADDR);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 2: %d", data_field_id);
+
         network_byte_order = ntohl(api_tunnel_info->dst_ip.ip.v4addr);
         status = bf_rt_data_field_set_value_ptr (data_hdl, data_field_id,
                                                  (const uint8_t *)
@@ -138,7 +178,17 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
         VLOG_INFO("Populate l2_fwd action in l2_fwd_tx_table "
                   "for VLAN netdev: vlan%d", api_l2_tx_info->port_id+1);
 
-        action_id = 19169916; //action id for l2_fwd_tx_table, action: l2_fwd
+        status = bf_rt_action_name_to_id(
+                            table_hdl,
+                            LNW_L2_FWD_TX_TABLE_ACTION_L2_FWD,
+                            &action_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator ID for: %s",
+                      LNW_L2_FWD_TX_TABLE_ACTION_L2_FWD);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 19169916: %d", action_id);
+
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -146,7 +196,17 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 1; // Action type port
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_L2_FWD_PARAM_PORT,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_L2_FWD_PARAM_PORT);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 1: %d", data_field_id);
+
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                             api_l2_tx_info->port_id);
         if(status != BF_SUCCESS) {
@@ -166,8 +226,17 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
 
         VLOG_INFO("Populate l2_fwd action in l2_fwd_tx_table "
                   "for physical port: %d", api_l2_tx_info->port_id);
+        status = bf_rt_action_name_to_id(
+                            table_hdl,
+                            LNW_L2_FWD_TX_TABLE_ACTION_L2_FWD,
+                            &action_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator ID for: %s",
+                      LNW_L2_FWD_TX_TABLE_ACTION_L2_FWD);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 19169916: %d", action_id);
 
-        action_id = 19169916; //action id for l2_fwd_tx_table, action: l2_fwd
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -175,7 +244,17 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 1; // Action type port
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_L2_FWD_PARAM_PORT,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_L2_FWD_PARAM_PORT);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 1: %d", data_field_id);
+
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                             api_l2_tx_info->port_id);
         if(status != BF_SUCCESS) {
@@ -247,20 +326,32 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
     }
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-    status = bf_rt_table_from_name_get(bfrt_info_hdl, L2_FWD_RX_TABLE,
+    status = bf_rt_table_from_name_get(bfrt_info_hdl,
+                                       LNW_L2_FWD_RX_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get table handle for l2_fwd_rx_table");
+        VLOG_ERR("Unable to get table handle for: %s",
+                 LNW_L2_FWD_RX_TABLE);
         goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get key handle for l2_fwd_rx_table");
+        VLOG_ERR("Unable to get key handle for: %s", LNW_L2_FWD_RX_TABLE);
         goto dealloc_handle_session;
     }
 
-    field_id = 1; // Filed type dst_mac
+    status = bf_rt_key_field_id_get(
+                    table_hdl,
+                    LNW_L2_FWD_RX_TABLE_KEY_DST_MAC,
+                    &field_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get field ID for key: %s",
+                  LNW_L2_FWD_RX_TABLE_KEY_DST_MAC);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY 1:%d", field_id);
+
     status = bf_rt_key_field_set_value_ptr (key_hdl, field_id, 
                                             (const uint8_t *)
                                             &api_l2_rx_info->dst_mac.mac_addr, 
@@ -274,7 +365,18 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
         /* Add an entry to target */
         VLOG_INFO("Populate l2_fwd action in l2_fwd_rx_table for rif handle "
                   "%x ", (unsigned int) api_l2_rx_info->rif_handle);
-        action_id = 19169916; //action id for l2_fwd_rx_table, action: l2_fwd
+
+        status = bf_rt_action_name_to_id(
+                            table_hdl,
+                            LNW_L2_FWD_RX_TABLE_ACTION_L2_FWD,
+                            &action_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator ID for: %s",
+                      LNW_L2_FWD_TX_TABLE_ACTION_L2_FWD);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 19169916: %d", action_id);
+
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
@@ -298,7 +400,17 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
          * and send to control port. */
         port_id = rif_info->api_rif_info.port_id;
 
-        data_field_id = 1; // Action type port
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_L2_FWD_PARAM_PORT,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_L2_FWD_PARAM_PORT);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 1: %d", data_field_id);
+
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                             port_id);
         if(status != BF_SUCCESS) {
@@ -366,20 +478,32 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
 
     table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
     status = bf_rt_table_from_name_get(bfrt_info_hdl,
-                                       L2_FWD_RX_TUNNEL_TABLE,
+                                       LNW_L2_FWD_RX_WITH_TUNNEL_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get table handle for l2_fwd_rx_with_tunnel_table");
+        VLOG_ERR("Unable to get table handle for: %s",
+                  LNW_L2_FWD_RX_WITH_TUNNEL_TABLE);
         goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get key handle for l2_fwd_rx_with_tunnel_table");
+        VLOG_ERR("Unable to get key handle for: %s",
+                  LNW_L2_FWD_RX_WITH_TUNNEL_TABLE);
         goto dealloc_handle_session;
     }
 
-    field_id = 1; // Filed type dst_mac
+    status = bf_rt_key_field_id_get(
+                    table_hdl,
+                    LNW_L2_FWD_RX_WITH_TUNNEL_TABLE_KEY_DST_MAC,
+                    &field_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get field ID for key: %s",
+                  LNW_L2_FWD_RX_WITH_TUNNEL_TABLE_KEY_DST_MAC);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY 1:%d", field_id);
+
     status = bf_rt_key_field_set_value_ptr (key_hdl, field_id, 
                                             (const uint8_t *)
                                             &api_l2_rx_info->dst_mac.mac_addr, 
@@ -394,8 +518,16 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
         VLOG_INFO("Populate l2_fwd action in l2_fwd_rx_with_tunnel_table for "
                   "rif handle %x", (unsigned int) api_l2_rx_info->rif_handle);
 
-        action_id = 19169916; // action id for l2_fwd_rx_with_tunnel_table,
-                              // action: l2_fwd
+        status = bf_rt_action_name_to_id(
+                            table_hdl,
+                            LNW_L2_FWD_RX_WITH_TUNNEL_TABLE_ACTION_L2_FWD,
+                            &action_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get action allocator ID for: %s",
+                      LNW_L2_FWD_RX_WITH_TUNNEL_TABLE_ACTION_L2_FWD);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 19169916: %d", action_id);
 
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
@@ -404,7 +536,17 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
             goto dealloc_handle_session;
         }
 
-        data_field_id = 1; // Action type port
+        status = bf_rt_data_field_id_with_action_get(
+                                    table_hdl,
+                                    LNW_ACTION_L2_FWD_PARAM_PORT,
+                                    action_id, &data_field_id);
+        if(status != BF_SUCCESS) {
+            VLOG_ERR("Unable to get data field id param for: %s",
+                      LNW_ACTION_L2_FWD_PARAM_PORT);
+            goto dealloc_handle_session;
+        }
+        VLOG_ERR("SANDY: 1: %d", data_field_id);
+
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                             api_l2_rx_info->port_id);
         if(status != BF_SUCCESS) {

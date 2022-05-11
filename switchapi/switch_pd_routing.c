@@ -30,6 +30,7 @@
 #include "bf_rt/bf_rt_table_key.h"
 #include "bf_rt/bf_rt_table_data.h"
 #include "switch_pd_utils.h"
+#include "switch_pd_p4_name_mapping.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_pd_routing);
 
@@ -64,20 +65,30 @@ switch_status_t switch_pd_nexthop_table_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, NEXTHOP_TABLE,
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_NEXTHOP_TABLE,
                                        &table_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to get table handle for nexthop_table");
+      VLOG_ERR("Unable to get table handle for: %s", LNW_NEXTHOP_TABLE);
       goto dealloc_handle_session;
   }
     
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to allocate key handle for nexthop_table");
+      VLOG_ERR("Unable to allocate key handle for: %s", LNW_NEXTHOP_TABLE);
       goto dealloc_handle_session;
   }
 
-  field_id = 1; // Match key nexthop_id
+  status = bf_rt_key_field_id_get(
+                  table_hdl,
+                  LNW_NEXTHOP_TABLE_KEY_NEXTHOP_ID,
+                  &field_id);
+  if(status != BF_SUCCESS) {
+      VLOG_ERR("Unable to get field ID for key: %s",
+                LNW_NEXTHOP_TABLE_KEY_NEXTHOP_ID);
+      goto dealloc_handle_session;
+  }
+  VLOG_ERR("SANDY 1:%d", field_id);
+
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (api_nexthop_pd_info->nexthop_handle &
                                       ~(SWITCH_HANDLE_TYPE_NHOP<<25)));
@@ -90,7 +101,18 @@ switch_status_t switch_pd_nexthop_table_entry(
   if (entry_add) {
       /* Add an entry to target */
       VLOG_INFO("Populate set_nexthop action in nexthop_table");
-      action_id = 31297949; //action id for nexthop_table, action: set_nexthop
+
+      status = bf_rt_action_name_to_id(
+                          table_hdl,
+                          LNW_NEXTHOP_TABLE_ACTION_SET_NEXTHOP,
+                          &action_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get action allocator ID for: %s",
+                    LNW_NEXTHOP_TABLE_ACTION_SET_NEXTHOP);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 31297949: %d", action_id);
+
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
@@ -98,7 +120,17 @@ switch_status_t switch_pd_nexthop_table_entry(
           goto dealloc_handle_session;
       }
 
-      data_field_id = 1; // Action value router_interface_id
+      status = bf_rt_data_field_id_with_action_get(
+                                  table_hdl,
+                                  LNW_ACTION_SET_NEXTHOP_PARAM_RIF,
+                                  action_id, &data_field_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get data field id param for: %s",
+                    LNW_ACTION_SET_NEXTHOP_PARAM_RIF);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 1: %d", data_field_id);
+
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           (api_nexthop_pd_info->rif_handle &
                                            ~(SWITCH_HANDLE_TYPE_RIF << 25)));
@@ -108,7 +140,17 @@ switch_status_t switch_pd_nexthop_table_entry(
           goto dealloc_handle_session;
       }
 
-      data_field_id = 2; // Action value neighbor_id
+      status = bf_rt_data_field_id_with_action_get(
+                                  table_hdl,
+                                  LNW_ACTION_SET_NEXTHOP_PARAM_NEIGHBOR_ID,
+                                  action_id, &data_field_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get data field id param for: %s",
+                    LNW_ACTION_SET_NEXTHOP_PARAM_NEIGHBOR_ID);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 2: %d", data_field_id);
+
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                          (api_nexthop_pd_info->neighbor_handle &
                                          ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
@@ -117,7 +159,17 @@ switch_status_t switch_pd_nexthop_table_entry(
           goto dealloc_handle_session;
       }
 
-      data_field_id = 3; // Action value egress_port
+      status = bf_rt_data_field_id_with_action_get(
+                                  table_hdl,
+                                  LNW_ACTION_SET_NEXTHOP_PARAM_EGRESS_PORT,
+                                  action_id, &data_field_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get data field id param for: %s",
+                    LNW_ACTION_SET_NEXTHOP_PARAM_EGRESS_PORT);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 3: %d", data_field_id);
+
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           api_nexthop_pd_info->port_id);
       if(status != BF_SUCCESS) {
@@ -183,20 +235,32 @@ switch_status_t switch_pd_neighbor_table_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, NEIGHBOR_MOD_TABLE,
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_NEIGHBOR_MOD_TABLE,
                                        &table_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to get table handle for neighbor_mod_table");
+      VLOG_ERR("Unable to get table handle for: %s",
+               LNW_NEIGHBOR_MOD_TABLE);
       goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to allocate key handle for neighbor_mod_table");
+      VLOG_ERR("Unable to allocate key handle for: %s",
+                LNW_NEIGHBOR_MOD_TABLE);
       goto dealloc_handle_session;
   }
 
-  field_id = 1;
+  status = bf_rt_key_field_id_get(
+                  table_hdl,
+                  LNW_NEIGHBOR_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR,
+                  &field_id);
+  if(status != BF_SUCCESS) {
+      VLOG_ERR("Unable to get field ID for key: %s",
+                LNW_NEIGHBOR_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR);
+      goto dealloc_handle_session;
+  }
+  VLOG_ERR("SANDY 1:%d", field_id);
+
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (api_neighbor_pd_info->neighbor_handle &
                                       ~(SWITCH_HANDLE_TYPE_NEIGHBOR << 25)));
@@ -212,8 +276,17 @@ switch_status_t switch_pd_neighbor_table_entry(
                 "neighbor handle %x",
                 (unsigned int) api_neighbor_pd_info->neighbor_handle);
 
-      action_id = 31671750; // action id for neighbor_mod_table,
-                            // action: set_outer_mac
+      status = bf_rt_action_name_to_id(
+                          table_hdl,
+                          LNW_NEIGHBOR_MOD_TABLE_ACTION_SET_OUTER_MAC,
+                          &action_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get action allocator ID for: %s",
+                    LNW_NEIGHBOR_MOD_TABLE_ACTION_SET_OUTER_MAC);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 31671750: %d", action_id);
+
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
@@ -221,7 +294,17 @@ switch_status_t switch_pd_neighbor_table_entry(
           goto dealloc_handle_session;
       }
 
-      data_field_id = 1;
+      status = bf_rt_data_field_id_with_action_get(
+                                  table_hdl,
+                                  LNW_ACTION_SET_OUTER_MAC_PARAM_DST_MAC_ADDR,
+                                  action_id, &data_field_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get data field id param for: %s",
+                    LNW_ACTION_SET_OUTER_MAC_PARAM_DST_MAC_ADDR);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 1: %d", data_field_id);
+
       status = bf_rt_data_field_set_value_ptr(
                                 data_hdl, data_field_id,
                                 (const uint8_t *)
@@ -291,20 +374,32 @@ switch_status_t switch_pd_rif_mod_start_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, RIF_MOD_TABLE_START,
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_RIF_MOD_TABLE_START,
                                      &table_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to get table handle for rif_mod_table_start");
+      VLOG_ERR("Unable to get table handle for: %s",
+                LNW_RIF_MOD_TABLE_START);
       goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to allocate key handle for rif_mod_table_start");
+      VLOG_ERR("Unable to allocate key handle for: %s",
+                LNW_RIF_MOD_TABLE_START);
       goto dealloc_handle_session;
   }
 
-  field_id = 1;
+  status = bf_rt_key_field_id_get(
+                  table_hdl,
+                  LNW_RIF_MOD_TABLE_START_KEY_RIF_MOD_MAP_ID,
+                  &field_id);
+  if(status != BF_SUCCESS) {
+      VLOG_ERR("Unable to get field ID for key: %s",
+                LNW_RIF_MOD_TABLE_START_KEY_RIF_MOD_MAP_ID);
+      goto dealloc_handle_session;
+  }
+  VLOG_ERR("SANDY 1:%d", field_id);
+
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (rif_handle &
                                      ~(SWITCH_HANDLE_TYPE_RIF << 25)));
@@ -318,8 +413,17 @@ switch_status_t switch_pd_rif_mod_start_entry(
     /* Add an entry to target */
     VLOG_INFO("Populate set_src_mac_start action in rif_mod_table_start");
 
-    action_id = 23093409; // action for rif_mod_table_start,
-                          // action: set_src_mac_start
+    status = bf_rt_action_name_to_id(
+                        table_hdl,
+                        LNW_RIF_MOD_TABLE_START_ACTION_SET_SRC_MAC_START,
+                        &action_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get action allocator ID for: %s",
+                  LNW_RIF_MOD_TABLE_START_ACTION_SET_SRC_MAC_START);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY: 23093409: %d", action_id);
+
     status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                              &data_hdl);
     if(status != BF_SUCCESS) {
@@ -327,7 +431,17 @@ switch_status_t switch_pd_rif_mod_start_entry(
       goto dealloc_handle_session;
    }
 
-   data_field_id = 1;
+   status = bf_rt_data_field_id_with_action_get(
+                        table_hdl,
+                        LNW_ACTION_SET_SRC_MAC_START_PARAM_SRC_MAC_ADDR_FIRST,
+                        action_id, &data_field_id);
+   if(status != BF_SUCCESS) {
+       VLOG_ERR("Unable to get data field id param for: %s",
+                 LNW_ACTION_SET_SRC_MAC_START_PARAM_SRC_MAC_ADDR_FIRST);
+       goto dealloc_handle_session;
+   }
+   VLOG_ERR("SANDY: 1: %d", data_field_id);
+
    status = bf_rt_data_field_set_value_ptr(
                                 data_hdl, data_field_id,
                                 (const uint8_t *)
@@ -397,18 +511,29 @@ switch_status_t switch_pd_rif_mod_mid_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, RIF_MOD_TABLE_MID,
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_RIF_MOD_TABLE_MID,
                                    &table_hdl);
   if(status != BF_SUCCESS) {
-    VLOG_ERR("Unable to get table handle for rif_mod_table_mid");
+    VLOG_ERR("Unable to get table handle for: %s", LNW_RIF_MOD_TABLE_MID);
     goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
-    VLOG_ERR("Unable to allocate key handle for rif_mod_table_mid");
+    VLOG_ERR("Unable to allocate key handle for: %s", LNW_RIF_MOD_TABLE_MID);
     goto dealloc_handle_session;
   }
+
+  status = bf_rt_key_field_id_get(
+                  table_hdl,
+                  LNW_RIF_MOD_TABLE_MID_KEY_RIF_MOD_MAP_ID,
+                  &field_id);
+  if(status != BF_SUCCESS) {
+      VLOG_ERR("Unable to get field ID for key: %s",
+                LNW_RIF_MOD_TABLE_MID_KEY_RIF_MOD_MAP_ID);
+      goto dealloc_handle_session;
+  }
+  VLOG_ERR("SANDY 1:%d", field_id);
 
   field_id = 1;
   status = bf_rt_key_field_set_value(key_hdl, field_id,
@@ -424,8 +549,17 @@ switch_status_t switch_pd_rif_mod_mid_entry(
     /* Add an entry to target */
     VLOG_INFO("Populate set_src_mac_mid action in rif_mod_table_mid");
 
-    action_id = 30315892; // action for rif_mod_table_mid table,
-                          // action: set_src_mac_mid
+    status = bf_rt_action_name_to_id(
+                        table_hdl,
+                        LNW_RIF_MOD_TABLE_MID_ACTION_SET_SRC_MAC_MID,
+                        &action_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get action allocator ID for: %s",
+                  LNW_RIF_MOD_TABLE_MID_ACTION_SET_SRC_MAC_MID);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY: 30315892: %d", action_id);
+
     status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                               &data_hdl);
     if(status != BF_SUCCESS) {
@@ -433,7 +567,17 @@ switch_status_t switch_pd_rif_mod_mid_entry(
         goto dealloc_handle_session;
     }
 
-    data_field_id = 1;
+    status = bf_rt_data_field_id_with_action_get(
+                        table_hdl,
+                        LNW_ACTION_SET_SRC_MAC_MID_PARAM_SRC_MAC_ADDR_MID,
+                        action_id, &data_field_id);
+    if(status != BF_SUCCESS) {
+        VLOG_ERR("Unable to get data field id param for: %s",
+                  LNW_ACTION_SET_SRC_MAC_MID_PARAM_SRC_MAC_ADDR_MID);
+        goto dealloc_handle_session;
+    }
+    VLOG_ERR("SANDY: 1: %d", data_field_id);
+
     status = bf_rt_data_field_set_value_ptr(
                                 data_hdl, data_field_id,
                                 (const uint8_t *)
@@ -503,20 +647,30 @@ switch_status_t switch_pd_rif_mod_end_entry(
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, RIF_MOD_TABLE_LAST,
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_RIF_MOD_TABLE_LAST,
                                      &table_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to get rif_mod_table_last handle");
+      VLOG_ERR("Unable to get table handle for: %s", LNW_RIF_MOD_TABLE_LAST);
       goto dealloc_handle_session;
   }
 
   status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to allocate key handle for rif_mod_table_last");
+      VLOG_ERR("Unable to allocate key handle for: %s", LNW_RIF_MOD_TABLE_LAST);
       goto dealloc_handle_session;
   }
 
-  field_id = 1;
+  status = bf_rt_key_field_id_get(
+                  table_hdl,
+                  LNW_RIF_MOD_TABLE_LAST_KEY_RIF_MOD_MAP_ID,
+                  &field_id);
+  if(status != BF_SUCCESS) {
+      VLOG_ERR("Unable to get field ID for key: %s",
+                LNW_RIF_MOD_TABLE_LAST_KEY_RIF_MOD_MAP_ID);
+      goto dealloc_handle_session;
+  }
+  VLOG_ERR("SANDY 1:%d", field_id);
+
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (rif_handle &
                                      ~(SWITCH_HANDLE_TYPE_RIF << 25)));
@@ -530,8 +684,17 @@ switch_status_t switch_pd_rif_mod_end_entry(
       /* Add an entry to target */
       VLOG_INFO("Populate set_src_mac_last action in rif_mod_table_last");
 
-      action_id = 32740970; // action for rif_mod_table_last
-                            // action: set_src_mac_last
+      status = bf_rt_action_name_to_id(
+                          table_hdl,
+                          LNW_RIF_MOD_TABLE_LAST_ACTION_SET_SRC_MAC_LAST,
+                          &action_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get action allocator ID for: %s",
+                    LNW_RIF_MOD_TABLE_LAST_ACTION_SET_SRC_MAC_LAST);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 32740970: %d", action_id);
+
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
@@ -539,7 +702,17 @@ switch_status_t switch_pd_rif_mod_end_entry(
           goto dealloc_handle_session;
       }
 
-      data_field_id = 1;
+      status = bf_rt_data_field_id_with_action_get(
+                           table_hdl,
+                           LNW_ACTION_SET_SRC_MAC_LAST_PARAM_SRC_MAC_ADDR_LAST,
+                           action_id, &data_field_id);
+      if (status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get data field id param for: %s",
+                   LNW_ACTION_SET_SRC_MAC_LAST_PARAM_SRC_MAC_ADDR_LAST);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 1: %d", data_field_id);
+
       status = bf_rt_data_field_set_value_ptr(
                                 data_hdl, data_field_id,
                                 (const uint8_t *)
@@ -609,10 +782,10 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
   }
 
   table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
-  status = bf_rt_table_from_name_get(bfrt_info_hdl, IPV4_TABLE,
+  status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_IPV4_TABLE,
                                        &table_hdl);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Unable to get table handle for ipv4_table");
+      VLOG_ERR("Unable to get table handle for: %s", LNW_IPV4_TABLE);
       goto dealloc_handle_session;
   }
 
@@ -622,7 +795,16 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
       goto dealloc_handle_session;
   }
 
-  field_id = 1; // Match type ipv4_dst_match
+  status = bf_rt_key_field_id_get(
+                  table_hdl,
+                  LNW_IPV4_TABLE_KEY_IPV4_DST_MATCH,
+                  &field_id);
+  if(status != BF_SUCCESS) {
+      VLOG_ERR("Unable to get field ID for key: %s",
+                LNW_IPV4_TABLE_KEY_IPV4_DST_MATCH);
+      goto dealloc_handle_session;
+  }
+  VLOG_ERR("SANDY 1:%d", field_id);
 
   /* Use LPM API for LPM match type*/
   network_byte_order = ntohl(api_route_entry->ip_address.ip.v4addr);
@@ -644,8 +826,16 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                 "route handle %x",
                 (unsigned int) api_route_entry->route_handle);
 
-      /* Add an entry to target */
-      action_id = 29883644; //action id for ipv_table, action: set_nexthop_id
+      status = bf_rt_action_name_to_id(
+                          table_hdl,
+                          LNW_IPV4_TABLE_ACTION_SET_NEXTHOP_ID,
+                          &action_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get action allocator ID for: %s",
+                    LNW_IPV4_TABLE_ACTION_SET_NEXTHOP_ID);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 29883644: %d", action_id);
 
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
@@ -654,7 +844,17 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
           goto dealloc_handle_session;
       }
 
-      data_field_id = 1; // Action value nexthop_id
+      status = bf_rt_data_field_id_with_action_get(
+                           table_hdl,
+                           LNW_ACTION_SET_NEXTHOP_ID_PARAM_NEXTHOP_ID,
+                           action_id, &data_field_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get data field id param for: %s",
+                    LNW_ACTION_SET_NEXTHOP_ID_PARAM_NEXTHOP_ID);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 1: %d", data_field_id);
+
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           (api_route_entry->nhop_handle &
                                            ~(SWITCH_HANDLE_TYPE_NHOP<<25)));
@@ -666,7 +866,17 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
 
     if(action == SWITCH_ACTION_ECMP)
     {
-      action_id = 16874810; //action id for ipv4_table, action: ecmp_hash_action
+      status = bf_rt_action_name_to_id(
+                          table_hdl,
+                          LNW_IPV4_TABLE_ACTION_ECMP_HASH_ACTION,
+                          &action_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get action allocator ID for: %s",
+                    LNW_IPV4_TABLE_ACTION_ECMP_HASH_ACTION);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 16874810: %d", action_id);
+
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
       if(status != BF_SUCCESS) {
@@ -674,7 +884,17 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
           goto dealloc_handle_session;
       }
 
-      data_field_id = 1; // Action value ecmp_group_id
+      status = bf_rt_data_field_id_with_action_get(
+                           table_hdl,
+                           LNW_ACTION_ECMP_HASH_ACTION_PARAM_ECMP_GROUP_ID,
+                           action_id, &data_field_id);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Unable to get data field id param for: %s",
+                    LNW_ACTION_ECMP_HASH_ACTION_PARAM_ECMP_GROUP_ID);
+          goto dealloc_handle_session;
+      }
+      VLOG_ERR("SANDY: 1: %d", data_field_id);
+
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           api_route_entry->ecmp_group_id);
       if(status != BF_SUCCESS) {

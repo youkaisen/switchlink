@@ -61,7 +61,8 @@ switchapi_libswitchapi_la_SOURCES = \
     switchapi/switch_vrf.c \
     switchapi/switch_vrf.h \
     switchapi/switch_pd_utils.c \
-    switchapi/switch_pd_utils.h
+    switchapi/switch_pd_utils.h \
+    switchapi/switch_pd_p4_name_mapping.h
 
 switchapi_libswitchapi_la_CPPFLAGS = $(AM_CPPFLAGS)
 switchapi_libswitchapi_la_CFLAGS = $(AM_CFLAGS)

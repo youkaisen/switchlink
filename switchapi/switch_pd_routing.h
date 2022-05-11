@@ -96,14 +96,6 @@ switch_status_t switch_routing_table_entry (
         const switch_pd_routing_info_t *api_routing_info,
         bool entry_type);
 
-//Table name macros
-#define NEXTHOP_TABLE "nexthop_table"
-#define IPV4_TABLE "ipv4_table"
-#define NEIGHBOR_MOD_TABLE "neighbor_mod_table"
-#define RIF_MOD_TABLE_START "rif_mod_table_start"
-#define RIF_MOD_TABLE_MID "rif_mod_table_mid"
-#define RIF_MOD_TABLE_LAST "rif_mod_table_last"
-
 #ifdef  __cplusplus
 }
 #endif
