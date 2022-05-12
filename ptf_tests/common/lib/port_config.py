@@ -63,8 +63,6 @@ class PortConfig(object):
             if return_code:
                 print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
-            print(f"PASS: {cmd}")
-            print(output)
             return output
 
         def tear_down(self):
