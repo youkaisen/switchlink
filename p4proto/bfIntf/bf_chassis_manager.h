@@ -256,21 +256,16 @@ class BfChassisManager {
                                const SingletonPort& singleton_port,
                                PortConfig* config);
 
+  // helper to hotplug add / delete a port with BfSdeInterface
+  ::util::Status HotplugPortHelper(uint64 node_id, int unit, uint32 port_id,
+                                   const SingletonPort& singleton_port,
+                                   PortConfig* config);
+
   // helper to update port configuration with BfSdeInterface
   ::util::Status UpdatePortHelper(uint64 node_id, int unit, uint32 port_id,
                                   const SingletonPort& singleton_port,
                                   const PortConfig& config_old,
                                   PortConfig* config);
-
-  //helper to send qemu hotplug commands to qemu monitor socket
-  ::util::Status SendQemuCmdsHelper(int sockfd, std::string cmd);
-
-  // helper to prepare qemu hotplug commands to qemu monitor socket
-  std::string PrepQemuCmdsHelper(qemu_cmd_type cmd,
-                                 uint64 node_id, uint32 port_id);
-
-  // helper to create socket and connect to qemu monitor socket
-  int CreateHelperSocket(uint64 node_id, uint32 port_id);
 
   // Determines the mode of operation:
   // - OPERATION_MODE_STANDALONE: when Stratum stack runs independently and
