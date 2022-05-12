@@ -25,6 +25,7 @@
 #include "switchlink_sai.h"
 #include <linux/if_ether.h>
 #include "openvswitch/vlog.h"
+#include "saiinternal.h"
 
 VLOG_DEFINE_THIS_MODULE(switchlink_sai);
 
@@ -421,10 +422,13 @@ int switchlink_mac_create(switchlink_mac_addr_t mac_addr,
 
   sai_attribute_t attr_list[3];
   memset(&attr_list, 0, sizeof(attr_list));
+
   attr_list[0].id = SAI_FDB_ENTRY_ATTR_TYPE;
   attr_list[0].value.s32 = SAI_FDB_ENTRY_TYPE_STATIC;
   attr_list[1].id = SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID;
   attr_list[1].value.oid = intf_h;
+  attr_list[2].id = SAI_FDB_ENTRY_ATTR_META_DATA;
+  attr_list[2].value.u16 = SAI_L2_FWD_LEARN_PHYSICAL_INTERFACE;
 
   status = fdb_api->create_fdb_entry(&fdb_entry, 3, attr_list);
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);

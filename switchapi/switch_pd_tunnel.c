@@ -90,7 +90,6 @@ switch_status_t switch_pd_tunnel_entry(
                   LNW_VXLAN_ENCAP_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR);
         goto dealloc_handle_session;
     }
-    VLOG_ERR("SANDY 1:%d", field_id);
 
     status = bf_rt_key_field_set_value(key_hdl, field_id, 0 /*vni value*/);
     if(status != BF_SUCCESS) {
@@ -114,7 +113,6 @@ switch_status_t switch_pd_tunnel_entry(
                       LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP);
             goto dealloc_handle_session;
         }
-        VLOG_ERR("SANDY: 20733968: %d", action_id);
 
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
@@ -133,7 +131,6 @@ switch_status_t switch_pd_tunnel_entry(
                       LNW_ACTION_VXLAN_ENCAP_PARAM_SRC_ADDR);
             goto dealloc_handle_session;
         }
-        VLOG_ERR("SANDY: 1: %d", data_field_id);
 
         network_byte_order = ntohl(api_tunnel_info_t->src_ip.ip.v4addr);
         status = bf_rt_data_field_set_value_ptr(
@@ -155,7 +152,6 @@ switch_status_t switch_pd_tunnel_entry(
                       LNW_ACTION_VXLAN_ENCAP_PARAM_DST_ADDR);
             goto dealloc_handle_session;
         }
-        VLOG_ERR("SANDY: 2: %d", data_field_id);
 
         network_byte_order = ntohl(api_tunnel_info_t->dst_ip.ip.v4addr);
         status = bf_rt_data_field_set_value_ptr(
@@ -177,7 +173,6 @@ switch_status_t switch_pd_tunnel_entry(
                       LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT);
             goto dealloc_handle_session;
         }
-        VLOG_ERR("SANDY: 3: %d", data_field_id);
 
         uint16_t network_byte_order_udp = ntohs(api_tunnel_info_t->udp_port);
         status = bf_rt_data_field_set_value_ptr(
@@ -199,7 +194,6 @@ switch_status_t switch_pd_tunnel_entry(
                       LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT);
             goto dealloc_handle_session;
         }
-        VLOG_ERR("SANDY: 4: %d", data_field_id);
 
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id, 0,
                                             sizeof(uint32_t));
@@ -292,7 +286,6 @@ switch_status_t switch_pd_tunnel_term_entry(
                   LNW_IPV4_TUNNEL_TERM_TABLE_KEY_TUNNEL_TYPE);
         goto dealloc_handle_session;
     }
-    VLOG_ERR("SANDY 1:%d", field_id);
 
     /* From p4 file the value expected is TUNNEL_TYPE_VXLAN=2 */
     status = bf_rt_key_field_set_value(key_hdl, field_id, 2);
@@ -311,7 +304,6 @@ switch_status_t switch_pd_tunnel_term_entry(
                   LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_SRC);
         goto dealloc_handle_session;
     }
-    VLOG_ERR("SANDY 2:%d", field_id);
 
     /* This refers to incoming packet fields, where SIP will be the remote_ip
      * configured while creating tunnel */
@@ -333,7 +325,6 @@ switch_status_t switch_pd_tunnel_term_entry(
                   LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_DST);
         goto dealloc_handle_session;
     }
-    VLOG_ERR("SANDY 3:%d", field_id);
 
     /* This refers to incoming packet fields, where DIP will be the local_ip
      * configured while creating tunnel */
@@ -360,7 +351,6 @@ switch_status_t switch_pd_tunnel_term_entry(
                       LNW_IPV4_TUNNEL_TERM_TABLE_ACTION_DECAP_OUTER_IPV4);
             goto dealloc_handle_session;
         }
-        VLOG_ERR("SANDY: 32579284: %d", action_id);
 
         /* Add an entry to target */
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
@@ -379,7 +369,6 @@ switch_status_t switch_pd_tunnel_term_entry(
                       LNW_ACTION_DECAP_OUTER_IPV4_PARAM_TUNNEL_ID);
             goto dealloc_handle_session;
         }
-        VLOG_ERR("SANDY: 1: %d", data_field_id);
 
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                             api_tunnel_term_info_t->tunnel_id);

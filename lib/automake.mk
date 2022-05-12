@@ -12,7 +12,7 @@ lib_libopenvswitch_la_LIBADD += $(CAPNG_LDADD)
 lib_libopenvswitch_la_LIBADD += $(LIBBPF_LDADD)
 #if P4SAI
 lib_libopenvswitch_la_LIBADD += switchlink/libswitchlink.la
-lib_libopenvswitch_la_LIBADD += switchapi/libswitchapi.la
+lib_libopenvswitch_la_LIBADD += switchsai/libswitchsai.la
 #endif
 
 if WIN32

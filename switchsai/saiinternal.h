@@ -25,7 +25,7 @@
 
 #include <arpa/inet.h>
 
-#include "switch_base_types.h"
+#include "switchapi/switch_base_types.h"
 
 #ifndef __SAIINTERNAL_H_
 #define __SAIINTERNAL_H_
@@ -49,6 +49,15 @@
 #define SAI_MEMSET memset
 #define SAI_MEMCPY memcpy
 #define SAI_MEMCMP memcmp
+
+typedef enum sai_l2_learn_from_t
+{
+    SAI_L2_FWD_LEARN_NONE,
+    SAI_L2_FWD_LEARN_TUNNEL_INTERFACE,
+    SAI_L2_FWD_LEARN_VLAN_INTERFACE,
+    SAI_L2_FWD_LEARN_PHYSICAL_INTERFACE,
+    SAI_L2_FWD_LEARN_MAX
+}sai_l2_learn_from_t;
 
 void sai_log(int level, sai_api_t api, char *fmt, ...);
 

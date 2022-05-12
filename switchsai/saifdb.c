@@ -28,6 +28,24 @@ VLOG_DEFINE_THIS_MODULE(saifdb);
 
 //static sai_api_t api_id = SAI_API_FDB;
 
+static switch_l2_learn_from_t
+switch_type_learn_from(sai_l2_learn_from_t sai_learn_from_type)
+{
+  switch(sai_learn_from_type) {
+    case SAI_L2_FWD_LEARN_NONE:
+      return SWITCH_L2_FWD_LEARN_NONE;
+    case SAI_L2_FWD_LEARN_TUNNEL_INTERFACE:
+      return SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE;
+    case SAI_L2_FWD_LEARN_VLAN_INTERFACE:
+      return SWITCH_L2_FWD_LEARN_VLAN_INTERFACE;
+    case SAI_L2_FWD_LEARN_PHYSICAL_INTERFACE:
+      return SWITCH_L2_FWD_LEARN_PHYSICAL_INTERFACE;
+    case SAI_L2_FWD_LEARN_MAX:
+      return SWITCH_L2_FWD_LEARN_MAX;
+  }
+  return SWITCH_L2_FWD_LEARN_NONE;
+}
+
 static void sai_fdb_entry_to_string(_In_ const sai_fdb_entry_t *fdb_entry,
                                     _Out_ char *entry_string) {
   snprintf(entry_string,
@@ -45,10 +63,10 @@ static sai_status_t sai_fdb_entry_parse(const sai_fdb_entry_t *fdb_entry,
                                         switch_api_l2_info_t *mac_entry) {
 
   memcpy(mac_entry->dst_mac.mac_addr, fdb_entry->mac_address, ETH_ALEN);
-  return SWITCH_STATUS_SUCCESS;
+  return SAI_STATUS_SUCCESS;
 }
 
-static void sai_fdb_entry_attribute_parse(uint32_t attr_count,
+static sai_status_t sai_fdb_entry_attribute_parse(uint32_t attr_count,
                                           const sai_attribute_t *attr_list,
                                           switch_api_l2_info_t *mac_entry) {
   const sai_attribute_t *attribute;
@@ -59,9 +77,29 @@ static void sai_fdb_entry_attribute_parse(uint32_t attr_count,
     switch (attribute->id) {
       case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
         mac_entry->rif_handle = attribute->value.oid;
+        mac_entry->port_id = attribute->value.oid;
+        break;
+      case SAI_FDB_ENTRY_ATTR_META_DATA:
+        mac_entry->learn_from = switch_type_learn_from(attribute->value.u16);
         break;
     }
   }
+
+  /* Reset either port_id or rif_handle based on learning
+   * When Learning is via Physical interface or tunnel interface we
+   * expect to have its corresponding RIF handle
+   * When learning is via VLAN interface we expect to have port_id
+   */
+  if (mac_entry->learn_from == SWITCH_L2_FWD_LEARN_PHYSICAL_INTERFACE ||
+      mac_entry->learn_from == SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE) {
+    mac_entry->port_id = -1;
+  } else if (mac_entry->learn_from == SWITCH_L2_FWD_LEARN_VLAN_INTERFACE) {
+    mac_entry->rif_handle = -1;
+  } else {
+    VLOG_ERR("Unrecognized learn from type");
+    return SAI_STATUS_NOT_SUPPORTED;
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 /*
@@ -84,7 +122,7 @@ static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
   sai_status_t status = SAI_STATUS_SUCCESS;
   switch_status_t switch_status = SWITCH_STATUS_SUCCESS;
   char entry_string[SAI_MAX_ENTRY_STRING_LEN];
-  switch_handle_t mac_handle;
+  switch_handle_t mac_handle = SWITCH_API_INVALID_HANDLE;
 
   if (!fdb_entry) {
     status = SAI_STATUS_INVALID_PARAMETER;
@@ -100,16 +138,28 @@ static sai_status_t sai_create_fdb_entry(_In_ const sai_fdb_entry_t *fdb_entry,
 
   memset(&mac_entry, 0, sizeof(mac_entry));
   sai_fdb_entry_parse(fdb_entry, &mac_entry);
-  sai_fdb_entry_attribute_parse(attr_count, attr_list, &mac_entry);
+  status = sai_fdb_entry_attribute_parse(attr_count, attr_list, &mac_entry);
+
+  if (status != SAI_STATUS_SUCCESS) {
+    sai_fdb_entry_to_string(fdb_entry, entry_string);
+    VLOG_ERR("Failed to create fdb entry %s, error: %s",
+                  entry_string,
+                  sai_status_to_string(status));
+  }
+
   mac_entry.type = SWITCH_L2_FWD_TX;
-  mac_entry.learn_from = SWITCH_L2_FWD_LEARN_PHYSICAL_INTERFACE;
+
+  switch_status = switch_api_l2_handle_get(0, &mac_entry.dst_mac, &mac_handle);
+  if (mac_handle != SWITCH_API_INVALID_HANDLE) {
+    VLOG_DBG("MAC entry already programmed");
+    return sai_switch_status_to_sai_status(switch_status);
+  }
 
   switch_status = switch_api_l2_forward_create(0, &mac_entry,
                                                &mac_handle);
   status = sai_switch_status_to_sai_status(switch_status);
 
-  if (status != SAI_STATUS_SUCCESS &&
-      status != SWITCH_STATUS_ITEM_ALREADY_EXISTS) {
+  if (status != SAI_STATUS_SUCCESS) {
     sai_fdb_entry_to_string(fdb_entry, entry_string);
     VLOG_ERR("Failed to create fdb entry %s : error: %s",
                   entry_string,

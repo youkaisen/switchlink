@@ -32,11 +32,12 @@
 #if P4SAI
 #include <net/if.h>
 #include <sai.h>
+#include <saifdb.h>
 #include <saitypes.h>
 #include <saistatus.h>
-#include "switchapi/switch_fdb.h"
 #include "switchlink/switchlink_db.h"
 #include "switchlink/switchlink.h"
+#include "switchsai/saiinternal.h"
 #endif
 
 COVERAGE_DEFINE(mac_learning_learned);
@@ -335,38 +336,46 @@ mac_learning_configure_target(const struct eth_addr src_mac,
                              mac_info_t *value,
                              switchlink_handle_t *tnl_intf_h,
                              switchlink_entry_type_e entry_type) {
-    uint16_t device_id = 0;
-    switch_api_l2_info_t mac_target_entry;
-    switch_handle_t mac_handle = SWITCH_API_INVALID_HANDLE;
-    switch_mac_addr_t l2_mac;
+    sai_fdb_entry_t fdb_entry;
+    sai_fdb_api_t *ovs_fdb_api = NULL;
+
+    if (sai_api_query(SAI_API_FDB, (void **)&ovs_fdb_api) != SAI_STATUS_SUCCESS)
+        return;
 
     if (entry_type >= SWITCHLINK_FDB_MAX)
         return;
 
-    memcpy(&l2_mac, &src_mac.ea, sizeof(switch_mac_addr_t));
-
-    switch_api_l2_handle_get(device_id, &l2_mac, &mac_handle);
-
-    if (entry_type == SWITCHLINK_FDB_ADD &&
-        mac_handle != SWITCH_API_INVALID_HANDLE) {
-        // MAC is already programmed, no need to re-add again
-        return;
-    }
-
-    memset(&mac_target_entry, 0, sizeof(switch_api_l2_info_t));
-    memcpy(&mac_target_entry.dst_mac, &src_mac.ea, sizeof(switch_mac_addr_t));
-    mac_target_entry.type = SWITCH_L2_FWD_TX;
+    memset(&fdb_entry, 0, sizeof(fdb_entry));
+    memcpy(&fdb_entry.mac_address, &src_mac.ea, sizeof(sai_mac_t));
 
     if (entry_type == SWITCHLINK_FDB_ADD && value && value->is_tunnel_port) {
-        mac_target_entry.rif_handle = *tnl_intf_h;
-        mac_target_entry.learn_from = SWITCH_L2_FWD_LEARN_TUNNEL_INTERFACE;
-        switch_api_l2_forward_create(device_id, &mac_target_entry, &mac_handle);
+        uint32_t ac = 0;
+        sai_attribute_t attr_list[2];
+
+        memset(&attr_list, 0, sizeof(attr_list));
+        attr_list[ac].id = SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID;
+        attr_list[ac].value.oid = *tnl_intf_h;
+        ac++;
+        attr_list[ac].id = SAI_FDB_ENTRY_ATTR_META_DATA;
+        attr_list[ac].value.u16 = SAI_L2_FWD_LEARN_TUNNEL_INTERFACE;
+        ac++;
+
+        ovs_fdb_api->create_fdb_entry(&fdb_entry, ac, attr_list);
     } else if (entry_type == SWITCHLINK_FDB_ADD && value) {
-        mac_target_entry.port_id = value->data.port_id - 1;
-        mac_target_entry.learn_from = SWITCH_L2_FWD_LEARN_VLAN_INTERFACE;
-        switch_api_l2_forward_create(device_id, &mac_target_entry, &mac_handle);
+        uint32_t ac = 0;
+        sai_attribute_t attr_list[2];
+
+        memset(&attr_list, 0, sizeof(attr_list));
+        attr_list[ac].id = SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID;
+        attr_list[ac].value.oid = value->data.port_id - 1;
+        ac++;
+        attr_list[ac].id = SAI_FDB_ENTRY_ATTR_META_DATA;
+        attr_list[ac].value.u16 = SAI_L2_FWD_LEARN_VLAN_INTERFACE;
+        ac++;
+
+        ovs_fdb_api->create_fdb_entry(&fdb_entry, ac, attr_list);
     } else if (entry_type == SWITCHLINK_FDB_DEL) {
-        switch_api_l2_forward_delete(device_id, &mac_target_entry);
+        ovs_fdb_api->remove_fdb_entry(&fdb_entry);
     } else {
         return;
     }

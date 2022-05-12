@@ -125,9 +125,12 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
                                      &port_info);
                 if (port_info == NULL) {
                     VLOG_ERR("Failed to find the target dp index for "
-                             "control port associated with : %s", if_name);
+                             "physical port associated with : %s", if_name);
                     return;
                 }
+                VLOG_DBG("Found phy port target dp index %d for sdk port id %d",
+                          port_info->port_attrib.port_in_id,
+                          bf_dev_port_control);
                 (*port_rif_info)->phy_port_id = 
                                         port_info->port_attrib.port_in_id;
             }

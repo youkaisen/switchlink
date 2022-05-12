@@ -492,7 +492,6 @@ switch_status_t switch_device_api_context_get(switch_device_t device,
 switch_status_t switch_api_device_add(switch_device_t device) {
   switch_device_context_t *device_ctx = NULL;
   switch_size_t table_sizes[SWITCH_TABLE_MAX];
-  switch_uint16_t index = 0;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   char cpuif_netdev_name[IFNAMSIZ] = "";
 

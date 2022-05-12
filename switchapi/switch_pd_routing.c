@@ -87,7 +87,6 @@ switch_status_t switch_pd_nexthop_table_entry(
                 LNW_NEXTHOP_TABLE_KEY_NEXTHOP_ID);
       goto dealloc_handle_session;
   }
-  VLOG_ERR("SANDY 1:%d", field_id);
 
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (api_nexthop_pd_info->nexthop_handle &
@@ -111,7 +110,6 @@ switch_status_t switch_pd_nexthop_table_entry(
                     LNW_NEXTHOP_TABLE_ACTION_SET_NEXTHOP);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 31297949: %d", action_id);
 
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
@@ -129,7 +127,6 @@ switch_status_t switch_pd_nexthop_table_entry(
                     LNW_ACTION_SET_NEXTHOP_PARAM_RIF);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 1: %d", data_field_id);
 
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           (api_nexthop_pd_info->rif_handle &
@@ -149,7 +146,6 @@ switch_status_t switch_pd_nexthop_table_entry(
                     LNW_ACTION_SET_NEXTHOP_PARAM_NEIGHBOR_ID);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 2: %d", data_field_id);
 
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                          (api_nexthop_pd_info->neighbor_handle &
@@ -168,7 +164,6 @@ switch_status_t switch_pd_nexthop_table_entry(
                     LNW_ACTION_SET_NEXTHOP_PARAM_EGRESS_PORT);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 3: %d", data_field_id);
 
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           api_nexthop_pd_info->port_id);
@@ -259,7 +254,6 @@ switch_status_t switch_pd_neighbor_table_entry(
                 LNW_NEIGHBOR_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR);
       goto dealloc_handle_session;
   }
-  VLOG_ERR("SANDY 1:%d", field_id);
 
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (api_neighbor_pd_info->neighbor_handle &
@@ -285,7 +279,6 @@ switch_status_t switch_pd_neighbor_table_entry(
                     LNW_NEIGHBOR_MOD_TABLE_ACTION_SET_OUTER_MAC);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 31671750: %d", action_id);
 
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
@@ -303,7 +296,6 @@ switch_status_t switch_pd_neighbor_table_entry(
                     LNW_ACTION_SET_OUTER_MAC_PARAM_DST_MAC_ADDR);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 1: %d", data_field_id);
 
       status = bf_rt_data_field_set_value_ptr(
                                 data_hdl, data_field_id,
@@ -398,7 +390,6 @@ switch_status_t switch_pd_rif_mod_start_entry(
                 LNW_RIF_MOD_TABLE_START_KEY_RIF_MOD_MAP_ID);
       goto dealloc_handle_session;
   }
-  VLOG_ERR("SANDY 1:%d", field_id);
 
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (rif_handle &
@@ -422,7 +413,6 @@ switch_status_t switch_pd_rif_mod_start_entry(
                   LNW_RIF_MOD_TABLE_START_ACTION_SET_SRC_MAC_START);
         goto dealloc_handle_session;
     }
-    VLOG_ERR("SANDY: 23093409: %d", action_id);
 
     status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                              &data_hdl);
@@ -440,7 +430,6 @@ switch_status_t switch_pd_rif_mod_start_entry(
                  LNW_ACTION_SET_SRC_MAC_START_PARAM_SRC_MAC_ADDR_FIRST);
        goto dealloc_handle_session;
    }
-   VLOG_ERR("SANDY: 1: %d", data_field_id);
 
    status = bf_rt_data_field_set_value_ptr(
                                 data_hdl, data_field_id,
@@ -533,7 +522,6 @@ switch_status_t switch_pd_rif_mod_mid_entry(
                 LNW_RIF_MOD_TABLE_MID_KEY_RIF_MOD_MAP_ID);
       goto dealloc_handle_session;
   }
-  VLOG_ERR("SANDY 1:%d", field_id);
 
   field_id = 1;
   status = bf_rt_key_field_set_value(key_hdl, field_id,
@@ -558,7 +546,6 @@ switch_status_t switch_pd_rif_mod_mid_entry(
                   LNW_RIF_MOD_TABLE_MID_ACTION_SET_SRC_MAC_MID);
         goto dealloc_handle_session;
     }
-    VLOG_ERR("SANDY: 30315892: %d", action_id);
 
     status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                               &data_hdl);
@@ -576,7 +563,6 @@ switch_status_t switch_pd_rif_mod_mid_entry(
                   LNW_ACTION_SET_SRC_MAC_MID_PARAM_SRC_MAC_ADDR_MID);
         goto dealloc_handle_session;
     }
-    VLOG_ERR("SANDY: 1: %d", data_field_id);
 
     status = bf_rt_data_field_set_value_ptr(
                                 data_hdl, data_field_id,
@@ -669,7 +655,6 @@ switch_status_t switch_pd_rif_mod_end_entry(
                 LNW_RIF_MOD_TABLE_LAST_KEY_RIF_MOD_MAP_ID);
       goto dealloc_handle_session;
   }
-  VLOG_ERR("SANDY 1:%d", field_id);
 
   status = bf_rt_key_field_set_value(key_hdl, field_id,
                                      (rif_handle &
@@ -693,7 +678,6 @@ switch_status_t switch_pd_rif_mod_end_entry(
                     LNW_RIF_MOD_TABLE_LAST_ACTION_SET_SRC_MAC_LAST);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 32740970: %d", action_id);
 
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
@@ -711,7 +695,6 @@ switch_status_t switch_pd_rif_mod_end_entry(
                    LNW_ACTION_SET_SRC_MAC_LAST_PARAM_SRC_MAC_ADDR_LAST);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 1: %d", data_field_id);
 
       status = bf_rt_data_field_set_value_ptr(
                                 data_hdl, data_field_id,
@@ -804,7 +787,6 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                 LNW_IPV4_TABLE_KEY_IPV4_DST_MATCH);
       goto dealloc_handle_session;
   }
-  VLOG_ERR("SANDY 1:%d", field_id);
 
   /* Use LPM API for LPM match type*/
   network_byte_order = ntohl(api_route_entry->ip_address.ip.v4addr);
@@ -835,7 +817,6 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                     LNW_IPV4_TABLE_ACTION_SET_NEXTHOP_ID);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 29883644: %d", action_id);
 
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
@@ -853,7 +834,6 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                     LNW_ACTION_SET_NEXTHOP_ID_PARAM_NEXTHOP_ID);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 1: %d", data_field_id);
 
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           (api_route_entry->nhop_handle &
@@ -875,7 +855,6 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                     LNW_IPV4_TABLE_ACTION_ECMP_HASH_ACTION);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 16874810: %d", action_id);
 
       status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                 &data_hdl);
@@ -893,7 +872,6 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                     LNW_ACTION_ECMP_HASH_ACTION_PARAM_ECMP_GROUP_ID);
           goto dealloc_handle_session;
       }
-      VLOG_ERR("SANDY: 1: %d", data_field_id);
 
       status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                           api_route_entry->ecmp_group_id);

@@ -260,7 +260,7 @@ switch_status_t switch_api_l2_forward_create(
 
   if (status == SWITCH_STATUS_SUCCESS) {
     VLOG_INFO(
-        "switch_api_l2_forward_create: nhop handle 0x%lx on device %d "
+        "switch_api_l2_forward_create: FDB handle 0x%lx on device %d "
         "already exists\n",
         handle,
         device);
@@ -324,6 +324,7 @@ switch_status_t switch_api_l2_forward_create(
             switch_error_to_string(status));
         return status;
     }
+
     // These FDB entries are learnt from OVS, and same FDB entry rule
     // should be programmed for 2_fwd_rx_with_tunnel_table too.
     if (api_l2_info->learn_from == SWITCH_L2_FWD_LEARN_VLAN_INTERFACE) {

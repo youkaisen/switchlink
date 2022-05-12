@@ -2,6 +2,12 @@ AM_CPPFLAGS += -I $(top_srcdir)/switchlink/submodules/SAI/inc
 AM_CFLAGS += -I $(top_srcdir)/switchlink/submodules/SAI/inc
 
 EXTRA_DIST += $(top_srcdir)/switchlink/submodules/SAI
+EXTRA_DIST += switchapi/linux_networking/headers.p4
+EXTRA_DIST += switchapi/linux_networking/linux_networking.p4
+EXTRA_DIST += switchapi/linux_networking/metadata.p4
+EXTRA_DIST += switchapi/linux_networking/parser.p4
+EXTRA_DIST += switchapi/linux_networking/routing.p4
+EXTRA_DIST += switchapi/linux_networking/tunnel.p4
 
 lib_LTLIBRARIES += switchapi/libswitchapi.la
 
@@ -63,6 +69,7 @@ switchapi_libswitchapi_la_SOURCES = \
     switchapi/switch_pd_utils.c \
     switchapi/switch_pd_utils.h \
     switchapi/switch_pd_p4_name_mapping.h
+
 
 switchapi_libswitchapi_la_CPPFLAGS = $(AM_CPPFLAGS)
 switchapi_libswitchapi_la_CFLAGS = $(AM_CFLAGS)
