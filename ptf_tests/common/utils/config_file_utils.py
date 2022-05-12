@@ -49,7 +49,7 @@ def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
                     if pci and \
                             str(pci_bdf.index(pci)+1) == port['id']:
                                 if port['device']=='physical-device':
-                                    port['pci_bdf'] = pci
+                                    port['pci-bdf'] = pci
                                 else:
                                     print(f"Port no {port['id']} expected device type as physical-device found {port['device']} instead")
                                     return None

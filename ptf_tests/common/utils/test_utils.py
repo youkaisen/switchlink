@@ -118,7 +118,7 @@ def configure_vm(conn, command_list):
             print("Failed to execute command {cmd}")
 
 
-def ping_test_using_telnet(conn, dst_ip, count="4"):
+def vm_to_vm_ping_test(conn, dst_ip, count="4"):
     """
     To test if ping to a destination works without any drop
     """
@@ -146,6 +146,30 @@ def dummy_ping(conn, cmd):
     """
     conn.sendCmd(cmd)
     conn.readResult()
+
+def vm_to_vm_ping_drop_test(conn, dst_ip, count="4"):
+    """
+    To test if ping to a destination is getting failed.
+    i.e, 100% drop expected.
+    """
+    cmd = f"ping {dst_ip} -c {count}"
+    dummy_ping(conn, cmd)
+
+    conn.sendCmd(cmd)
+    result = conn.readResult()
+    pkt_loss = 100
+    if result != None:
+        match = re.search('(\d*)% packet loss', result)
+        if match !=None:
+            pkt_loss = match.group(1)
+
+    if pkt_loss == 100:
+        print(f"PASS: 100% packet loss to destination {dst_ip}")
+        return True
+    else:
+        print(f"FAIL: Ping to destination {dst_ip} works with {pkt_loss}% loss")
+        return False
+
 
 def vm_create_with_hotplug(config_data, memory="512M"):
     """
@@ -196,7 +220,7 @@ def sendCmd_and_recvResult(conn, command_list):
 
     return result
 
-def configure_ip_overTelnet(conn, interface_ip_list):
+def vm_interface_configuration(conn, interface_ip_list):
     command_list=[]
     for interface_ipv4_dict in interface_ip_list:
         for interface, ip in interface_ipv4_dict.items():
@@ -204,14 +228,14 @@ def configure_ip_overTelnet(conn, interface_ip_list):
 
     return sendCmd_and_recvResult(conn, command_list)
 
-def configure_ip_route_overTelnet(conn, interface, local_ip, remote_ip):
+def vm_route_configuration(conn, interface, local_ip, remote_ip):
     local_ip = local_ip.split("/")[0] #stripping it of any /24 if any
     remote_ip = remote_ip.split("/")[0]
 
     cmd = f"ip route add {remote_ip}/24 via {local_ip} dev {interface}"
     return sendCmd_and_recvResult(conn, [cmd])
 
-def configure_ip_neigh_overTelnet(conn, interface, remote_ip, remote_mac):
+def vm_ip_neigh_configuration(conn, interface, remote_ip, remote_mac):
     remote_ip = remote_ip.split("/")[0] #stripping it of any /24 if any
 
     cmd = f"ip neigh add dev {interface} {remote_ip} lladdr {remote_mac}"
