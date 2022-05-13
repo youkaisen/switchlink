@@ -37,6 +37,8 @@ def gnmi_get_params_verify(params):
     port_config.GNMICLI.tear_down()
     
     if [x for x in results if not x]:
+        for param in params:
+            print(f"PASS: gnmi-cli get verified for {param}")
         return True
 
     return False

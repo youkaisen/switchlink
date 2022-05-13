@@ -5,7 +5,7 @@ import json
 import os
 
 
-def get_config_dict(config_json, pci_bdf=""):
+def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
     """
     util function to convert json config file to dictionary
     expected directory structure:
@@ -49,11 +49,23 @@ def get_config_dict(config_json, pci_bdf=""):
                     if pci and \
                             str(pci_bdf.index(pci)+1) == port['id']:
                                 if port['device']=='physical-device':
-                                    port['pci_bdf'] = pci
+                                    port['pci-bdf'] = pci
                                 else:
                                     print(f"Port no {port['id']} expected device type as physical-device found {port['device']} instead")
                                     return None
-
+        if vm_location_list:
+            vm_location_list = [x.strip() for x in vm_location_list.split(',')]
+            # Check if no of vms mentioned in json matched with the no mentioned in cli
+            if len(vm_location_list) != len(data['vm']):
+                print("Mismatch in number of vms mentioned in json to the number of vm images mentioned in cli args")
+                return None
+            data['vm_location_list'] = vm_location_list
+            for vm,location in zip(data['vm'],vm_location_list):
+                vm['vm_image_location'] = location
+                if not vm_cred:
+                    vm_cred = "root,password"
+                vm['vm_username'], vm['vm_password'] = [x.strip() for x in vm_cred.split(',')]
+        
         for table in data['table']:
             if 'match_action' in table.keys():
                 table['del_action'] = []
@@ -123,7 +135,7 @@ def get_gnmi_params_simple(data):
     common = ['device', 'name']
     mandatory = {'tap': [],
                  'vhost': ['host', 'device-type', 'queues', 'socket-path'],
-                 'link': ['pci-bdf']
+                 'link': ['pci_bdf']
                  }
     optional = ['pipeline-name', 'mempool-name', 'control-port', 'mtu']
 
@@ -149,3 +161,130 @@ def get_gnmi_params_simple(data):
         params.append(param)
 
     return params
+
+def get_gnmi_params_hotplug(data, action="add"):
+    """
+    util function to parse 'data' dictionary and return a list of 'params' string for gnmi-cli set for hotplug
+    :param data: dictionary obtained from config json file
+    :action "add" or "del" ... based on what we are trying to do, add a hot plug port or delete one
+    :return: list --> list of params
+                --> ["device:virtual-device,name:net_vhost0,hotplug:add,
+                  qemu-socket-ip:127.0.0.1,qemu-socket-port:6555,
+                  qemu-vm-mac:00:e8:ca:11:aa:01,qemu-vm-netdev-id:netdev0,
+                  qemu-vm-chardev-id:char1,native-socket-path:/tmp/intf/vhost-user-0,
+                  qemu-vm-device-id:dev0",
+                  ...]
+    """
+    data = create_port_vm_map(data)
+    if action.lower() not in ["add", "del"]:
+        print(f"get_gnmi_params_hotplug: Expected 'action' as 'add' or 'del', got {action}")
+        return None
+
+    common = ['device', 'name']
+    mandatory = ['qemu-socket-ip', 'qemu-socket-port', 'qemu-vm-mac', 'qemu-vm-netdev-id', 'qemu-vm-chardev-id', 'native-socket-path', 'qemu-vm-device-id']
+    optional = [] #TBD
+    params=[]
+    for port in data['port']:
+        param = ""
+        device_type = get_device_type(port)
+        if not device_type:
+            return None
+        if device_type != 'vhost' \
+                or 'hotplug' not in port.keys():
+            continue
+
+        for field in common:
+            param += f"{field}:{port[field]},"
+        if action == "del":
+            param += "hotplug:del"
+            params.append(param)
+            continue
+        param += "hotplug:add,"
+
+        for field in mandatory:
+            param += f"{field}:{port['hotplug'][field]},"
+
+        for field in optional:
+            if field in port.keys():
+                param += f"{field}:{port['hotplug'][field]},"
+
+        param = ','.join(param.split(',')[:-1])
+
+        params.append(param)
+
+    if not params:
+        print("No vhost port mentioned as 'hotplug' in json")
+
+    return params
+
+def create_port_vm_map(data):
+    """
+    create vhost port and corresponding vm mapping
+    adds vm specific entried to its corresponding port dictionary
+    """
+    for port in data['port']:
+        for vm in data['vm']:
+            if vm['port'] == port['name']:
+                for k in vm.keys():
+                    port[k] = vm[k]
+    return data
+
+def get_interface_ipv4_dict_hotplug(data, interfaces):
+    """
+    util function to get a list of dictionary mapping hotplugged interfaces with its corresponding ip
+    :param data: dictionary obtained from config json file
+    :param interfaces: list of hutplugged interfaces
+    :return: list of dictionary --> [{"ens4":"1.1.1.1/24"},
+                                    {"ens5":"2.2.2.2/24"},
+                                    ...]
+    """
+    interface_ip_list = []
+    ips = []
+    for port in data['port']:
+        device_type = get_device_type(port)
+        if not device_type:
+            return None
+        if device_type != 'vhost' \
+                or 'hotplug' not in port.keys():
+            continue
+        ips.append(port.setdefault('ip', '0.0.0.0'))
+
+    for interface, ip in zip(interfaces, ips):
+        interface_ip_list.append({interface: ip})
+
+    return interface_ip_list
+
+def get_interface_ipv4_route_dict_hotplug(interface_ip_list):
+    interface_ipv4_route_list = []
+    for interface_ip in interface_ip_list:
+        for interface,ip in interface_ip.items():
+            ip = '.'.join(ip.split('.')[:-1])+'.0'
+            interface_ipv4_route_list.append({interface:ip})
+
+    return interface_ipv4_route_list
+
+
+def get_interface_mac_dict_hotplug(data, interfaces):
+    """
+    util function to get a list of dictionary mapping hotplugged interfaces with its corresponding mac
+    :param data: dictionary obtained from config json file
+    :param interfaces: list of hutplugged interfaces
+    :return: list of dictionary --> [{"ens4":"00:e8:ca:11:aa:01"},
+                                    {"ens5":"00:e8:ca:11:aa:02"},
+                                    ...]
+    """
+    interface_mac_list = []
+    macs = []
+    for port in data['port']:
+        device_type = get_device_type(port)
+        if not device_type:
+            return None
+        if device_type != 'vhost' \
+                or 'hotplug' not in port.keys():
+            continue
+        macs.append(port['hotplug'].setdefault('qemu-vm-mac', ''))
+
+    for interface, mac in zip(interfaces, macs):
+        interface_mac_list.append({interface: mac})
+
+    return interface_mac_list

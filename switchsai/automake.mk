@@ -14,7 +14,15 @@ switchsai_libswitchsai_la_LDFLAGS = \
 switchsai_libswitchsai_la_SOURCES = \
    switchsai/sai.c \
    switchsai/saiinternal.h \
-   switchsai/saiport.c
+   switchsai/saiport.c \
+   switchsai/saifdb.c \
+   switchsai/saineighbor.c \
+   switchsai/sainexthop.c \
+   switchsai/sairoute.c \
+   switchsai/sairouterinterface.c \
+   switchsai/saitunnel.c \
+   switchsai/saiutils.c \
+   switchsai/saivirtualrouter.c
 
 switchsai_libswitchsai_la_CPPFLAGS = $(AM_CPPFLAGS)
 switchsai_libswitchsai_la_CPPFLAGS += -I ./switchapi
