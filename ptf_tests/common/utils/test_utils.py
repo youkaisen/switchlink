@@ -224,7 +224,7 @@ def vm_interface_configuration(conn, interface_ip_list):
     command_list=[]
     for interface_ipv4_dict in interface_ip_list:
         for interface, ip in interface_ipv4_dict.items():
-            command_list.append(f"ifconfig {interface} {ip} up")
+            command_list.append(f"ip addr add {ip} dev {interface}")
 
     return sendCmd_and_recvResult(conn, command_list)
 

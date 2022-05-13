@@ -11,11 +11,11 @@
             "queues":"1",
             "device-type":"VIRTIO_NET",
             "port-type": "LINK",
-	    "single-cmd": "TRUE",
-	    "interface": "ens3",
-	    "ip_address": "1.1.1.1/24",
-	    "mac_local": "00:e8:ca:11:aa:01"
-	},
+     "single-cmd": "TRUE",
+     "interface": "ens3",
+     "ip_address": "1.1.1.1/24",
+     "mac_local": "00:e8:ca:11:aa:01"
+ },
         {
             "id": "2",
             "device": "virtual-device",
@@ -29,7 +29,7 @@
             "interface": "ens3",
             "ip_address": "2.2.2.2/24",
             "mac_local": "00:e8:ca:11:bb:01"
-	}
+ }
     ],
     "table": [ 
         {
@@ -45,19 +45,19 @@
      ],
 
     "vm":[ 
-  	{
+ {
          "id": "1",
-	  "dst_nw": "2.2.2.0/24",
-	  "dst_gw": "1.1.1.1",
-	  "remote_ip": "2.2.2.2",
-	  "mac_remote": "00:e8:ca:11:bb:01"
-         	  
+   "dst_nw": "2.2.2.0/24",
+   "dst_gw": "1.1.1.1",
+   "remote_ip": "2.2.2.2",
+   "mac_remote": "00:e8:ca:11:bb:01"
+    
        },
       { 
           "id": "2",
           "dst_nw": "1.1.1.0/24",
           "dst_gw": "2.2.2.2",
-	  "remote_ip": "1.1.1.1",
+   "remote_ip": "1.1.1.1",
           "mac_remote": "00:e8:ca:11:aa:01"
       
       } 
