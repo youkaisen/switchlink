@@ -66,23 +66,24 @@ def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
                     vm_cred = "root,password"
                 vm['vm_username'], vm['vm_password'] = [x.strip() for x in vm_cred.split(',')]
         
-        for table in data['table']:
-            if 'match_action' in table.keys():
-                table['del_action'] = []
-                for match_action in table['match_action']:
-                    table['del_action'].append(match_action.split(',')[0])
+        if 'table' in data.keys():
+            for table in data['table']:
+                if 'match_action' in table.keys():
+                    table['del_action'] = []
+                    for match_action in table['match_action']:
+                        table['del_action'].append(match_action.split(',')[0])
+            
+            for table in data['table']:
+                if 'member_details' in table.keys():
+                    table['del_member'] = []
+                    for member_detail in table['member_details']:
+                        table['del_member'].append(member_detail.split(',')[1])
 
-        for table in data['table']:
-            if 'member_details' in table.keys():
-                table['del_member'] = []
-                for member_detail in table['member_details']:
-                    table['del_member'].append(member_detail.split(',')[1])
-
-        for table in data['table']:
-            if 'group_details' in table.keys():
-                table['del_group'] = []
-                for group_detail in table['group_details']:
-                    table['del_group'].append(group_detail.split(',')[0])
+            for table in data['table']:
+                if 'group_details' in table.keys():
+                    table['del_group'] = []
+                    for group_detail in table['group_details']:
+                        table['del_group'].append(group_detail.split(',')[0])
 
         #######################################################
         ##### Any future data structure can be added here #####
