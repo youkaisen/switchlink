@@ -101,7 +101,9 @@ def get_interface_ipv4_dict(data):
     """
     interface_ip_list = []
     for port in data['port']:
-        interface_ip_list.append({port['name']: port.setdefault('ip', '0.0.0.0')})
+        dev_type = get_device_type(port)
+        if dev_type == "tap":
+            interface_ip_list.append({port['name']: port.setdefault('ip', '0.0.0.0')})
 
     return interface_ip_list
 
@@ -135,7 +137,7 @@ def get_gnmi_params_simple(data):
     common = ['device', 'name']
     mandatory = {'tap': [],
                  'vhost': ['host', 'device-type', 'queues', 'socket-path'],
-                 'link': ['pci_bdf']
+                 'link': ['pci-bdf']
                  }
     optional = ['pipeline-name', 'mempool-name', 'control-port', 'mtu']
 

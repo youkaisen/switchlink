@@ -28,6 +28,17 @@ def add_port_to_dataplane(port_list):
     
     return ptf_ports() 
 
+def get_port_name_from_pci_bdf(pci_bdf):
+    """
+    To return port name from pci_bdf
+    """
+    local = Local()
+    r,_,_ = local.execute_command(f"ls -la /sys/class/net/ |grep -i {pci_bdf}")
+    port_name = r.split()[8]
+    
+    return port_name
+
+
 def gen_dep_files_p4c_ovs_pipeline_builder(config_data):
     """
     util function to generate p4 artifacts

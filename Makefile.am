@@ -160,7 +160,8 @@ EXTRA_DIST = \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/config/l3_exact_match_with_vhost.json \
 	ptf_tests/common/config/l3_exact_match_with_vhost_add_del.json \
-  ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
+        ptf_tests/common/config/l2_exact_match_with_link.json \
+        ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.conf \
@@ -190,7 +191,8 @@ EXTRA_DIST = \
 	ptf_tests/tests/port_dump_vhost_only_in_order.py \
 	ptf_tests/tests/l3_exact_match_with_vhost.py \
 	ptf_tests/tests/l3_exact_match_with_vhost_add_del.py \
-	ptf_tests/p4runtime_test/run_p4_tests.sh \
+	ptf_tests/tests/l2_exact_match_with_link_port.py \
+        ptf_tests/p4runtime_test/run_p4_tests.sh \
 	ptf_tests/p4runtime_test/run_ptf_tests.py \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.p4 \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.py \
