@@ -33,6 +33,7 @@ import struct
 import threading
 import time
 from functools import wraps
+import string
 
 import google.protobuf.text_format
 from google.rpc import status_pb2, code_pb2
@@ -238,6 +239,10 @@ def decodeNum(encoded_number):
     return int(codecs.encode(encoded_number, 'hex_codec'), 16)
 
 
+def is_hex_str(hexa):
+    return '0x'==hexa[:2] and all(val in string.hexdigits for val in hexa[2:])
+
+
 def encode(x, bitwidth):
     'Tries to infer the type of `x` and encode it'
     byte_len = bitwidthToBytes(bitwidth)
@@ -251,6 +256,8 @@ def encode(x, bitwidth):
             encoded_bytes = encodeIPv4(x)
         elif str.isdigit(x):
             encoded_bytes = encodeNum(int(x), bitwidth)
+        elif is_hex_str(x):
+            encoded_bytes = encodeNum(int(x[2:], 16), bitwidth)
         else:
             # Assume that the string is already encoded
             encoded_bytes = x
@@ -444,12 +451,6 @@ class P4InfoHelper(object):
                 # If match_type is ternary, then priority field is expected
                 if priority == None:
                     print("For ternary match_type, priority field is needed")
-                    sys.exit(1)
-
-                # If match_type is ternary, then value mask cannot be an integer
-                if type(value[1]) == int:
-                    print("For ternary match_type, value should be in " \
-                          "expanded IPv4/IPv6 netmask format")
                     sys.exit(1)
 
         if priority is not None and one_match_type_is_ternary:

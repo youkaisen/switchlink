@@ -258,7 +258,8 @@ services that are available for a p4runtime client.
     ``FLOW``: Refers to parameters for a the above mentioned TABLE. Since we
     are programming a match_type ternary we expect user to provide priority
     as well. 'priority' is a case sensitivity field expected from user.
-    Mask for ternary or WCM match field is expected in x.x.x.x format for IPv4.
+    Mask for ternary or WCM match field is expected in x.x.x.x format for IPv4
+    or an integer value or a hexa-decimal values.
     match_filed_key=value,priority=value,action=action_name(value)
 
 

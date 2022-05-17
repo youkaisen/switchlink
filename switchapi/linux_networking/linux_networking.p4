@@ -675,12 +675,11 @@ control linux_networking_control(inout headers_t hdr,
             } else if (local_metadata.control_packet == 1) {
                 handle_tx_control_pkts_table.apply();
             } else {
-                l2_fwd_tx_table.apply();
-            }
-            switch (l2_fwd_tx_table.apply().action_run) {
-                set_tunnel: {
-                    ipv4_table.apply();
-                    nexthop_table.apply();
+                switch (l2_fwd_tx_table.apply().action_run) {
+                    set_tunnel: {
+                        ipv4_table.apply();
+                        nexthop_table.apply();
+                    }
                 }
             }
         }
@@ -700,7 +699,6 @@ control linux_networking_control(inout headers_t hdr,
 
         if ((vendormeta_mod_action_ref & (16w1 << NEIGHBOR)) != 0) {
             vendormeta_mod_data_ptr = vendormeta_neighbor_mod_data_ptr;
-            neighbor_mod_table.apply();
             switch (neighbor_mod_table.apply().action_run) {
                 set_outer_mac: {
                     rif_mod_table_start.apply();
