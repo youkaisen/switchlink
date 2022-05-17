@@ -83,7 +83,7 @@ class L2_Exact_Match(BaseTest):
             if table['description'] == "table_for_dst_ip":
                 pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_dst_1'])
             else:
-                pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_src_1'])
+                pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_src_1'])
 
             # Verify whether packet is received as per rule 1 
             send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt)
@@ -92,14 +92,14 @@ class L2_Exact_Match(BaseTest):
                 print(f"PASS: Verification of packets passed, packet received as per rule 1")
             except Exception as err:
                 self.result.addFailure(self, sys.exc_info())
-                self.fail(f"FAIL: Verification of packets sent failed with exception {err}")
+                print(f"FAIL: Verification of packets sent failed with exception {err}")
         
             # forming 2th packet and sending to validate if scenario-1:rule-2 hits or not
             print("sending packet to check if rule2 hits")
             if table['description'] == "table_for_dst_ip":
                 pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_dst_2'])
             else:
-                pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_src_2'])
+                pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_src_2'])
             # Verify whether packet is dropped as per rule 2
             send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
             try:
@@ -107,7 +107,7 @@ class L2_Exact_Match(BaseTest):
                 print(f"PASS: Verification of packets passed, packet dropped as per rule 2")
             except Exception as err:
                 self.result.addFailure(self, sys.exc_info())
-                self.fail(f"FAIL: Verification of packets sent failed with exception {err}")
+                print(f"FAIL: Verification of packets sent failed with exception {err}")
 
         self.dataplane.kill()
 

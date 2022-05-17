@@ -31,7 +31,7 @@ class PortConfig(object):
             """
             # self.ssh = SSH(host, username, password)
             self.local = Local()
-            self.cmd_prefix = 'gnmi-cli'
+            self.cmd_prefix = 'sudo gnmi-cli'
 
 
         def gnmi_cli_set(self, params):

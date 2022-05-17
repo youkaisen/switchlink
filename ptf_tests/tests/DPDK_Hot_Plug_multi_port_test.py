@@ -82,13 +82,11 @@ class Dpdk_Hot_Plug(BaseTest):
         result = test_utils.sendCmd_and_recvResult(conn1, vm1_command_list)[0]
         result = result.split("\n")
         vm1result1 = list(dropwhile(lambda x: 'lo\r' not in x, result))
-        print("result: ",vm1result1)
 
         vm2_command_list = ["ip a | egrep \"[0-9]*: \" | cut -d ':' -f 2"]
         result = test_utils.sendCmd_and_recvResult(conn2, vm2_command_list)[0]
         result = result.split("\n")
         vm2result1 = list(dropwhile(lambda x: 'lo\r' not in x, result))
-        print("result: ",vm2result1)
 
         if not gnmi_cli_set_and_verify(self.gnmicli_params):
             self.result.addFailure(self, sys.exc_info())
@@ -101,17 +99,15 @@ class Dpdk_Hot_Plug(BaseTest):
         result = test_utils.sendCmd_and_recvResult(conn1, vm1_command_list)[0]
         result = result.split("\n")
         vm1result2 = list(dropwhile(lambda x: 'lo\r' not in x, result))
-        print("result: ",vm1result2)
 
         result = test_utils.sendCmd_and_recvResult(conn2, vm2_command_list)[0]
         result = result.split("\n")
         vm2result2 = list(dropwhile(lambda x: 'lo\r' not in x, result))
-        print("result: ",vm2result2)
 
         vm1interfaces = list(set(vm1result2) - set(vm1result1))
         vm1interfaces = [x.strip() for x in vm1interfaces]
         print("interfaces: ",vm1interfaces)
-
+       
         vm2interfaces = list(set(vm2result2) - set(vm2result1))
         vm2interfaces = [x.strip() for x in vm2interfaces]
         print("interfaces: ",vm2interfaces)
@@ -145,34 +141,35 @@ class Dpdk_Hot_Plug(BaseTest):
                 if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"Failed to add table entry {match_action}")
+       
+        print("VM1: \n")
+        result = test_utils.vm_interface_up(conn1, [self.interface_ip_list_hotplug[0]])
 
-        result = test_utils.configure_ip_overTelnet(conn1, [self.interface_ip_list_hotplug[0]])
-        print("result: ",result)
-        result = test_utils.configure_ip_route_overTelnet(conn1, list(self.interface_ipv4_route_hotplug[0].keys())[0], 
+        result = test_utils.vm_interface_configuration(conn1, [self.interface_ip_list_hotplug[0]])
+        result = test_utils.vm_route_configuration(conn1, list(self.interface_ipv4_route_hotplug[0].keys())[0], 
                 list(self.interface_ip_list_hotplug[0].values())[0], list(self.interface_ipv4_route_hotplug[1].values())[0])
-        print("result: ",result)
-        result = test_utils.configure_ip_neigh_overTelnet(conn1, list(self.interface_mac_list_hotplug[0].keys())[0],
+        result = test_utils.vm_ip_neigh_configuration(conn1, list(self.interface_mac_list_hotplug[0].keys())[0],
                 list(self.interface_ip_list_hotplug[1].values())[0], list(self.interface_mac_list_hotplug[1].values())[0])
-        print(result)
 
-        result = test_utils.configure_ip_overTelnet(conn2, [self.interface_ip_list_hotplug[1]])
-        print("result: ",result)
-        result = test_utils.configure_ip_route_overTelnet(conn2, list(self.interface_ipv4_route_hotplug[1].keys())[0],
+
+        print("VM2: \n")
+        result = test_utils.vm_interface_up(conn2, [self.interface_ip_list_hotplug[1]])
+
+        result = test_utils.vm_interface_configuration(conn2, [self.interface_ip_list_hotplug[1]])
+        result = test_utils.vm_route_configuration(conn2, list(self.interface_ipv4_route_hotplug[1].keys())[0],
                 list(self.interface_ip_list_hotplug[1].values())[0], list(self.interface_ipv4_route_hotplug[0].values())[0])
-        print("result: ",result)
-        result = test_utils.configure_ip_neigh_overTelnet(conn2, list(self.interface_mac_list_hotplug[1].keys())[0],
+        result = test_utils.vm_ip_neigh_configuration(conn2, list(self.interface_mac_list_hotplug[1].keys())[0],
                 list(self.interface_ip_list_hotplug[0].values())[0], list(self.interface_mac_list_hotplug[0].values())[0])
-        print(result)
         time.sleep(10)
 
 
         port1=self.config_data['port'][1]
-        if not test_utils.ping_test_using_telnet(conn1, port1['ip'].split('/')[0]):
+        if not test_utils.vm_to_vm_ping_test(conn1, port1['ip'].split('/')[0]):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to ping from vm1 to vm2 ")
 
         port2=self.config_data['port'][0]
-        if not test_utils.ping_test_using_telnet(conn2, port2['ip'].split('/')[0]):
+        if not test_utils.vm_to_vm_ping_test(conn2, port2['ip'].split('/')[0]):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to ping from vm2 to vm1 ")
 

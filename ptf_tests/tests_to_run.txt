@@ -7,3 +7,6 @@ DPDK_Hot_Plug:config_json='DPDK_Hot_Plug.json';vm_location_list='/home/admin2/vm
 DPDK_Hot_Plug_multi_port_test:config_json='DPDK_Hot_Plug_multi_port_test.json';vm_location_list='/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_1.img,/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_2.img'
 DPDK_Hot_Plug_Remove:config_json='DPDK_Hot_Plug_Remove.json';vm_location_list='/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_1.img'
 DPDK_Hot_Plug_Remove_Multi_port:config_json='DPDK_Hot_Plug_Remove_Multi_port.json';vm_location_list='/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_1.img,/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_2.img'
+l3_exact_match_with_vhost:config_json='l3_exact_match_with_vhost.json'
+l3_exact_match_with_vhost_add_del:config_json='l3_exact_match_with_vhost_add_del.json'
+l2_exact_match_with_link_port:config_json='l2_exact_match_with_link.json'
