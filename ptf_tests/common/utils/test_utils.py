@@ -231,6 +231,14 @@ def sendCmd_and_recvResult(conn, command_list):
 
     return result
 
+def vm_interface_up(conn, interface_ip_list):
+    command_list=[]
+    for interface_ipv4_dict in interface_ip_list:
+        for interface, ip in interface_ipv4_dict.items():
+            command_list.append(f"ip link set {interface} up")
+    
+    return sendCmd_and_recvResult(conn, command_list)
+
 def vm_interface_configuration(conn, interface_ip_list):
     command_list=[]
     for interface_ipv4_dict in interface_ip_list:
