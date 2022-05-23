@@ -3,6 +3,7 @@ l3_action_profile_with_tap_ports:config_json='l3_action_profile_with_tap_ports.j
 l3_action_selector_with_tap_ports:config_json='l3_action_selector_with_tap_test1.json'
 l3_action_selector_with_tap_ports:config_json='l3_action_selector_with_tap_test2.json'
 l3_exact_match_with_tap_port:config_json='l3_exact_match_with_tap.json'
+l3_wcm_with_tap_ports:config_json='l3_wcm_with_tap_test.json'
 DPDK_Hot_Plug:config_json='DPDK_Hot_Plug.json';vm_location_list='/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_1.img'
 DPDK_Hot_Plug_multi_port_test:config_json='DPDK_Hot_Plug_multi_port_test.json';vm_location_list='/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_1.img,/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_2.img'
 DPDK_Hot_Plug_Remove:config_json='DPDK_Hot_Plug_Remove.json';vm_location_list='/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_1.img'
