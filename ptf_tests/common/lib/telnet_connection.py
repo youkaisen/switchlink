@@ -16,7 +16,7 @@ class connectionManager():
         self.password = password
         self.timeout = timeout
         self.login_prompt = b"login: "
-        self.password_prompt = b"password: "
+        self.password_prompt = b"Password: "
         self.vm_root_prompt = b"#"
         self.vm_user_prompt = b"$"
 
@@ -28,7 +28,7 @@ class connectionManager():
 
 
         self.tn.write(b"\n")
-        self.tn.read_until(self.login_prompt, self.timeout)
+        self.tn.read_until(self.login_prompt)
         self.tn.write(self.username.encode('ascii') + b"\n")
 
         if password:
@@ -70,6 +70,7 @@ class connectionManager():
             return True
         except Exception as err:
             print(f"Send command {cmd} Failed with error: {err}")
+            return False
 
     def readResult(self):
         """
@@ -79,6 +80,7 @@ class connectionManager():
             return self.tn.read_until(b"\n*", self.timeout).decode('ascii')
         except Exception as err:
             print(f"Read CLI output failed with error: {err}")
+            return False
 
     def close(self):
         """

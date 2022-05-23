@@ -75,7 +75,7 @@ P4OVS, P4SDE and P4C should be installed before running the tests
 ---
 ~ ptf --test-dir tests/ <test_script_name_without_extension> --pypath $PWD --test-params="config_json='<config json file name>'" --platform=dummy
 
-E.g. ptf --test-dir tests/ l3_exact_match_with_tap_port --pypath $PWD --test-params="config_json='l3_exact_match.json'" --platform=dummy
+E.g. ptf --test-dir tests/ l3_exact_match_with_tap_port --pypath $PWD --test-params="config_json='l3_exact_match_with_tap.json'" --platform=dummy
 
 ---
 

@@ -87,13 +87,24 @@ index e1f4338e..63d41079 100644
      ]
  }
 diff --git a/stratum/hal/lib/barefoot/bf_sde_interface.h b/stratum/hal/lib/barefoot/bf_sde_interface.h
-index 5ce91295..1e2da30d 100644
+index 5ce91295..ddb45934 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_interface.h
 +++ b/stratum/hal/lib/barefoot/bf_sde_interface.h
-@@ -37,6 +37,20 @@ class BfSdeInterface {
+@@ -37,6 +37,32 @@ class BfSdeInterface {
      absl::Time time_last_changed;
    };
  
++  struct HotplugConfigParams {
++    uint32 qemu_socket_port;
++    uint64 qemu_vm_mac_address;
++    std::string qemu_socket_ip;
++    std::string qemu_vm_netdev_id;
++    std::string qemu_vm_chardev_id;
++    std::string qemu_vm_device_id;
++    std::string native_socket_path;
++    SWBackendQemuHotplugStatus qemu_hotplug;
++  };
++
 +  struct PortConfigParams {
 +    SWBackendPortType port_type;
 +    SWBackendDeviceType device_type;
@@ -106,12 +117,13 @@ index 5ce91295..1e2da30d 100644
 +    std::string pipeline_name;
 +    std::string mempool_name;
 +    std::string pci_bdf;
++    struct HotplugConfigParams hotplug_config;
 +  };
 +
    // SessionInterface is a proxy class for BfRt sessions. Most API calls require
    // an active session. It also allows batching requests for performance.
    class SessionInterface {
-@@ -166,10 +180,19 @@ class BfSdeInterface {
+@@ -166,10 +192,23 @@ class BfSdeInterface {
    // Unregisters the port status writer.
    virtual ::util::Status UnregisterPortStatusEventWriter() = 0;
  
@@ -128,11 +140,15 @@ index 5ce91295..1e2da30d 100644
 +                                 PortConfigParams& config,
 +                                 FecMode fec_mode = FEC_MODE_UNKNOWN) = 0 ;
 +
++  // Hotplug add/delete the port
++  virtual ::util::Status HotplugPort(int device, int port,
++                            HotplugConfigParams& hotplug_config) = 0;
++
    // Delete a port.
    virtual ::util::Status DeletePort(int device, int port) = 0;
  
 diff --git a/stratum/hal/lib/barefoot/bf_sde_wrapper.cc b/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
-index 9f4bb3a9..cbbdac0e 100644
+index 9f4bb3a9..e0ac32c9 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
 +++ b/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
 @@ -12,7 +12,10 @@
@@ -288,7 +304,7 @@ index 9f4bb3a9..cbbdac0e 100644
    return ::util::OkStatus();
  }
  
-@@ -1118,13 +1144,98 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
+@@ -1118,13 +1144,151 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
    return ::util::OkStatus();
  }
  
@@ -311,6 +327,59 @@ index 9f4bb3a9..cbbdac0e 100644
 +                                            &port_info));
 +  target_dp_id->set_tdi_portin_id((port_info)->port_attrib.port_in_id);
 +  target_dp_id->set_tdi_portout_id((port_info)->port_attrib.port_out_id);
++
++  return ::util::OkStatus();
++}
++
++::util::Status BfSdeWrapper::HotplugPort(int device, int port,
++                            HotplugConfigParams& hotplug_config) {
++  auto hotplug_attrs = absl::make_unique<hotplug_attributes_t>();
++  strncpy(hotplug_attrs->qemu_socket_ip,
++          hotplug_config.qemu_socket_ip.c_str(),
++          sizeof(hotplug_attrs->qemu_socket_ip));
++  strncpy(hotplug_attrs->qemu_vm_netdev_id,
++          hotplug_config.qemu_vm_netdev_id.c_str(),
++          sizeof(hotplug_attrs->qemu_vm_netdev_id));
++  strncpy(hotplug_attrs->qemu_vm_chardev_id,
++          hotplug_config.qemu_vm_chardev_id.c_str(),
++          sizeof(hotplug_attrs->qemu_vm_chardev_id));
++  strncpy(hotplug_attrs->qemu_vm_device_id,
++          hotplug_config.qemu_vm_device_id.c_str(),
++          sizeof(hotplug_attrs->qemu_vm_device_id));
++  strncpy(hotplug_attrs->native_socket_path,
++          hotplug_config.native_socket_path.c_str(),
++          sizeof(hotplug_attrs->native_socket_path));
++  hotplug_attrs->qemu_hotplug = hotplug_config.qemu_hotplug;
++  hotplug_attrs->qemu_socket_port = hotplug_config.qemu_socket_port;
++  uint64 mac_address = hotplug_config.qemu_vm_mac_address;
++
++  std::string string_mac = (absl::StrFormat("%02x:%02x:%02x:%02x:%02x:%02x",
++                                            (mac_address >> 40) & 0xFF,
++                                            (mac_address >> 32) & 0xFF,
++                                            (mac_address >> 24) & 0xFF,
++                                            (mac_address >> 16) & 0xFF,
++                                            (mac_address >> 8) & 0xFF,
++                                             mac_address & 0xFF));
++  strcpy(hotplug_attrs->qemu_vm_mac_address, string_mac.c_str());
++
++  LOG(INFO) << "Parameters for hotplug are: qemu_socket_port=" <<hotplug_attrs->qemu_socket_port
++            << " qemu_vm_mac_address=" <<hotplug_attrs->qemu_vm_mac_address
++            << " qemu_socket_ip=" <<hotplug_attrs->qemu_socket_ip
++            << " qemu_vm_netdev_id=" <<hotplug_attrs->qemu_vm_netdev_id
++            << " qemu_vm_chardev_id=" <<hotplug_attrs->qemu_vm_chardev_id
++            << " qemu_vm_device_id=" <<hotplug_attrs->qemu_vm_device_id
++            << " native_socket_path=" <<hotplug_attrs->native_socket_path
++            << " qemu_hotplug = " <<hotplug_attrs->qemu_hotplug;
++
++  if (hotplug_config.qemu_hotplug == HOTPLUG_ADD) {
++       RETURN_IF_BFRT_ERROR(bf_pal_hotplug_add(static_cast<bf_dev_id_t>(device),
++                                               static_cast<bf_dev_port_t>(port),
++                                               hotplug_attrs.get()));
++  } else if (hotplug_config.qemu_hotplug == HOTPLUG_DEL) {
++       RETURN_IF_BFRT_ERROR(bf_pal_hotplug_del(static_cast<bf_dev_id_t>(device),
++                                               static_cast<bf_dev_port_t>(port),
++                                               hotplug_attrs.get()));
++  }
 +
 +  return ::util::OkStatus();
 +}
@@ -388,7 +457,7 @@ index 9f4bb3a9..cbbdac0e 100644
    return ::util::OkStatus();
  }
  
-@@ -1135,14 +1246,18 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
+@@ -1135,14 +1299,18 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
  }
  
  ::util::Status BfSdeWrapper::EnablePort(int device, int port) {
@@ -408,7 +477,7 @@ index 9f4bb3a9..cbbdac0e 100644
    return ::util::OkStatus();
  }
  
-@@ -1150,37 +1265,43 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
+@@ -1150,37 +1318,43 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
                                                  bool is_in_pps,
                                                  uint32 burst_size,
                                                  uint64 rate_per_second) {
@@ -453,7 +522,7 @@ index 9f4bb3a9..cbbdac0e 100644
    if (mtu < 0) {
      RETURN_ERROR(ERR_INVALID_PARAM) << "Invalid MTU value.";
    }
-@@ -1188,11 +1309,16 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
+@@ -1188,11 +1362,16 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
    RETURN_IF_BFRT_ERROR(bf_pal_port_mtu_set(
        static_cast<bf_dev_id_t>(device), static_cast<bf_dev_port_t>(port),
        static_cast<uint32>(mtu), static_cast<uint32>(mtu)));
@@ -470,7 +539,7 @@ index 9f4bb3a9..cbbdac0e 100644
  }
  
  ::util::Status BfSdeWrapper::SetPortLoopbackMode(int device, int port,
-@@ -1201,19 +1327,22 @@ bool BfSdeWrapper::IsValidPort(int device, int port) {
+@@ -1201,19 +1380,22 @@ bool BfSdeWrapper::IsValidPort(int device, int port) {
      // Do nothing if we try to set loopback mode to the default one (UNKNOWN).
      return ::util::OkStatus();
    }
@@ -495,7 +564,7 @@ index 9f4bb3a9..cbbdac0e 100644
  
    return is_sw_model;
  }
-@@ -1221,6 +1350,7 @@ bool BfSdeWrapper::IsValidPort(int device, int port) {
+@@ -1221,6 +1403,7 @@ bool BfSdeWrapper::IsValidPort(int device, int port) {
  // Helper functions around reading the switch SKU.
  namespace {
  std::string GetBfChipFamilyAndType(int device) {
@@ -503,7 +572,7 @@ index 9f4bb3a9..cbbdac0e 100644
    bf_dev_type_t dev_type = lld_sku_get_dev_type(device);
    switch (dev_type) {
      case BF_DEV_BFNT10064Q:
-@@ -1284,9 +1414,12 @@ std::string GetBfChipFamilyAndType(int device) {
+@@ -1284,9 +1467,12 @@ std::string GetBfChipFamilyAndType(int device) {
      default:
        return "UNKNOWN";
    }
@@ -516,7 +585,7 @@ index 9f4bb3a9..cbbdac0e 100644
    bf_sku_chip_part_rev_t revision_number;
    lld_sku_get_chip_part_revision_number(device, &revision_number);
    switch (revision_number) {
-@@ -1297,11 +1430,15 @@ std::string GetBfChipRevision(int device) {
+@@ -1297,11 +1483,15 @@ std::string GetBfChipRevision(int device) {
      default:
        return "UNKOWN";
    }
@@ -532,7 +601,7 @@ index 9f4bb3a9..cbbdac0e 100644
    return absl::StrCat("0x", absl::Hex(chip_id));
  }
  }  // namespace
-@@ -1364,23 +1501,32 @@ std::string BfSdeWrapper::GetSdeVersion() const {
+@@ -1364,23 +1554,32 @@ std::string BfSdeWrapper::GetSdeVersion() const {
  }
  
  ::util::StatusOr<int> BfSdeWrapper::GetPcieCpuPort(int device) {
@@ -565,7 +634,7 @@ index 9f4bb3a9..cbbdac0e 100644
    return ::util::OkStatus();
  }
  
-@@ -1417,9 +1563,17 @@ std::string BfSdeWrapper::GetSdeVersion() const {
+@@ -1417,9 +1616,17 @@ std::string BfSdeWrapper::GetSdeVersion() const {
      // Override previous parsing if bf_kpkt KLM was loaded.
      LOG(INFO)
          << "kernel mode packet driver present, forcing kernel_pkt option!";
@@ -583,7 +652,7 @@ index 9f4bb3a9..cbbdac0e 100644
    RETURN_IF_BFRT_ERROR(bf_switchd_lib_init(switchd_main_ctx.get()))
        << "Error when starting switchd.";
    LOG(INFO) << "switchd started successfully";
-@@ -1442,7 +1596,7 @@ std::string BfSdeWrapper::GetSdeVersion() const {
+@@ -1442,7 +1649,7 @@ std::string BfSdeWrapper::GetSdeVersion() const {
    bfrt_id_mapper_.reset();
  
    RETURN_IF_BFRT_ERROR(bf_pal_device_warm_init_begin(
@@ -592,7 +661,7 @@ index 9f4bb3a9..cbbdac0e 100644
        /* upgrade_agents */ true));
    bf_device_profile_t device_profile = {};
  
-@@ -1510,11 +1664,15 @@ std::string BfSdeWrapper::GetSdeVersion() const {
+@@ -1510,11 +1717,15 @@ std::string BfSdeWrapper::GetSdeVersion() const {
        bf_sys_log_level_set(BF_MOD_PKT, BF_LOG_DEST_STDOUT, BF_LOG_WARN) == 0);
    CHECK_RETURN_IF_FALSE(
        bf_sys_log_level_set(BF_MOD_PIPE, BF_LOG_DEST_STDOUT, BF_LOG_WARN) == 0);
@@ -608,7 +677,7 @@ index 9f4bb3a9..cbbdac0e 100644
    }
  
    RETURN_IF_BFRT_ERROR(bfrt_device_manager_->bfRtInfoGet(
-@@ -1549,6 +1707,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1549,6 +1760,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
  //  Packetio
  
  ::util::Status BfSdeWrapper::TxPacket(int device, const std::string& buffer) {
@@ -616,7 +685,7 @@ index 9f4bb3a9..cbbdac0e 100644
    bf_pkt* pkt = nullptr;
    RETURN_IF_BFRT_ERROR(
        bf_pkt_alloc(device, &pkt, buffer.size(), BF_DMA_CPU_PKT_TRANSMIT_0));
-@@ -1558,11 +1717,12 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1558,11 +1770,12 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
        pkt, reinterpret_cast<const uint8*>(buffer.data()), buffer.size()));
    RETURN_IF_BFRT_ERROR(bf_pkt_tx(device, pkt, BF_PKT_TX_RING_0, pkt));
    pkt_cleaner.release();
@@ -630,7 +699,7 @@ index 9f4bb3a9..cbbdac0e 100644
    // Maybe move to InitSde function?
    if (!bf_pkt_is_inited(device)) {
      RETURN_IF_BFRT_ERROR(bf_pkt_init());
-@@ -1583,11 +1743,12 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1583,11 +1796,12 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
                             static_cast<bf_pkt_rx_ring_t>(rx_ring), nullptr));
    }
    VLOG(1) << "Registered packetio callbacks on device " << device << ".";
@@ -644,7 +713,7 @@ index 9f4bb3a9..cbbdac0e 100644
    for (int tx_ring = BF_PKT_TX_RING_0; tx_ring < BF_PKT_TX_RING_MAX;
         ++tx_ring) {
      RETURN_IF_BFRT_ERROR(bf_pkt_tx_done_notif_deregister(
-@@ -1600,7 +1761,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1600,7 +1814,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
          bf_pkt_rx_deregister(device, static_cast<bf_pkt_rx_ring_t>(rx_ring)));
    }
    VLOG(1) << "Unregistered packetio callbacks on device " << device << ".";
@@ -653,7 +722,7 @@ index 9f4bb3a9..cbbdac0e 100644
    return ::util::OkStatus();
  }
  
-@@ -1617,6 +1778,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1617,6 +1831,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
    return ::util::OkStatus();
  }
  
@@ -661,7 +730,7 @@ index 9f4bb3a9..cbbdac0e 100644
  ::util::Status BfSdeWrapper::HandlePacketRx(bf_dev_id_t device, bf_pkt* pkt,
                                              bf_pkt_rx_ring_t rx_ring) {
    absl::ReaderMutexLock l(&packet_rx_callback_lock_);
-@@ -1655,11 +1817,15 @@ bf_status_t BfSdeWrapper::BfPktRxNotifyCallback(bf_dev_id_t device, bf_pkt* pkt,
+@@ -1655,11 +1870,15 @@ bf_status_t BfSdeWrapper::BfPktRxNotifyCallback(bf_dev_id_t device, bf_pkt* pkt,
    bf_sde_wrapper->HandlePacketRx(device, pkt, rx_ring);
    return bf_pkt_free(device, pkt);
  }
@@ -679,7 +748,7 @@ index 9f4bb3a9..cbbdac0e 100644
  }
  
 diff --git a/stratum/hal/lib/barefoot/bf_sde_wrapper.h b/stratum/hal/lib/barefoot/bf_sde_wrapper.h
-index f8b9962d..abed8553 100644
+index f8b9962d..4b5c7b78 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_wrapper.h
 +++ b/stratum/hal/lib/barefoot/bf_sde_wrapper.h
 @@ -15,7 +15,9 @@
@@ -692,7 +761,7 @@ index f8b9962d..abed8553 100644
  #include "stratum/glue/integral_types.h"
  #include "stratum/glue/status/status.h"
  #include "stratum/glue/status/statusor.h"
-@@ -154,8 +156,12 @@ class BfSdeWrapper : public BfSdeInterface {
+@@ -154,8 +156,14 @@ class BfSdeWrapper : public BfSdeInterface {
        LOCKS_EXCLUDED(port_status_event_writer_lock_);
    ::util::Status UnregisterPortStatusEventWriter() override
        LOCKS_EXCLUDED(port_status_event_writer_lock_);
@@ -702,10 +771,12 @@ index f8b9962d..abed8553 100644
                           FecMode fec_mode) override;
 +  ::util::Status AddPort(int device, int port, uint64 speed_bps,
 +                         PortConfigParams& config, FecMode fec_mode) override;
++  ::util::Status HotplugPort(int device, int port,
++                            HotplugConfigParams& hotplug_config) override;
    ::util::Status DeletePort(int device, int port) override;
    ::util::Status EnablePort(int device, int port) override;
    ::util::Status DisablePort(int device, int port) override;
-@@ -365,11 +371,13 @@ class BfSdeWrapper : public BfSdeInterface {
+@@ -365,11 +373,13 @@ class BfSdeWrapper : public BfSdeInterface {
    // Return the singleton instance to be used in the SDE callbacks.
    static BfSdeWrapper* GetSingleton() LOCKS_EXCLUDED(init_lock_);
  
@@ -719,7 +790,7 @@ index f8b9962d..abed8553 100644
  
    // Called whenever a port status event is received from SDK. It forwards the
    // port status event to the module who registered a callback by calling
-@@ -409,6 +417,7 @@ class BfSdeWrapper : public BfSdeInterface {
+@@ -409,6 +419,7 @@ class BfSdeWrapper : public BfSdeInterface {
    // RW mutex lock for protecting the pipeline state.
    mutable absl::Mutex data_lock_;
  
@@ -727,7 +798,7 @@ index f8b9962d..abed8553 100644
    // Callback registed with the SDE for Tx notifications.
    static bf_status_t BfPktTxNotifyCallback(bf_dev_id_t device,
                                             bf_pkt_tx_ring_t tx_ring,
-@@ -419,6 +428,8 @@ class BfSdeWrapper : public BfSdeInterface {
+@@ -419,6 +430,8 @@ class BfSdeWrapper : public BfSdeInterface {
                                             void* cookie,
                                             bf_pkt_rx_ring_t rx_ring);
  

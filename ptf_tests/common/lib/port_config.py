@@ -31,7 +31,7 @@ class PortConfig(object):
             """
             # self.ssh = SSH(host, username, password)
             self.local = Local()
-            self.cmd_prefix = 'gnmi-cli'
+            self.cmd_prefix = 'sudo gnmi-cli'
 
 
         def gnmi_cli_set(self, params):
@@ -63,8 +63,6 @@ class PortConfig(object):
             if return_code:
                 print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
-            print(f"PASS: {cmd}")
-            print(output)
             return output
 
         def tear_down(self):

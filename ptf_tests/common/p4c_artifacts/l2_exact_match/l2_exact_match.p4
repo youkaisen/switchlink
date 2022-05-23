@@ -165,10 +165,10 @@ control egress_deparser(packet_out packet, out empty_metadata_t clone_e2e_meta, 
     }
 }
 
-IngressPipeline(packet_parser(), ingress(), packet_deparser()) ip;
+IngressPipeline(packet_parser(), ingress(), packet_deparser()) pipe;
 
 EgressPipeline(egress_parser(), egress(), egress_deparser()) ep;
 
-PSA_Switch(ip, PacketReplicationEngine(), ep, BufferingQueueingEngine()) main;
+PSA_Switch(pipe, PacketReplicationEngine(), ep, BufferingQueueingEngine()) main;
 
 

@@ -1,18 +1,18 @@
 /*
-Copyright 2013-present Barefoot Networks, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright (c) 2022 Intel Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <stdint.h>
@@ -22,6 +22,7 @@ limitations under the License.
 #include <sys/select.h>
 #include <netlink/msg.h>
 #include <netlink/netlink.h>
+
 #include "util.h"
 #include "switchlink.h"
 #include "switchlink_int.h"
@@ -34,9 +35,6 @@ static pthread_cond_t cookie_cv;
 static int cookie = 0;
 
 VLOG_DEFINE_THIS_MODULE(switchlink_main);
-
-//uint8_t g_log_level = SWITCHLINK_LOG_ERR;
-uint8_t g_log_level = SWITCHLINK_LOG_DEBUG;
 
 enum {
   SWITCHLINK_MSG_LINK,
@@ -54,7 +52,9 @@ enum {
   SWITCHLINK_MSG_MAX,
 } switchlink_msg_t;
 
-static void nl_sync_state() {
+// Currently we dont want to dump any existing kernel data when target is DPDK
+#if 0
+static void nl_sync_state(void) {
   static uint8_t msg_idx = SWITCHLINK_MSG_LINK;
   if (msg_idx == SWITCHLINK_MSG_MAX) {
     return;
@@ -130,6 +130,18 @@ static void nl_sync_state() {
     msg_idx++;
   }
 }
+#endif
+
+/*
+ * Routine Description:
+ *    Process netlink messages
+ *
+ * Arguments:
+ *    [in] nlmsg - netlink msg header
+ *
+ * Return Values:
+ *    void
+ */
 
 static void process_nl_message(struct nlmsghdr *nlmsg) {
   /* TODO: P4OVS: Enabling callback for link msg type only and prints for
@@ -137,50 +149,47 @@ static void process_nl_message(struct nlmsghdr *nlmsg) {
   */
   switch (nlmsg->nlmsg_type) {
     case RTM_NEWLINK:
-      VLOG_INFO("Switchlink Notification RTM_NEWLINK\n");
+      VLOG_DBG("Switchlink Notification RTM_NEWLINK\n");
       process_link_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_DELLINK:
-      VLOG_INFO("Switchlink Notification RTM_DELLINK\n");
-      //process_link_msg(nlmsg, nlmsg->nlmsg_type);
+      VLOG_DBG("Switchlink Notification RTM_DELLINK\n");
+      process_link_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_NEWADDR:
-      //printf("Switchlink Notification RTM_NEWADDR\n");
-     // process_address_msg(nlmsg, nlmsg->nlmsg_type);
+      VLOG_DBG("Switchlink Notification RTM_NEWADDR\n");
+      process_address_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_DELADDR:
-     // printf("Switchlink Notification RTM_DELADDR\n");
-     // process_address_msg(nlmsg, nlmsg->nlmsg_type);
+      VLOG_DBG("Switchlink Notification RTM_DELADDR\n");
+      process_address_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_NEWROUTE:
-     // printf("Switchlink Notification RTM_NEWROUTE\n");
-     // process_route_msg(nlmsg, nlmsg->nlmsg_type);
+      VLOG_DBG("Switchlink Notification RTM_NEWROUTE\n");
+      process_route_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_DELROUTE:
-     // printf("Switchlink Notification RTM_DELROUTE\n");
-     // process_route_msg(nlmsg, nlmsg->nlmsg_type);
+      VLOG_DBG("Switchlink Notification RTM_DELROUTE\n");
+      process_route_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_NEWNEIGH:
-     // printf("Switchlink Notification RTM_NEWNEIGH\n");
-     // process_neigh_msg(nlmsg, nlmsg->nlmsg_type);
+      VLOG_DBG("Switchlink Notification RTM_NEWNEIGH\n");
+      process_neigh_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_DELNEIGH:
-     // printf("Switchlink Notification RTM_DELNEIGH\n");
-     // process_neigh_msg(nlmsg, nlmsg->nlmsg_type);
+      VLOG_DBG("Switchlink Notification RTM_DELNEIGH\n");
+      process_neigh_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case RTM_NEWNETCONF:
-     // process_netconf_msg(nlmsg, nlmsg->nlmsg_type);
-      break;
     case RTM_GETMDB:
     case RTM_NEWMDB:
     case RTM_DELMDB:
-     // process_mdb_msg(nlmsg, nlmsg->nlmsg_type);
       break;
     case NLMSG_DONE:
-      nl_sync_state();
+      // P4-OVS comment nl_sync_state();
       break;
     default:
-      VLOG_INFO("Unknown netlink message(%d). Ignoring\n", nlmsg->nlmsg_type);
+      VLOG_DBG("Unknown netlink message(%d). Ignoring\n", nlmsg->nlmsg_type);
       break;
   }
 }
@@ -196,13 +205,13 @@ static int nl_sock_recv_msg(struct nl_msg *msg, void *arg) {
   return 0;
 }
 
-static void cleanup_nl_sock() {
+static void cleanup_nl_sock(void) {
   // free the socket
   nl_socket_free(g_nlsk);
   g_nlsk = NULL;
 }
 
-static void switchlink_nl_sock_intf_init() {
+static void switchlink_nl_sock_intf_init(void) {
   int nlsk_fd, sock_flags;
 
   // allocate a new socket
@@ -235,16 +244,11 @@ static void switchlink_nl_sock_intf_init() {
   nl_socket_add_memberships(g_nlsk, RTNLGRP_NOTIFY, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_NEIGH, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_IFADDR, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_MROUTE, 0);
   nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_ROUTE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_RULE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_NETCONF, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_IFADDR, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_MROUTE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_ROUTE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_RULE, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_NETCONF, 0);
-  nl_socket_add_memberships(g_nlsk, RTNLGRP_MDB, 0);
+  //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV4_RULE, 0);
+  //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_IFADDR, 0);
+  //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_ROUTE, 0);
+  //nl_socket_add_memberships(g_nlsk, RTNLGRP_IPV6_RULE, 0);
 
   // set socket to be non-blocking
   nlsk_fd = nl_socket_get_fd(g_nlsk);
@@ -261,10 +265,10 @@ static void switchlink_nl_sock_intf_init() {
   }
 
   // start building state from the kernel
-  nl_sync_state();
+  // P4-OVS comment nl_sync_state();
 }
 
-static void process_nl_event_loop() {
+static void process_nl_event_loop(void) {
   int nlsk_fd;
   nlsk_fd = nl_socket_get_fd(g_nlsk);
   ovs_assert(nlsk_fd > 0);
@@ -289,11 +293,13 @@ static void process_nl_event_loop() {
   }
 }
 
-struct nl_sock *switchlink_get_nl_sock() {
+struct nl_sock *switchlink_get_nl_sock(void) {
   return g_nlsk;
 }
 
-static void *switchlink_main(void *args) {
+void *switchlink_main(void *args) {
+  pthread_mutex_init(&cookie_mutex, NULL);
+  pthread_cond_init(&cookie_cv, NULL);
     /* P4 OVS: Switchlink Database maintain (Cache Optimized Trie like struct)
      * 1. Obj map stores handle for other objects (intf, bridge, ecmp, etc)
      * 2. Seperate Interface and Bridge Object maps (Trie inplace)
@@ -374,25 +380,7 @@ static void *switchlink_main(void *args) {
   return NULL;
 }
 
-void *switchlink_init(void *args) {
-
-  pthread_mutex_init(&cookie_mutex, NULL);
-  pthread_cond_init(&cookie_cv, NULL);
-  int status = pthread_create(&switchlink_thread, NULL, switchlink_main, NULL);
-  if (status) return status;
-  pthread_mutex_lock(&cookie_mutex);
-  while (!cookie) {
-    pthread_cond_wait(&cookie_cv, &cookie_mutex);
-  }
-  pthread_mutex_unlock(&cookie_mutex);
-  pthread_mutex_destroy(&cookie_mutex);
-  pthread_cond_destroy(&cookie_cv);
-  return status;
-
-  return 0;
-}
-
-int switchlink_stop() {
+int switchlink_stop(void) {
   int status = pthread_cancel(switchlink_thread);
   if (status == 0) {
     int s = pthread_join(switchlink_thread, NULL);

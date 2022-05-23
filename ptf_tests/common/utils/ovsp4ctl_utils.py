@@ -16,7 +16,7 @@ def ovs_p4ctl_set_pipe(bridge, device_config, p4info):
     try:
         out = ovs_p4ctl.p4ctl_set_pipe(bridge, device_config, p4info)
         if out == None:
-            print(f"PASS: ovs-p4ctl set pip: {device_config}")
+            print(f"PASS: ovs-p4ctl set pipe: {device_config}")
             return True
 
     except Exception as error:
@@ -54,7 +54,7 @@ def ovs_p4ctl_del_entry(bridge, tbl_name, match_key):
     try:
         out = ovs_p4ctl.p4ctl_del_entry(bridge, tbl_name, match_key)
         if out == None:
-            print(f"PASS: ovs-p4ctl del entry {match_key}")
+            print(f"PASS: ovs-p4ctl del entry: {match_key}")
             return True
 
     except Exception as error:

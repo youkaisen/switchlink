@@ -258,7 +258,8 @@ services that are available for a p4runtime client.
     ``FLOW``: Refers to parameters for a the above mentioned TABLE. Since we
     are programming a match_type ternary we expect user to provide priority
     as well. 'priority' is a case sensitivity field expected from user.
-    Mask for ternary or WCM match field is expected in x.x.x.x format for IPv4.
+    Mask for ternary or WCM match field is expected in x.x.x.x format for IPv4
+    or an integer value or a hexa-decimal values.
     match_filed_key=value,priority=value,action=action_name(value)
 
 
@@ -293,7 +294,7 @@ previously configured CONFIG params.
     gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,
                   device-type:VIRTIO_NET,queues:1,
                   pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:2000,
-                  socket-path:/tmp/vhost-user-0,port-type:LINK"
+                  socket-path:/tmp/vhost-user-0,packet-dir:host,port-type:LINK"
 
   .. note::
 
@@ -316,6 +317,11 @@ previously configured CONFIG params.
     configured by the user it is considered as value `MEMPOOL0`
     mtu: this is a non-mandatory parameter, if not specifically configured
     by the user it is considered as value `1500`
+    packet-dir: this is a non-mandatory parameter. It accepts 2 values
+    `host` or `network`(case insensitive). The value 'host' indicates that
+    traffic via this port will be within the host. The value 'network' indicates
+    this port will be able to send/receive traffic to/from network. If not
+    specifically configured by the user, default value is `host`
 
 2) Set atrributes for a vhost port and a control port::
 
@@ -324,7 +330,7 @@ previously configured CONFIG params.
     gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,
                   device-type:VIRTIO_NET,queues:1,
                   pipeline-name:pipe,mempool-name:MEMPOOL0,control-port:TAP2,
-                  socket-path:/tmp/vhost-user-0,port-type:LINK"
+                  socket-path:/tmp/vhost-user-0,packet-dir:host,port-type:LINK"
 
   .. note::
 
@@ -348,6 +354,11 @@ previously configured CONFIG params.
     mtu: this is a non-mandatory parameter, if not specifically configured
     by the user it is considered as value `1500`
     control-port: TAP port that need to be created for control packets.
+    packet-dir: this is a non-mandatory parameter. It accepts 2 values
+    `host` or `network`(case insensitive). The value 'host' indicates that
+    traffic via this port will be within the host. The value 'network' indicates
+    this port will be able to send/receive traffic to/from network. If not
+    specifically configured by the user, default value is `host`
 
 3) Get atrributes for a port::
 
@@ -498,7 +509,7 @@ previously configured CONFIG params.
     $ Example:
     gnmi-cli set "device:virtual-device,name:TAP1,mtu:1500,port-type:TAP"
     gnmi-cli set "device:virtual-device,name:TAP0,pipeline-name:pipe,
-                  mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+                  packet-dir:host,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
 
   .. note::
 
@@ -516,6 +527,11 @@ previously configured CONFIG params.
     configured by the user it is considered as value `pipe`
     mempool-name: this is a non-mandatory parameter, if not specifically
     configured by the user it is considered as value `MEMPOOL0`
+    packet-dir: this is a non-mandatory parameter. It accepts 2 values
+    `host` or `network`(case insensitive). The value 'host' indicates that
+    traffic via this port will be within the host. The value 'network' indicates
+    this port will be able to send/receive traffic to/from network. If not
+    specifically configured by the user, default value is `host`
 
 8) Set atrributes for TAP ports and a control port::
 
@@ -523,7 +539,7 @@ previously configured CONFIG params.
     $ Example:
     gnmi-cli set "device:virtual-device,name:TAP2,mtu:1000,
                   pipeline-name:pipe,mempool-name:MEMPOOL0,control-port:TAP31,
-                  port-type:TAP"
+                  packet-dir:host,port-type:TAP"
 
   .. note::
 
@@ -542,6 +558,11 @@ previously configured CONFIG params.
     mtu: this is a non-mandatory parameter, if not specifically configured
     by the user it is considered as value `1500`
     control-port: TAP port that need to be created for control packets.
+    packet-dir: this is a non-mandatory parameter. It accepts 2 values
+    `host` or `network`(case insensitive). The value 'host' indicates that
+    traffic via this port will be within the host. The value 'network' indicates
+    this port will be able to send/receive traffic to/from network. If not
+    specifically configured by the user, default value is `host`
 
 9) Get attributes for Pipelines Configuration::
 

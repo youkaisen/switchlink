@@ -23,6 +23,7 @@ sleep 2
 
 echo "removing any vhost users from /tmp"
 rm -rf /tmp/vhost-user-*
+rm -rf /tmp/intf/vhost-user-*
 
 echo "changing directory to $P4OVS"
 cd $P4OVS
@@ -36,6 +37,8 @@ else
   source p4ovs_env_setup.sh $SDE_INSTALL
 fi
 
+echo "set hugepages"
+./set_hugepages.sh
 echo "starting OVS"
 if [ $3 ]
 then
