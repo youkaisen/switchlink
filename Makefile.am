@@ -153,6 +153,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/l2_exact_match_with_tap.json \
 	ptf_tests/common/config/l3_action_profile_with_tap_ports.json \
 	ptf_tests/common/config/l3_action_selector_with_tap_test1.json \
+	ptf_tests/common/config/l3_wcm_with_tap_test.json \
 	ptf_tests/common/config/port_dump_link_port_only.json \
 	ptf_tests/common/config/port_dump_mixed_no_default_val.json \
 	ptf_tests/common/config/port_dump_tap_only_out_order.json \
@@ -189,6 +190,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/l3_action_profile_with_tap_ports.py \
 	ptf_tests/tests/l3_exact_match_with_tap_port.py \
 	ptf_tests/tests/l3_action_selector_with_tap_ports.py \
+	ptf_tests/tests/l3_wcm_with_tap_ports.py \
 	ptf_tests/tests/port_dump_link_port_only.py \
 	ptf_tests/tests/port_dump_mixed_no_default_val.py \
 	ptf_tests/tests/port_dump_tap_only_out_order.py \
