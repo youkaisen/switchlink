@@ -175,6 +175,8 @@ EXTRA_DIST = \
 	ptf_tests/common/p4c_artifacts/l3_exact_match/l3_exact_match.p4 \
 	ptf_tests/common/p4c_artifacts/l2_exact_match/l2_exact_match.conf \
 	ptf_tests/common/p4c_artifacts/l2_exact_match/l2_exact_match.p4 \
+	ptf_tests/common/p4c_artifacts/simple_l2l3_wcm/simple_l2l3_wcm.conf \
+	ptf_tests/common/p4c_artifacts/simple_l2l3_wcm/simple_l2l3_wcm.p4 \
 	ptf_tests/common/lib/__init__.py \
 	ptf_tests/common/lib/local_connection.py \
 	ptf_tests/common/lib/ovs_p4ctl.py \
