@@ -67,12 +67,12 @@ struct empty_metadata_t {
 
     /***********************  P A R S E R  **************************/
 parser Ingress_Parser(
-	packet_in pkt,
+  packet_in pkt,
     out my_ingress_headers_t hdr,
     inout my_ingress_metadata_t meta,
     in psa_ingress_parser_input_metadata_t ig_intr_md,
-	in empty_metadata_t resub_meta, 
-	in empty_metadata_t recirc_meta)
+  in empty_metadata_t resub_meta, 
+  in empty_metadata_t recirc_meta)
 {
      state start {
         transition parse_ethernet;
@@ -108,7 +108,7 @@ control ingress(
     inout my_ingress_headers_t hdr,
     inout my_ingress_metadata_t meta,
     in psa_ingress_input_metadata_t ig_intr_md,
-	inout psa_ingress_output_metadata_t ostd
+  inout psa_ingress_output_metadata_t ostd
 )
 {
     action send(PortId_t port) {
@@ -118,8 +118,8 @@ control ingress(
     action drop() {
         ostd.drop = true;
     }
-	
-	action set_port_and_src_mac( PortId_t port,
+  
+  action set_port_and_src_mac( PortId_t port,
                                  ethernet_addr_t src_mac,
                                  ethernet_addr_t dst_mac) {
         ostd.egress_port = port;
@@ -135,7 +135,7 @@ control ingress(
                     @defaultonly NoAction;
             }
     }
-	
+  
     table l2_fwd {
             key = {
                     hdr.ethernet.dst_addr: exact;
@@ -145,8 +145,8 @@ control ingress(
                     @defaultonly NoAction;
             }
     }
-	
-	table ipv4_host {
+  
+  table ipv4_host {
         key = { hdr.ipv4.dst_addr : exact; }
         actions = {
             send;drop;
@@ -161,17 +161,17 @@ control ingress(
     table ipv4_wcm {
         key     = { hdr.ipv4.dst_addr : ternary; }
         actions = { set_port_and_src_mac;send; drop; }
-	
-		default_action = drop;
+  
+    default_action = drop;
     }
 
     apply {
         if (hdr.ethernet.isValid()){
-			mymac.apply();
-			if (hdr.ipv4.isValid()) {
-				ipv4_host.apply();
-				ipv4_wcm.apply();
-			}
+      mymac.apply();
+      if (hdr.ipv4.isValid()) {
+        ipv4_host.apply();
+        ipv4_wcm.apply();
+      }
         }
         else {
             l2_fwd.apply();
@@ -182,9 +182,9 @@ control ingress(
     /*********************  D E P A R S E R  ************************/
 
 control Ingress_Deparser(packet_out pkt,
-	out empty_metadata_t clone_i2e_meta, 
-	out empty_metadata_t resubmit_meta, 
-	out empty_metadata_t normal_meta,
+  out empty_metadata_t clone_i2e_meta, 
+  out empty_metadata_t resubmit_meta, 
+  out empty_metadata_t normal_meta,
     inout my_ingress_headers_t hdr,
     in    my_ingress_metadata_t meta,
     in psa_ingress_output_metadata_t istd)
@@ -212,13 +212,13 @@ struct my_egress_metadata_t {
     /***********************  P A R S E R  **************************/
 
 parser Egress_Parser(
-	packet_in pkt,
+  packet_in pkt,
     out my_egress_headers_t hdr,
     inout my_ingress_metadata_t meta,
     in psa_egress_parser_input_metadata_t istd, 
-	in empty_metadata_t normal_meta, 
-	in empty_metadata_t clone_i2e_meta, 
-	in empty_metadata_t clone_e2e_meta)
+  in empty_metadata_t normal_meta, 
+  in empty_metadata_t clone_i2e_meta, 
+  in empty_metadata_t clone_e2e_meta)
 {
     state start {
         transition accept;
@@ -231,7 +231,7 @@ control egress(
     inout my_egress_headers_t hdr,
     inout my_ingress_metadata_t meta,
     in psa_egress_input_metadata_t istd, 
-	inout psa_egress_output_metadata_t ostd)
+  inout psa_egress_output_metadata_t ostd)
 {
     apply {
     }
@@ -240,12 +240,12 @@ control egress(
     /*********************  D E P A R S E R  ************************/
 
 control Egress_Deparser(packet_out pkt,
-	out empty_metadata_t clone_e2e_meta, 
-	out empty_metadata_t recirculate_meta,
+  out empty_metadata_t clone_e2e_meta, 
+  out empty_metadata_t recirculate_meta,
     inout my_egress_headers_t hdr,
     in my_ingress_metadata_t meta,
     in psa_egress_output_metadata_t istd, 
-	in psa_egress_deparser_input_metadata_t edstd)
+  in psa_egress_deparser_input_metadata_t edstd)
 {
     apply {
         pkt.emit(hdr);
