@@ -282,8 +282,8 @@ services that are available for a p4runtime client.
 16. Get indirect counter entry value ::
 
     $ ovs-p4ctl get-counter SWITCH COUNTER_TABLE COUNTER_FLOW
-    $ Example: ovs-p4ctl get-counter br0 ingress.ipv4_host_counter counter_id=308545543,index=1
-    $ Example: ovs-p4ctl get-counter br0 ingress.ipv4_host_counter counter_id=0,index=1
+    $ Example: ovs-p4ctl get-counter br0 ingress.ipv4_host_counter "counter_id=308545543,index=1"
+    $ Example: ovs-p4ctl get-counter br0 ingress.ipv4_host_counter "counter_id=0,index=1"
 
   .. note::
 
@@ -298,7 +298,7 @@ services that are available for a p4runtime client.
 16. Reset indirect counter entry value ::
 
     $ ovs-p4ctl reset-counter SWITCH COUNTER_TABLE COUNTER_FLOW
-    $ Example: ovs-p4ctl reset-counter br0 ingress.ipv4_host_counter counter_id=308545543,index=1
+    $ Example: ovs-p4ctl reset-counter br0 ingress.ipv4_host_counter "counter_id=308545543,index=1"
 
   .. note::
 

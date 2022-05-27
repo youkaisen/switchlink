@@ -69,12 +69,8 @@ USAGE = "ovs-p4ctl: P4Runtime switch management utility\n" \
         "  delete-action-profile-group SWITCH ACTION_PROFILE FLOW delete group\n" \
         "  get-action-profile-member SWITCH ACTION_PROFILE FLOW print member entries\n" \
         "  get-action-profile-group SWITCH ACTION_PROFILE FLOW print group entries\n" \
-        "  get-counter SWITCH COUNTER_TABLE COUNTER_FLOW \n \
-           // COUNTER_FLOW format: counter_id=<id>,index=<idx> \n \
-           Get Counter Entry from Indirect CounterTable\n" \
-        "  reset-counter SWITCH COUNTER_TABLE COUNTER_FLOW \n \
-           // COUNTER_FLOW format: counter_id=<id>,index=<idx> \n \
-           Reset Counter Entry Table\n"
+        "  get-counter SWITCH COUNTER_TABLE COUNTER_FLOW get Counter Entry from Indirect CounterTable\n" \
+        "  reset-counter SWITCH COUNTER_TABLE COUNTER_FLOW reset Counter Entry Table\n"
 
 
 def usage():
@@ -1455,6 +1451,9 @@ def parse_rcflow(flow):
     counter_id=cnt_id_str[1]
     index=index_str[1]
 
+    if index.isdigit() is False:
+        index = 0
+
     return counter_id, index
 
 def _format_ce(ce):
@@ -1493,7 +1492,7 @@ def p4ctl_get_counter_entry(client, bridge, cnt_tbl_name, flow):
 
     ce.counter_id = int(ctr_id) or 0 #Assign 0 if None
 
-    ce.index.index = int(idx) if idx != "UNSET" else 0
+    ce.index.index = int(idx)
 
     for response in client.read_one(entity):
         for entry in response.entities:
