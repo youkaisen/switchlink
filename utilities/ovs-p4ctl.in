@@ -1099,7 +1099,13 @@ def p4ctl_get_default_entry(client, bridge, tbl_name):
 
 @with_client
 def p4ctl_del_entry(client, bridge, tbl_name, match_key):
-    key = parse_match_key(match_key)
+    priority = None
+    if (match_key.find("priority") != -1):
+        # For match_type ternary, we expect priority to be sent by user.
+        key, priority = parse_match_key_ternary(match_key)
+    else:
+        key = parse_match_key(match_key)
+
     p4info = client.get_p4info()
 
     if not p4info:
@@ -1110,6 +1116,7 @@ def p4ctl_del_entry(client, bridge, tbl_name, match_key):
     te = helper.buildTableEntry(
         table_name=tbl_name,
         match_fields=key,
+        priority=priority,
     )
 
     update = p4runtime_pb2.Update()
