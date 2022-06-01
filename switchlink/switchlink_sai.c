@@ -42,7 +42,6 @@ static sai_route_api_t *route_api = NULL;
 static sai_hostif_api_t *host_intf_api = NULL;
 static sai_tunnel_api_t *tunnel_api = NULL;
 
-
 // This object ID is not used.
 // Introduced this variable to be inline with submodules/SAI declarations
 //static sai_object_id_t obj_id = 0;
@@ -464,14 +463,14 @@ int switchlink_mac_delete(switchlink_mac_addr_t mac_addr,
  *    Create nexthop entry
  *
  * Arguments:
- *    [in] neigh_info - neighbor interface info
+ *    [in] nexthop_info - nexthop interface info
  *
  * Return Values:
  *    0 on success
  *   -1 in case of error
  */
 
-int switchlink_nexthop_create(switchlink_db_neigh_info_t *neigh_info) {
+int switchlink_nexthop_create(switchlink_db_nexthop_info_t *nexthop_info) {
   sai_status_t status = SAI_STATUS_SUCCESS;
 
   sai_attribute_t attr_list[3];
@@ -479,20 +478,20 @@ int switchlink_nexthop_create(switchlink_db_neigh_info_t *neigh_info) {
   attr_list[0].id = SAI_NEXT_HOP_ATTR_TYPE;
   attr_list[0].value.s32 = SAI_NEXT_HOP_TYPE_IP;
   attr_list[1].id = SAI_NEXT_HOP_ATTR_IP;
-  if (neigh_info->ip_addr.family == AF_INET) {
+  if (nexthop_info->ip_addr.family == AF_INET) {
     attr_list[1].value.ipaddr.addr_family = SAI_IP_ADDR_FAMILY_IPV4;
     attr_list[1].value.ipaddr.addr.ip4 =
-        htonl(neigh_info->ip_addr.ip.v4addr.s_addr);
+        htonl(nexthop_info->ip_addr.ip.v4addr.s_addr);
   } else {
     attr_list[1].value.ipaddr.addr_family = SAI_IP_ADDR_FAMILY_IPV6;
     memcpy(attr_list[1].value.ipaddr.addr.ip6,
-           &(neigh_info->ip_addr.ip.v6addr),
+           &(nexthop_info->ip_addr.ip.v6addr),
            sizeof(sai_ip6_t));
   }
   attr_list[2].id = SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID;
-  attr_list[2].value.oid = neigh_info->intf_h;
+  attr_list[2].value.oid = nexthop_info->intf_h;
   status =
-      nhop_api->create_next_hop(&(neigh_info->nhop_h), 0, 3, attr_list);
+      nhop_api->create_next_hop(&(nexthop_info->nhop_h), 0, 3, attr_list);
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
@@ -501,16 +500,16 @@ int switchlink_nexthop_create(switchlink_db_neigh_info_t *neigh_info) {
  *    Delete nexthop entry
  *
  * Arguments:
- *    [in] neigh_info - neighbor interface info
+ *    [in] nhop handler
  *
  * Return Values:
  *    0 on success
  *   -1 in case of error
  */
 
-int switchlink_nexthop_delete(switchlink_db_neigh_info_t *neigh_info) {
+int switchlink_nexthop_delete(switchlink_handle_t nhop_h) {
   sai_status_t status = SAI_STATUS_SUCCESS;
-  status = nhop_api->remove_next_hop(neigh_info->nhop_h);
+  status = nhop_api->remove_next_hop(nhop_h);
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
 }
 
@@ -693,7 +692,10 @@ int switchlink_ecmp_create(switchlink_db_ecmp_info_t *ecmp_info) {
 
   status = nhop_group_api->create_next_hop_group(
       &(ecmp_info->ecmp_h), 0, 0x1, attr_list);
-  ovs_assert(status == SAI_STATUS_SUCCESS);
+  if (status != SAI_STATUS_SUCCESS) {
+    VLOG_ERR("Unable to create nexthop group for ECMP");
+    return -1;
+  }
 
   for (index = 0; index < ecmp_info->num_nhops; index++) {
     memset(attr_member_list, 0x0, sizeof(attr_member_list));
@@ -703,7 +705,10 @@ int switchlink_ecmp_create(switchlink_db_ecmp_info_t *ecmp_info) {
     attr_member_list[1].value.oid = ecmp_info->nhops[index];
     status = nhop_group_api->create_next_hop_group_member(
         &ecmp_info->nhop_member_handles[index], 0, 0x2, attr_member_list);
-    ovs_assert(status == SAI_STATUS_SUCCESS);
+    if (status != SAI_STATUS_SUCCESS) {
+        VLOG_ERR("Unable to add members to nexthop group for ECMP");
+        return -1;
+    }
   }
 
   return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
@@ -767,6 +772,7 @@ void switchlink_api_init(void) {
   ovs_assert(status == SAI_STATUS_SUCCESS);
   status = sai_api_query(SAI_API_TUNNEL, (void **)&tunnel_api);
   ovs_assert(status == SAI_STATUS_SUCCESS);
-
+  status = sai_api_query(SAI_API_NEXT_HOP_GROUP, (void **)&nhop_group_api);
+  ovs_assert(status == SAI_STATUS_SUCCESS);
   return;
 }

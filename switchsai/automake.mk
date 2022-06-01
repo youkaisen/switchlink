@@ -22,7 +22,8 @@ switchsai_libswitchsai_la_SOURCES = \
    switchsai/sairouterinterface.c \
    switchsai/saitunnel.c \
    switchsai/saiutils.c \
-   switchsai/saivirtualrouter.c
+   switchsai/saivirtualrouter.c \
+	 switchsai/sainexthopgroup.c
 
 switchsai_libswitchsai_la_CPPFLAGS = $(AM_CPPFLAGS)
 switchsai_libswitchsai_la_CPPFLAGS += -I ./switchapi

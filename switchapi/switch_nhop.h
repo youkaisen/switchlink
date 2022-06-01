@@ -124,6 +124,20 @@ typedef struct switch_pd_nexthhop_info_s
 
 } switch_pd_nexthop_info_t;
 
+/** ecmp info struct */
+typedef struct switch_ecmp_info_s
+{
+  switch_handle_t ecmp_group_handle;
+
+//  switch_handle_t * nhop_handles;
+
+  switch_list_t members;
+
+  switch_nhop_id_type_t id_type;
+
+} switch_ecmp_info_t;
+
+
 
 typedef struct switch_ecmp_member_s {
   /** ecmp member handle */
@@ -307,12 +321,6 @@ switch_status_t switch_api_nhop_handle_dump(const switch_device_t device,
                                             const void *cli_ctx);
 switch_status_t switch_api_nhop_table_size_get(switch_device_t device,
                                                switch_size_t *tbl_size);
-
-switch_status_t switch_api_ecmp_member_handle_get(
-    const switch_device_t device,
-    const switch_handle_t ecmp_handle,
-    const switch_handle_t nhop_handle,
-    switch_handle_t *ecmp_member_handle);
 
 switch_status_t switch_api_ecmp_nhop_by_member_get(
     const switch_device_t device,

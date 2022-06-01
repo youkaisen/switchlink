@@ -2597,7 +2597,6 @@ is_admissible(struct xlate_ctx *ctx, struct xport *in_port,
 static uint32_t
 get_target_fdb_data(struct xport *port, mac_info_t *value)
 {
-    char port_num[5] = {0};
     if (!port || !port->netdev || !port->xbundle) {
         return -1;
     }
@@ -2623,8 +2622,7 @@ get_target_fdb_data(struct xport *port, mac_info_t *value)
             VLOG_INFO("Not a VLAN interface");
             return -1;
         }
-        strcpy(port_num, port_name+strlen("vlan"));
-        value->data.port_id = atoi(port_num);
+        value->data.port_id = atoi(port_name+strlen("vlan"));
     }
     return 0;
 }

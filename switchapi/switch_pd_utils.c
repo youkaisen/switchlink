@@ -64,7 +64,7 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
 
   bf_status_t status;
 
-  if (entry_type) {
+  if (entry_type && data_hdl_t) {
       // Data handle is created only when entry is added to backend
       status = bf_rt_table_data_deallocate(data_hdl_t);
       if(status != BF_SUCCESS) {
@@ -73,23 +73,27 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
       }
   }
 
-  status = bf_rt_table_key_deallocate(key_hdl_t);
-  if(status != BF_SUCCESS) {
-      VLOG_ERR("Failed to deallocate key handler");
-      return status;
+  if (key_hdl_t) {
+      status = bf_rt_table_key_deallocate(key_hdl_t);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Failed to deallocate key handler");
+          return status;
+      }
   }
 
-  status = bf_rt_session_destroy(session_t);
-  if(status != BF_SUCCESS) {
-      VLOG_ERR("Failed to destroy session");
-      return status;
+  if (session_t) {
+      status = bf_rt_session_destroy(session_t);
+      if(status != BF_SUCCESS) {
+          VLOG_ERR("Failed to destroy session");
+          return status;
+      }
   }
 
   return status;
 }
 
 void
-switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
+switch_pd_to_get_port_id(switch_api_rif_info_t *port_rif_info)
 {
     char if_name[16] = {0};
     int i = 0;
@@ -97,9 +101,9 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
     bf_dev_port_t bf_dev_port;
     bf_status_t bf_status;
 
-    if (!if_indextoname((*port_rif_info)->rif_ifindex, if_name)) {
+    if (!if_indextoname(port_rif_info->rif_ifindex, if_name)) {
         VLOG_ERR("Failed to get ifname for the index: %d",
-                 (*port_rif_info)->rif_ifindex);
+                 port_rif_info->rif_ifindex);
         return;
     }
 
@@ -117,7 +121,7 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
             // for both direction
             VLOG_DBG("found the target dp index %d for sdk port id %d",
                       port_info->port_attrib.port_in_id, i);
-            (*port_rif_info)->port_id = port_info->port_attrib.port_in_id;
+            port_rif_info->port_id = port_info->port_attrib.port_in_id;
             if (i > CONFIG_PORT_INDEX) {
                 bf_dev_port_t bf_dev_port_control = i - CONFIG_PORT_INDEX;
                 port_info = NULL;
@@ -131,7 +135,7 @@ switch_pd_to_get_port_id(switch_api_rif_info_t **port_rif_info)
                 VLOG_DBG("Found phy port target dp index %d for sdk port id %d",
                           port_info->port_attrib.port_in_id,
                           bf_dev_port_control);
-                (*port_rif_info)->phy_port_id = 
+                port_rif_info->phy_port_id =
                                         port_info->port_attrib.port_in_id;
             }
             return;

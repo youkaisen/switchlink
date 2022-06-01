@@ -42,43 +42,17 @@ extern "C" {
         "vni"
 
 
-/* RIF_MOD_TABLE_START */
-#define LNW_RIF_MOD_TABLE_START \
-        "linux_networking_control.rif_mod_table_start"
+/* RIF_MOD_TABLE */
+#define LNW_RIF_MOD_TABLE \
+        "linux_networking_control.rif_mod_table"
 
-#define LNW_RIF_MOD_TABLE_START_KEY_RIF_MOD_MAP_ID \
+#define LNW_RIF_MOD_TABLE_KEY_RIF_MOD_MAP_ID \
         "local_metadata.rif_mod_map_id"
 
-#define LNW_RIF_MOD_TABLE_START_ACTION_SET_SRC_MAC_START \
-        "linux_networking_control.set_src_mac_start"
-#define LNW_ACTION_SET_SRC_MAC_START_PARAM_SRC_MAC_ADDR_FIRST \
-        "src_mac_addr_first"
-
-
-/* RIF_MOD_TABLE_MID */
-#define LNW_RIF_MOD_TABLE_MID \
-        "linux_networking_control.rif_mod_table_mid"
-
-#define LNW_RIF_MOD_TABLE_MID_KEY_RIF_MOD_MAP_ID \
-        "local_metadata.rif_mod_map_id"
-
-#define LNW_RIF_MOD_TABLE_MID_ACTION_SET_SRC_MAC_MID \
-        "linux_networking_control.set_src_mac_mid"
-#define LNW_ACTION_SET_SRC_MAC_MID_PARAM_SRC_MAC_ADDR_MID \
-        "src_mac_addr_mid"
-
-
-/* RIF_MOD_TABLE_LAST */
-#define LNW_RIF_MOD_TABLE_LAST \
-        "linux_networking_control.rif_mod_table_last"
-
-#define LNW_RIF_MOD_TABLE_LAST_KEY_RIF_MOD_MAP_ID \
-        "local_metadata.rif_mod_map_id"
-
-#define LNW_RIF_MOD_TABLE_LAST_ACTION_SET_SRC_MAC_LAST \
-        "linux_networking_control.set_src_mac_last"
-#define LNW_ACTION_SET_SRC_MAC_LAST_PARAM_SRC_MAC_ADDR_LAST \
-        "src_mac_addr_last"
+#define LNW_RIF_MOD_TABLE_ACTION_SET_SRC_MAC \
+        "linux_networking_control.set_src_mac"
+#define LNW_ACTION_SET_SRC_MAC_PARAM_SRC_MAC_ADDR \
+        "src_mac_addr"
 
 
 /* NEIGHBOR_MOD_TABLE */
@@ -169,6 +143,19 @@ extern "C" {
 #define LNW_ACTION_SET_NEXTHOP_PARAM_EGRESS_PORT \
         "egress_port"
 
+/* ECMP_HASH_TABLE */
+#define LNW_ECMP_HASH_TABLE \
+        "linux_networking_control.ecmp_hash_table"
+
+#define LNW_ECMP_HASH_TABLE_KEY_HOST_INFO_TX_EXTENDED_FLEX_0 \
+        "local_metadata.host_info_tx_extended_flex_0"
+#define LNW_ECMP_HASH_TABLE_KEY_HASH \
+        "local_metadata.hash"
+
+#define LNW_ECMP_HASH_TABLE_ACTION_SET_NEXTHOP_ID \
+        "linux_networking_control.set_nexthop_id"
+
+#define LNW_ECMP_HASH_SIZE 65536
 
 /* IPV4_TABLE */
 #define LNW_IPV4_TABLE \
@@ -186,13 +173,6 @@ extern "C" {
         "linux_networking_control.ecmp_hash_action"
 #define LNW_ACTION_ECMP_HASH_ACTION_PARAM_ECMP_GROUP_ID \
         "ecmp_group_id"
-
-
-
-
-
-
-
 
 #ifdef __cplusplus
 }

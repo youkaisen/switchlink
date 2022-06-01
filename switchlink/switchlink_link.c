@@ -385,19 +385,6 @@ void process_link_msg(struct nlmsghdr *nlmsg, int type) {
 
   if (type == RTM_NEWLINK) {
     switch (link_type) {
-/*      case SWITCHLINK_LINK_TYPE_TUN:
-        if(strstr(intf_info.ifname, "TAP") != NULL) {
-          memset(&tunp, 0, sizeof(switchlink_db_tuntap_info_t));
-          ovs_strzcpy(tunp.ifname, intf_info.ifname,
-                          SWITCHLINK_INTERFACE_NAME_LEN_MAX);
-          tunp.ifindex = ifmsg->ifi_index;
-          memcpy(&(tunp.mac_addr), intf_info.mac_addr,
-                          sizeof(switchlink_mac_addr_t));
-          tunp.link_type = link_type;
-          tuntap_create(&tunp);
-        }
-        break;
-*/
       case SWITCHLINK_LINK_TYPE_BRIDGE:
       case SWITCHLINK_LINK_TYPE_BOND:
       case SWITCHLINK_LINK_TYPE_NONE:

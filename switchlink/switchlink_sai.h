@@ -46,9 +46,9 @@ extern int switchlink_neighbor_create(switchlink_db_neigh_info_t *neigh_info);
 
 extern int switchlink_neighbor_delete(switchlink_db_neigh_info_t *neigh_info);
 
-extern int switchlink_nexthop_create(switchlink_db_neigh_info_t *neigh_info);
+extern int switchlink_nexthop_create(switchlink_db_nexthop_info_t *nexthop_info);
 
-extern int switchlink_nexthop_delete(switchlink_db_neigh_info_t *neigh_info);
+extern int switchlink_nexthop_delete(switchlink_handle_t nhop_h);
 
 extern int switchlink_ecmp_create(switchlink_db_ecmp_info_t *ecmp_info);
 

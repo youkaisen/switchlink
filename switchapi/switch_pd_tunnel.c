@@ -57,6 +57,8 @@ switch_status_t switch_pd_tunnel_entry(
     dev_tgt.direction = 0xFF;
     dev_tgt.prsr_id = 0xFF;
 
+    VLOG_DBG("%s", __func__);
+
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
     if(status != BF_SUCCESS) {
@@ -64,7 +66,7 @@ switch_status_t switch_pd_tunnel_entry(
         return switch_pd_status_to_status(status);
     }
 
-    table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
+    table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
     status = bf_rt_table_from_name_get(bfrt_info_hdl,
                                        LNW_VXLAN_ENCAP_MOD_TABLE,
                                        &table_hdl);
@@ -253,6 +255,8 @@ switch_status_t switch_pd_tunnel_term_entry(
     dev_tgt.direction = 0xFF;
     dev_tgt.prsr_id = 0xFF;
 
+    VLOG_DBG("%s", __func__);
+
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
     if(status != BF_SUCCESS) {
@@ -260,7 +264,7 @@ switch_status_t switch_pd_tunnel_term_entry(
         return switch_pd_status_to_status(status);
     }
 
-    table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
+    table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
     status = bf_rt_table_from_name_get(bfrt_info_hdl,
                                        LNW_IPV4_TUNNEL_TERM_TABLE,
                                        &table_hdl);
