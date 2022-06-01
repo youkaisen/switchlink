@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 diff --git a/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf b/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
-index e1f4338e..06e15d72 100644
+index e1f4338e..4f764145 100644
 --- a/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
 +++ b/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
 @@ -1,31 +1,41 @@
@@ -111,7 +112,7 @@ index 5ce91295..1b7dcf7f 100644
    virtual ::util::Status DeletePort(int device, int port) = 0;
  
 diff --git a/stratum/hal/lib/barefoot/bf_sde_wrapper.cc b/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
-index 9f4bb3a9..51f8b0aa 100644
+index 9f4bb3a9..ee244f6f 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
 +++ b/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
 @@ -12,7 +12,10 @@
@@ -234,7 +235,7 @@ index 9f4bb3a9..51f8b0aa 100644
    return ::util::OkStatus();
  }
  
-@@ -1118,13 +1144,79 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
+@@ -1118,13 +1144,81 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
    return ::util::OkStatus();
  }
  
@@ -274,7 +275,8 @@ index 9f4bb3a9..51f8b0aa 100644
    ASSIGN_OR_RETURN(auto bf_fec_mode, FecModeHalToBf(fec_mode, speed_bps));
 +#endif
 +  strncpy(port_attrs->port_name, config.port_name.c_str(), sizeof(port_attrs->port_name));
-+  strncpy(port_attrs->pipe_name, config.pipeline_name.c_str(), sizeof(port_attrs->pipe_name));
++  strncpy(port_attrs->pipe_in, config.pipeline_name.c_str(),sizeof(port_attrs->pipe_in));
++  strncpy(port_attrs->pipe_out, config.pipeline_name.c_str(),sizeof(port_attrs->pipe_out));
 +  strncpy(port_attrs->mempool_name, config.mempool_name.c_str(), sizeof(port_attrs->mempool_name));
 +  port_attrs->port_type = get_target_port_type(config.port_type);
 +  port_attrs->port_dir = PM_PORT_DIR_DEFAULT;
@@ -285,8 +287,9 @@ index 9f4bb3a9..51f8b0aa 100644
 +            << " port_type=" << port_attrs->port_type
 +            << " port_in_id=" << port_in
 +            << " port_out_id=" << port_out
-+            << " pipeline_name=" << port_attrs->pipe_name
-+            << " mempool_name=" << port_attrs->mempool_name
++            << " pipeline_in_name=" << port_attrs->pipe_in
++	    << " pipeline_out_name=" << port_attrs->pipe_out
++	    << " mempool_name=" << port_attrs->mempool_name
 +            << " sdk_port_id = " << port;
 +
 +  if (port_attrs->port_type == BF_DPDK_LINK) {
@@ -315,7 +318,7 @@ index 9f4bb3a9..51f8b0aa 100644
    return ::util::OkStatus();
  }
  
-@@ -1135,14 +1227,18 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
+@@ -1135,14 +1229,18 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
  }
  
  ::util::Status BfSdeWrapper::EnablePort(int device, int port) {
@@ -335,7 +338,7 @@ index 9f4bb3a9..51f8b0aa 100644
    return ::util::OkStatus();
  }
  
-@@ -1150,37 +1246,43 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
+@@ -1150,37 +1248,43 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
                                                  bool is_in_pps,
                                                  uint32 burst_size,
                                                  uint64 rate_per_second) {
@@ -380,7 +383,7 @@ index 9f4bb3a9..51f8b0aa 100644
    if (mtu < 0) {
      RETURN_ERROR(ERR_INVALID_PARAM) << "Invalid MTU value.";
    }
-@@ -1188,11 +1290,16 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
+@@ -1188,11 +1292,16 @@ BfSdeWrapper::BfSdeWrapper() : port_status_event_writer_(nullptr) {}
    RETURN_IF_BFRT_ERROR(bf_pal_port_mtu_set(
        static_cast<bf_dev_id_t>(device), static_cast<bf_dev_port_t>(port),
        static_cast<uint32>(mtu), static_cast<uint32>(mtu)));
@@ -397,7 +400,7 @@ index 9f4bb3a9..51f8b0aa 100644
  }
  
  ::util::Status BfSdeWrapper::SetPortLoopbackMode(int device, int port,
-@@ -1201,19 +1308,22 @@ bool BfSdeWrapper::IsValidPort(int device, int port) {
+@@ -1201,19 +1310,22 @@ bool BfSdeWrapper::IsValidPort(int device, int port) {
      // Do nothing if we try to set loopback mode to the default one (UNKNOWN).
      return ::util::OkStatus();
    }
@@ -422,7 +425,7 @@ index 9f4bb3a9..51f8b0aa 100644
  
    return is_sw_model;
  }
-@@ -1221,6 +1331,7 @@ bool BfSdeWrapper::IsValidPort(int device, int port) {
+@@ -1221,6 +1333,7 @@ bool BfSdeWrapper::IsValidPort(int device, int port) {
  // Helper functions around reading the switch SKU.
  namespace {
  std::string GetBfChipFamilyAndType(int device) {
@@ -430,7 +433,7 @@ index 9f4bb3a9..51f8b0aa 100644
    bf_dev_type_t dev_type = lld_sku_get_dev_type(device);
    switch (dev_type) {
      case BF_DEV_BFNT10064Q:
-@@ -1284,9 +1395,12 @@ std::string GetBfChipFamilyAndType(int device) {
+@@ -1284,9 +1397,12 @@ std::string GetBfChipFamilyAndType(int device) {
      default:
        return "UNKNOWN";
    }
@@ -443,7 +446,7 @@ index 9f4bb3a9..51f8b0aa 100644
    bf_sku_chip_part_rev_t revision_number;
    lld_sku_get_chip_part_revision_number(device, &revision_number);
    switch (revision_number) {
-@@ -1297,11 +1411,15 @@ std::string GetBfChipRevision(int device) {
+@@ -1297,11 +1413,15 @@ std::string GetBfChipRevision(int device) {
      default:
        return "UNKOWN";
    }
@@ -459,7 +462,7 @@ index 9f4bb3a9..51f8b0aa 100644
    return absl::StrCat("0x", absl::Hex(chip_id));
  }
  }  // namespace
-@@ -1364,23 +1482,32 @@ std::string BfSdeWrapper::GetSdeVersion() const {
+@@ -1364,23 +1484,32 @@ std::string BfSdeWrapper::GetSdeVersion() const {
  }
  
  ::util::StatusOr<int> BfSdeWrapper::GetPcieCpuPort(int device) {
@@ -492,7 +495,7 @@ index 9f4bb3a9..51f8b0aa 100644
    return ::util::OkStatus();
  }
  
-@@ -1417,9 +1544,17 @@ std::string BfSdeWrapper::GetSdeVersion() const {
+@@ -1417,9 +1546,17 @@ std::string BfSdeWrapper::GetSdeVersion() const {
      // Override previous parsing if bf_kpkt KLM was loaded.
      LOG(INFO)
          << "kernel mode packet driver present, forcing kernel_pkt option!";
@@ -510,7 +513,7 @@ index 9f4bb3a9..51f8b0aa 100644
    RETURN_IF_BFRT_ERROR(bf_switchd_lib_init(switchd_main_ctx.get()))
        << "Error when starting switchd.";
    LOG(INFO) << "switchd started successfully";
-@@ -1442,7 +1577,7 @@ std::string BfSdeWrapper::GetSdeVersion() const {
+@@ -1442,7 +1579,7 @@ std::string BfSdeWrapper::GetSdeVersion() const {
    bfrt_id_mapper_.reset();
  
    RETURN_IF_BFRT_ERROR(bf_pal_device_warm_init_begin(
@@ -519,7 +522,7 @@ index 9f4bb3a9..51f8b0aa 100644
        /* upgrade_agents */ true));
    bf_device_profile_t device_profile = {};
  
-@@ -1510,11 +1645,15 @@ std::string BfSdeWrapper::GetSdeVersion() const {
+@@ -1510,11 +1647,15 @@ std::string BfSdeWrapper::GetSdeVersion() const {
        bf_sys_log_level_set(BF_MOD_PKT, BF_LOG_DEST_STDOUT, BF_LOG_WARN) == 0);
    CHECK_RETURN_IF_FALSE(
        bf_sys_log_level_set(BF_MOD_PIPE, BF_LOG_DEST_STDOUT, BF_LOG_WARN) == 0);
@@ -535,7 +538,7 @@ index 9f4bb3a9..51f8b0aa 100644
    }
  
    RETURN_IF_BFRT_ERROR(bfrt_device_manager_->bfRtInfoGet(
-@@ -1549,6 +1688,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1549,6 +1690,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
  //  Packetio
  
  ::util::Status BfSdeWrapper::TxPacket(int device, const std::string& buffer) {
@@ -543,7 +546,7 @@ index 9f4bb3a9..51f8b0aa 100644
    bf_pkt* pkt = nullptr;
    RETURN_IF_BFRT_ERROR(
        bf_pkt_alloc(device, &pkt, buffer.size(), BF_DMA_CPU_PKT_TRANSMIT_0));
-@@ -1558,11 +1698,12 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1558,11 +1700,12 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
        pkt, reinterpret_cast<const uint8*>(buffer.data()), buffer.size()));
    RETURN_IF_BFRT_ERROR(bf_pkt_tx(device, pkt, BF_PKT_TX_RING_0, pkt));
    pkt_cleaner.release();
@@ -557,7 +560,7 @@ index 9f4bb3a9..51f8b0aa 100644
    // Maybe move to InitSde function?
    if (!bf_pkt_is_inited(device)) {
      RETURN_IF_BFRT_ERROR(bf_pkt_init());
-@@ -1583,11 +1724,12 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1583,11 +1726,12 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
                             static_cast<bf_pkt_rx_ring_t>(rx_ring), nullptr));
    }
    VLOG(1) << "Registered packetio callbacks on device " << device << ".";
@@ -571,7 +574,7 @@ index 9f4bb3a9..51f8b0aa 100644
    for (int tx_ring = BF_PKT_TX_RING_0; tx_ring < BF_PKT_TX_RING_MAX;
         ++tx_ring) {
      RETURN_IF_BFRT_ERROR(bf_pkt_tx_done_notif_deregister(
-@@ -1600,7 +1742,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1600,7 +1744,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
          bf_pkt_rx_deregister(device, static_cast<bf_pkt_rx_ring_t>(rx_ring)));
    }
    VLOG(1) << "Unregistered packetio callbacks on device " << device << ".";
@@ -580,7 +583,7 @@ index 9f4bb3a9..51f8b0aa 100644
    return ::util::OkStatus();
  }
  
-@@ -1617,6 +1759,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
+@@ -1617,6 +1761,7 @@ BfSdeWrapper::CreateTableData(int table_id, int action_id) {
    return ::util::OkStatus();
  }
  
@@ -588,7 +591,7 @@ index 9f4bb3a9..51f8b0aa 100644
  ::util::Status BfSdeWrapper::HandlePacketRx(bf_dev_id_t device, bf_pkt* pkt,
                                              bf_pkt_rx_ring_t rx_ring) {
    absl::ReaderMutexLock l(&packet_rx_callback_lock_);
-@@ -1655,6 +1798,7 @@ bf_status_t BfSdeWrapper::BfPktRxNotifyCallback(bf_dev_id_t device, bf_pkt* pkt,
+@@ -1655,6 +1800,7 @@ bf_status_t BfSdeWrapper::BfPktRxNotifyCallback(bf_dev_id_t device, bf_pkt* pkt,
    bf_sde_wrapper->HandlePacketRx(device, pkt, rx_ring);
    return bf_pkt_free(device, pkt);
  }
