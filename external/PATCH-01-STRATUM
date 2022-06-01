@@ -288,8 +288,8 @@ index 9f4bb3a9..ee244f6f 100644
 +            << " port_in_id=" << port_in
 +            << " port_out_id=" << port_out
 +            << " pipeline_in_name=" << port_attrs->pipe_in
-+	    << " pipeline_out_name=" << port_attrs->pipe_out
-+	    << " mempool_name=" << port_attrs->mempool_name
++	     << " pipeline_out_name=" << port_attrs->pipe_out
++	     << " mempool_name=" << port_attrs->mempool_name
 +            << " sdk_port_id = " << port;
 +
 +  if (port_attrs->port_type == BF_DPDK_LINK) {
