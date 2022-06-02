@@ -13,10 +13,10 @@
 # limitations under the License.
 
 diff --git a/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf b/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
-index e1f4338e..4f764145 100644
+index e1f4338e..b2534955 100644
 --- a/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
 +++ b/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
-@@ -1,31 +1,41 @@
+@@ -1,31 +1,52 @@
  {
 -    "instance": 0,
      "chip_list": [
@@ -54,6 +54,15 @@ index e1f4338e..4f764145 100644
 -            "id": "pgm-0",
 -            "table-config": ""
 +            "device-id": 0,
++            "mempools": [
++                {
++                     "name": "MEMPOOL0",
++                     "buffer_size": 2304,
++                     "pool_size": 1024,
++                     "cache_size": 256,
++                     "numa_node": 0
++                }
++            ],
 +            "eal-args": "dummy -n 4 -c 3",
 +            "p4_programs": [
 +                {
@@ -62,6 +71,8 @@ index e1f4338e..4f764145 100644
 +                    "p4_pipelines": [
 +                        {
 +                            "p4_pipeline_name": "pipe",
++                            "core_id": 1,
++                            "numa_node": 0,
 +                            "pipe_scope": [
 +                                0,
 +                                1,
@@ -112,7 +123,7 @@ index 5ce91295..1b7dcf7f 100644
    virtual ::util::Status DeletePort(int device, int port) = 0;
  
 diff --git a/stratum/hal/lib/barefoot/bf_sde_wrapper.cc b/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
-index 9f4bb3a9..ee244f6f 100644
+index 9f4bb3a9..26e063a2 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
 +++ b/stratum/hal/lib/barefoot/bf_sde_wrapper.cc
 @@ -12,7 +12,10 @@
@@ -591,7 +602,7 @@ index 9f4bb3a9..ee244f6f 100644
  ::util::Status BfSdeWrapper::HandlePacketRx(bf_dev_id_t device, bf_pkt* pkt,
                                              bf_pkt_rx_ring_t rx_ring) {
    absl::ReaderMutexLock l(&packet_rx_callback_lock_);
-@@ -1655,6 +1800,7 @@ bf_status_t BfSdeWrapper::BfPktRxNotifyCallback(bf_dev_id_t device, bf_pkt* pkt,
+@@ -1655,11 +1800,12 @@ bf_status_t BfSdeWrapper::BfPktRxNotifyCallback(bf_dev_id_t device, bf_pkt* pkt,
    bf_sde_wrapper->HandlePacketRx(device, pkt, rx_ring);
    return bf_pkt_free(device, pkt);
  }
@@ -599,6 +610,12 @@ index 9f4bb3a9..ee244f6f 100644
  
  bf_rt_target_t BfSdeWrapper::GetDeviceTarget(int device) const {
    bf_rt_target_t dev_tgt = {};
+   dev_tgt.dev_id = device;
+-  dev_tgt.pipe_id = BF_DEV_PIPE_ALL;
++  dev_tgt.pipe_id = 0;
+   return dev_tgt;
+ }
+ 
 diff --git a/stratum/hal/lib/barefoot/bf_sde_wrapper.h b/stratum/hal/lib/barefoot/bf_sde_wrapper.h
 index f8b9962d..5684fe30 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_wrapper.h
