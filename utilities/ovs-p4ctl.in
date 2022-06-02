@@ -68,7 +68,9 @@ USAGE = "ovs-p4ctl: P4Runtime switch management utility\n" \
         "  add-action-profile-group SWITCH ACTION_PROFILE FLOW adds group reference\n" \
         "  delete-action-profile-group SWITCH ACTION_PROFILE FLOW delete group\n" \
         "  get-action-profile-member SWITCH ACTION_PROFILE FLOW print member entries\n" \
-        "  get-action-profile-group SWITCH ACTION_PROFILE FLOW print group entries\n"
+        "  get-action-profile-group SWITCH ACTION_PROFILE FLOW print group entries\n" \
+        "  get-counter SWITCH COUNTER_TABLE COUNTER_FLOW get Counter Entry from Indirect CounterTable\n" \
+        "  reset-counter SWITCH COUNTER_TABLE COUNTER_FLOW reset Counter Entry Table\n"
 
 
 def usage():
@@ -1440,6 +1442,95 @@ def p4ctl_get_group(client, bridge, tbl_name, flow):
         for entry in response.entities:
             print(_format_group(helper, entry.action_profile_group))
 
+def parse_rcflow(flow):
+    tmp = flow.split(",")
+
+    cnt_id_str = tmp[0].split("=")
+    index_str = tmp[1].split("=")
+
+    counter_id=cnt_id_str[1]
+    index=index_str[1]
+
+    if index.isdigit() is False:
+        index = 0
+
+    return counter_id, index
+
+def _format_ce(ce):
+    output_buffer = 'counter_id={}, index={}'.format(ce.counter_id, ce.index.index)
+    output_buffer += ', counter_data=(bytes={},packets={})'.format(ce.data.byte_count, ce.data.packet_count)
+    return output_buffer
+
+@with_client
+def p4ctl_get_counter_entry(client, bridge, cnt_tbl_name, flow):
+    """
+    get-counter-entry SWITCH COUNTER_TABLE READ_COUNTER_FLOW
+    Example 1: // COUNTER_ID=0, return full counter table
+        ovs-p4ctl get-counter br0 pipe.port_bytes_in
+                    "counter_id=0,index=UNSET"
+        ovs-p4ctl get-counter br0 pipe.port_bytes_in
+                    "counter_id=0,index=2"
+    Example 2: // INDEX=UNSET, return all entries matching with counter_id
+        ovs-p4ctl get-counter br0 pipe.port_bytes_in
+                    "counter_id=1,index=UNSET"
+    Example 3: // return single matching counter entry
+        ovs-p4ctl get-counter br0 pipe.port_bytes_in
+                    "counter_id=1,index=2"
+    """
+    ctr_id, idx = parse_rcflow(flow)
+
+    p4info = client.get_p4info()
+    if not p4info:
+        raise Exception("cannot retrieve P4Info from device {}".format(bridge))
+
+    helper = P4InfoHelper(p4info)
+    entity = p4runtime_pb2.Entity()
+    ce = entity.counter_entry
+
+    if ce is None:
+        raise Exception("Cannot find counter_entry field in entity")
+
+    ce.counter_id = int(ctr_id) or 0 #Assign 0 if None
+
+    ce.index.index = int(idx)
+
+    for response in client.read_one(entity):
+        for entry in response.entities:
+            if entry.counter_entry.counter_id == ce.counter_id and entry.counter_entry.index.index == int(idx):
+                print(_format_ce(entry.counter_entry))
+
+@with_client
+def p4ctl_reset_counter_entry(client, bridge, cnt_tbl_name, flow):
+    """
+    reset-counter-entry SWITCH COUNTER_TABLE RESET_COUNTER_FLOW
+    Example :
+        ovs-p4ctl reset-counter br0 pipe.port_bytes_in
+                    "counter_id=1,index=2"
+    """
+    ctr_id, idx = parse_rcflow(flow)
+
+    p4info = client.get_p4info()
+    if not p4info:
+        raise Exception("cannot retrieve P4Info from device {}".format(bridge))
+
+    helper = P4InfoHelper(p4info)
+    entity = p4runtime_pb2.Entity()
+    ce = entity.counter_entry
+
+    if ce is None:
+        raise Exception("Cannot find counter_entry field in entity")
+
+    ce.counter_id = int(ctr_id)
+    ce.index.index = int(idx)
+    ce.data.byte_count = 0
+    ce.data.packet_count = 0
+
+    # Send a MODIFY write() request
+    update = p4runtime_pb2.Update()
+    update.type = p4runtime_pb2.Update.MODIFY
+    update.entity.counter_entry.CopyFrom(ce)
+
+    client.write_update(update)
 
 all_commands = {
     "show": (p4ctl_show, 1),
@@ -1458,6 +1549,8 @@ all_commands = {
     "delete-action-profile-group": (p4ctl_del_group, 3),
     "get-action-profile-member": (p4ctl_get_member, 3),
     "get-action-profile-group": (p4ctl_get_group, 3),
+    "get-counter" : (p4ctl_get_counter_entry, 2),
+    "reset-counter" : (p4ctl_reset_counter_entry, 2)
 }
 
 
