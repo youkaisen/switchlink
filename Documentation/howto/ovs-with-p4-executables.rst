@@ -262,6 +262,51 @@ services that are available for a p4runtime client.
     or an integer value or a hexa-decimal values.
     match_filed_key=value,priority=value,action=action_name(value)
 
+15. Rule to delete ternary match_type ::
+
+    $ ovs-p4ctl del-entry SWITCH TABLE KEY
+    $ Example: ovs-p4ctl del-entry br0 ingress.ipv4_wcm "hdr.ipv4.dst_addr=192.168.1.0/255.255.255.0,priority=10"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``TABLE``: Refers to table_name present in p4info.txt file.
+    ``KEY``: Refers to match_filed_key parameters which are programmed for
+    the above mentioned TABLE. Since match_type is ternary, we expect user to
+    provide previously configured priority as well. 'priority' is a case
+    sensitivity field expected from user. Mask for ternary or WCM match field
+    is expected in x.x.x.x format for IPv4 or an integer value or a
+    hexa-decimal value. Format "match_filed_key=value,priority=value"
+
+16. Get indirect counter entry value ::
+
+    $ ovs-p4ctl get-counter SWITCH COUNTER_TABLE COUNTER_FLOW
+    $ Example: ovs-p4ctl get-counter br0 ingress.ipv4_host_counter "counter_id=308545543,index=1"
+    $ Example: ovs-p4ctl get-counter br0 ingress.ipv4_host_counter "counter_id=0,index=1"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``COUNTER_TABLE``: Refers to counter table entry from the p4 file.
+    ``COUNTER_FLOW``: Refers to the counter ID (generated ID by p4c, refer to bfrt.json file)
+    and the counter table index. Format "counter_id=<number>,index=<number>". A counter_id=0
+    will display value for all counters added up. For index=UNSET, all cells for specified
+    counter_id will be displayed.
+
+16. Reset indirect counter entry value ::
+
+    $ ovs-p4ctl reset-counter SWITCH COUNTER_TABLE COUNTER_FLOW
+    $ Example: ovs-p4ctl reset-counter br0 ingress.ipv4_host_counter "counter_id=308545543,index=1"
+
+  .. note::
+
+    ``SWITCH``: Referes to the bridge name, which maps to device name
+    internally.
+    ``COUNTER_TABLE``: Refers to counter table entry from the p4 file.
+    ``COUNTER_FLOW``: Refers to the counter ID (generated ID by p4c, refer to bfrt.json file)
+    and the counter table index. Format "counter_id=<number>,index=<number>"
 
 gnmi_cli executable
 -------------------

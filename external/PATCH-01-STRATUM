@@ -747,6 +747,25 @@ index 9f4bb3a9..e0ac32c9 100644
    return dev_tgt;
  }
  
+@@ -2272,8 +2491,15 @@ namespace {
+     }
+   }
+   auto bf_dev_tgt = GetDeviceTarget(device);
+-  RETURN_IF_BFRT_ERROR(table->tableEntryMod(
+-      *real_session->bfrt_session_, bf_dev_tgt, *table_key, *table_data));
++
++  if(byte_count.value() == 0 && packet_count.value() == 0) {
++    LOG(INFO) << "Resetting counters";
++    RETURN_IF_BFRT_ERROR(table->tableClear(
++        *real_session->bfrt_session_, bf_dev_tgt));
++  } else {
++    RETURN_IF_BFRT_ERROR(table->tableEntryMod(
++        *real_session->bfrt_session_, bf_dev_tgt, *table_key, *table_data));
++  }
+ 
+   return ::util::OkStatus();
+ }
+ 
 diff --git a/stratum/hal/lib/barefoot/bf_sde_wrapper.h b/stratum/hal/lib/barefoot/bf_sde_wrapper.h
 index f8b9962d..4b5c7b78 100644
 --- a/stratum/hal/lib/barefoot/bf_sde_wrapper.h
@@ -807,6 +826,33 @@ index f8b9962d..4b5c7b78 100644
    // Common code for multicast group handling.
    ::util::Status WriteMulticastGroup(
        int device, std::shared_ptr<BfSdeInterface::SessionInterface> session,
+diff --git a/stratum/hal/lib/barefoot/bfrt_counter_manager.cc b/stratum/hal/lib/barefoot/bfrt_counter_manager.cc
+index 544b4df5..0eb75ce8 100644
+--- a/stratum/hal/lib/barefoot/bfrt_counter_manager.cc
++++ b/stratum/hal/lib/barefoot/bfrt_counter_manager.cc
+@@ -68,8 +68,6 @@ BfrtCounterManager::BfrtCounterManager(BfSdeInterface* bf_sde_interface,
+     const ::p4::v1::CounterEntry& counter_entry,
+     WriterInterface<::p4::v1::ReadResponse>* writer) {
+   absl::ReaderMutexLock l(&lock_);
+-  CHECK_RETURN_IF_FALSE(counter_entry.counter_id() != 0)
+-      << "Querying an indirect counter without counter id is not supported.";
+   CHECK_RETURN_IF_FALSE(counter_entry.index().index() >= 0)
+       << "Counter index must be greater than or equal to zero.";
+ 
+@@ -81,8 +79,11 @@ BfrtCounterManager::BfrtCounterManager(BfSdeInterface* bf_sde_interface,
+ 
+   // Find counter table
+   // TODO(max): revisit id translation location
+-  ASSIGN_OR_RETURN(uint32 table_id,
+-                   bf_sde_interface_->GetBfRtId(counter_entry.counter_id()));
++  uint32 table_id = 0;
++  if(counter_entry.counter_id()) {
++    ASSIGN_OR_RETURN(table_id,
++                    bf_sde_interface_->GetBfRtId(counter_entry.counter_id()));
++  }
+ 
+   std::vector<uint32> counter_indices;
+   std::vector<absl::optional<uint64>> byte_counts;
 diff --git a/stratum/hal/lib/barefoot/bfrt_node.cc b/stratum/hal/lib/barefoot/bfrt_node.cc
 index 1b811845..2b13d3a5 100644
 --- a/stratum/hal/lib/barefoot/bfrt_node.cc

@@ -153,6 +153,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/l2_exact_match_with_tap.json \
 	ptf_tests/common/config/l3_action_profile_with_tap_ports.json \
 	ptf_tests/common/config/l3_action_selector_with_tap_test1.json \
+	ptf_tests/common/config/l3_wcm_with_tap_test.json \
 	ptf_tests/common/config/port_dump_link_port_only.json \
 	ptf_tests/common/config/port_dump_mixed_no_default_val.json \
 	ptf_tests/common/config/port_dump_tap_only_out_order.json \
@@ -166,6 +167,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/DPDK_Hot_Plug_Remove.json \
 	ptf_tests/common/config/DPDK_Hot_Plug_Remove_Multi_port.json \
 	ptf_tests/common/config/show_tap_port_mtu.json \
+	ptf_tests/common/config/l3_wcm_with_link_port.json \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
@@ -174,6 +176,8 @@ EXTRA_DIST = \
 	ptf_tests/common/p4c_artifacts/l3_exact_match/l3_exact_match.p4 \
 	ptf_tests/common/p4c_artifacts/l2_exact_match/l2_exact_match.conf \
 	ptf_tests/common/p4c_artifacts/l2_exact_match/l2_exact_match.p4 \
+	ptf_tests/common/p4c_artifacts/simple_l2l3_wcm/simple_l2l3_wcm.conf \
+	ptf_tests/common/p4c_artifacts/simple_l2l3_wcm/simple_l2l3_wcm.p4 \
 	ptf_tests/common/lib/__init__.py \
 	ptf_tests/common/lib/local_connection.py \
 	ptf_tests/common/lib/ovs_p4ctl.py \
@@ -190,6 +194,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/l3_action_profile_with_tap_ports.py \
 	ptf_tests/tests/l3_exact_match_with_tap_port.py \
 	ptf_tests/tests/l3_action_selector_with_tap_ports.py \
+	ptf_tests/tests/l3_wcm_with_tap_ports.py \
 	ptf_tests/tests/port_dump_link_port_only.py \
 	ptf_tests/tests/port_dump_mixed_no_default_val.py \
 	ptf_tests/tests/port_dump_tap_only_out_order.py \
@@ -202,6 +207,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/DPDK_Hot_Plug_Remove_Multi_port.py \
 	ptf_tests/tests/DPDK_Hot_Plug_Remove.py \
 	ptf_tests/tests/show_tap_port_mtu.py
+	ptf_tests/tests/l3_wcm_with_link_port.py \
 	ptf_tests/p4runtime_test/run_p4_tests.sh \
 	ptf_tests/p4runtime_test/run_ptf_tests.py \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.p4 \
