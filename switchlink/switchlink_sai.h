@@ -65,9 +65,6 @@ extern int switchlink_tunnel_interface_create(
 extern int switchlink_tunnel_interface_delete(
                               switchlink_db_tunnel_interface_info_t *tnl_intf);
 
-extern int switchlink_tuntap_create(switchlink_db_tuntap_info_t *tunp,
-                                switchlink_handle_t *tunp_h);
-
 extern sai_status_t switchlink_create_tunnel(
                                 switchlink_db_tunnel_interface_info_t *tnl_intf,
                                 switchlink_handle_t *tnl_intf_h);

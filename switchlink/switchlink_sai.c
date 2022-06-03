@@ -96,37 +96,6 @@ int switchlink_vrf_create(switchlink_handle_t *vrf_h) {
 
 /*
  * Routine Description:
- *    Remove FDB entry
- *
- * Arguments:
- *    [in] fdb_entry - fdb entry
- *
- * Return Values:
- *    SAI_STATUS_SUCCESS on success
- *    Failure status code on error
- */
-
-int switchlink_tuntap_create(switchlink_db_tuntap_info_t *tunp,
-                                switchlink_handle_t *tunp_h) {
-  sai_status_t status = SAI_STATUS_SUCCESS;
-  sai_attribute_t attr_list[2];
-  int ac = 0;
-  memset(attr_list, 0, sizeof(attr_list));
-  attr_list[ac].id = SAI_PORT_ATTR_HW_LANE_LIST;
-  attr_list[ac].value.oid = tunp->ifindex;
-  ac++;
-  attr_list[ac].id = SAI_PORT_ATTR_MTU;
-  attr_list[ac].value.u32 = 1500; // Hard Coded Value for now
-  ac++;
-
-  status =
-      port_api->create_port(tunp_h, 0, ac++, attr_list);
-
-  return ((status == SAI_STATUS_SUCCESS) ? 0 : -1);
-}
-
-/*
- * Routine Description:
  *    Create router interface
  *
  * Arguments:

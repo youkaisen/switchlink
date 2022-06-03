@@ -177,6 +177,9 @@ extern switchlink_db_status_t switchlink_db_nexthop_delete(
 extern switchlink_db_status_t switchlink_db_nexthop_get_info(
     switchlink_db_nexthop_info_t *nexthop_info);
 
+extern switchlink_db_status_t switchlink_db_nexthop_update(
+    switchlink_db_nexthop_info_t *nexthop_info);
+
 extern switchlink_db_status_t switchlink_db_nexthop_handle_get_info(
     switchlink_handle_t nhop_h, switchlink_db_nexthop_info_t *nexthop_info);
 

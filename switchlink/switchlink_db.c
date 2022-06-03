@@ -610,6 +610,38 @@ switchlink_db_status_t switchlink_db_nexthop_get_info(
 
 /*
  * Routine Description:
+ *   Update nexthop info in database
+ *
+ * Arguments:
+ *    [in] nexthop_info - interface info
+ *
+ * Return Values:
+ *    SWITCHLINK_DB_STATUS_SUCCESS on success
+ *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
+ */
+switchlink_db_status_t switchlink_db_nexthop_update(
+    switchlink_db_nexthop_info_t *nexthop_info) {
+  tommy_node *node = tommy_list_head(&switchlink_db_nexthop_obj_list);
+  while (node) {
+    switchlink_db_nexthop_obj_t *obj = node->data;
+    node = node->next;
+    if ((memcmp(&(nexthop_info->ip_addr),
+                &(obj->nexthop_info.ip_addr),
+                sizeof(switchlink_ip_addr_t)) == 0) &&
+        (nexthop_info->vrf_h == obj->nexthop_info.vrf_h) &&
+        (nexthop_info->intf_h == obj->nexthop_info.intf_h)) {
+      if (nexthop_info) {
+        obj->nexthop_info.using_by = nexthop_info->using_by;
+      }
+      return SWITCHLINK_DB_STATUS_SUCCESS;
+    }
+  }
+
+  return SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND;
+}
+
+/*
+ * Routine Description:
  *    Get nexthop entry from switchlink database
  *
  * Arguments:

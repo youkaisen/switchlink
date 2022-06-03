@@ -416,9 +416,6 @@ switch_status_t switch_api_l3_route_add(
         VLOG_ERR("ipv4 table update failedi for NHOP action \n");
         return status;
     }
-  } else {
-      VLOG_ERR("Received wrong handle 0x%lx\n", api_route_entry->nhop_handle);
-      return SWITCH_STATUS_INVALID_NHOP;
   }
 
   api_route_entry->route_handle = handle;

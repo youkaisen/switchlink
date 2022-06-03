@@ -145,10 +145,13 @@ static void neigh_delete(switchlink_handle_t vrf_h,
   if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
       if (!validate_nexthop_delete(nexthop_info.using_by,
                                    SWITCHLINK_NHOP_FROM_NEIGHBOR)) {
+          VLOG_DBG("Deleting nhop with neighbor delete 0x%lx", nexthop_info.nhop_h);
           switchlink_nexthop_delete(nexthop_info.nhop_h);
           switchlink_db_nexthop_delete(&nexthop_info);
       } else {
+          VLOG_DBG("Removing Neighbor learn from nhop");
           nexthop_info.using_by &= ~SWITCHLINK_NHOP_FROM_NEIGHBOR;
+          switchlink_db_nexthop_update(&nexthop_info);
       }
   }
 
@@ -228,9 +231,11 @@ void neigh_create(switchlink_handle_t vrf_h,
 
   switchlink_db_neighbor_add(&neigh_info);
 
+  nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_NEIGHBOR;
   if (!nhop_available) {
-    nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_NEIGHBOR;
     switchlink_db_nexthop_add(&nexthop_info);
+  } else {
+    switchlink_db_nexthop_update(&nexthop_info);
   }
 
   // add a host route

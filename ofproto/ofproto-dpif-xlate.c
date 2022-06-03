@@ -2619,10 +2619,10 @@ get_target_fdb_data(struct xport *port, mac_info_t *value)
     } else {
         char *port_name = port->xbundle->name;
         if (strncmp(port_name, "vlan", strlen("vlan"))) {
-            VLOG_INFO("Not a VLAN interface");
+            VLOG_DBG("Not a VLAN interface");
             return -1;
         }
-        value->data.port_id = atoi(port_name+strlen("vlan"));
+        value->data.port_id = atoi(port_name + strlen("vlan"));
     }
     return 0;
 }
