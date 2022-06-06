@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 diff --git a/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf b/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
-index e1f4338e..63d41079 100644
+index e1f4338e..23e1d575 100644
 --- a/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
 +++ b/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf
 @@ -1,31 +1,52 @@
@@ -57,7 +57,7 @@ index e1f4338e..63d41079 100644
 +                {
 +                    "name": "MEMPOOL0",
 +                    "buffer_size": 2304,
-+                    "pool_size": 1024,
++                    "pool_size": 4096,
 +                    "cache_size": 256,
 +                    "numa_node": 0
 +                }
