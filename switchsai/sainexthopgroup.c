@@ -1,33 +1,23 @@
-/*******************************************************************************
- * BAREFOOT NETWORKS CONFIDENTIAL & PROPRIETARY
+/*
+ * Copyright (c) 2022 Intel Corporation.
  *
- * Copyright (c) 2015-2019 Barefoot Networks, Inc.
-
- * All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
- * NOTICE: All information contained herein is, and remains the property of
- * Barefoot Networks, Inc. and its suppliers, if any. The intellectual and
- * technical concepts contained herein are proprietary to Barefoot Networks,
- * Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents, patents in
- * process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material is
- * strictly forbidden unless prior written permission is obtained from
- * Barefoot Networks, Inc.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * No warranty, explicit or implicit is provided, unless granted under a
- * written agreement with Barefoot Networks, Inc.
- *
- * $Id: $
- *
- ******************************************************************************/
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <config.h>
 #include <sainexthopgroup.h>
 #include "saiinternal.h"
-//#include <switchapi/switch_interface.h>
 #include <switchapi/switch_nhop.h>
-//#include <switchapi/switch_mcast.h>
 #include <openvswitch/vlog.h>
 
 VLOG_DEFINE_THIS_MODULE(sainexthopgroup);
@@ -38,6 +28,7 @@ VLOG_DEFINE_THIS_MODULE(sainexthopgroup);
 *
 * Arguments:
 *    [out] next_hop_group_id - next hop group id
+*    [in] switch_id - device ID
 *    [in] attr_count - number of attributes
 *    [in] attr_list - array of attributes
 *
@@ -48,7 +39,6 @@ VLOG_DEFINE_THIS_MODULE(sainexthopgroup);
 static sai_status_t sai_create_next_hop_group_entry(
     _Out_ sai_object_id_t *next_hop_group_id,
     _In_ sai_object_id_t switch_id,
-
     _In_ uint32_t attr_count,
     _In_ const sai_attribute_t *attr_list) {
 
@@ -122,6 +112,7 @@ static sai_status_t sai_remove_next_hop_group_entry(_In_ sai_object_id_t
  * @brief Create next hop group member
  *
  * @param[out] next_hop_group_member_id - next hop group member id
+ * @param[in] switch_id - device ID
  * @param[in] attr_count - number of attributes
  * @param[in] attr_list - array of attributes
  *
@@ -199,9 +190,9 @@ static sai_status_t sai_remove_next_hop_group_member(_In_ sai_object_id_t
       0, next_hop_group_member_id, &nhop_group_id, &nhop_id);
   status = sai_switch_status_to_sai_status(switch_status);
   if (status != SAI_STATUS_SUCCESS) {
-    VLOG_ERR("failed to ECMP group and nhop for member ID %lx : %s",
-                  next_hop_group_member_id,
-                  sai_status_to_string(status));
+    VLOG_ERR("failed to get ECMP group and nhop for member ID %lx : %s",
+              next_hop_group_member_id,
+              sai_status_to_string(status));
   }
 
   switch_status = switch_api_ecmp_member_delete(

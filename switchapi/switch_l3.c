@@ -386,7 +386,8 @@ switch_status_t switch_api_l3_route_add(
     status = switch_pd_ipv4_table_entry(device, api_route_entry, true,
                                         SWITCH_ACTION_NHOP);
     if (status != SWITCH_STATUS_SUCCESS) {
-        VLOG_ERR("ipv4 table update failed for NHOP action \n");
+        VLOG_ERR("ipv4 table update failed for NHOP action "
+                 ":%s \n", switch_error_to_string(status));
         return status;
     }
   } else if (switch_handle_type_get(api_route_entry->nhop_handle) ==
@@ -394,7 +395,8 @@ switch_status_t switch_api_l3_route_add(
     status = switch_pd_ipv4_table_entry(device, api_route_entry, true,
                                         SWITCH_ACTION_ECMP);
     if(status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR("ipv4 table update failed for ECMP action\n");
+      VLOG_ERR("ipv4 table update failed for ECMP action"
+                ": %s\n", switch_error_to_string(status));
       return status;
     }
 
@@ -403,8 +405,7 @@ switch_status_t switch_api_l3_route_add(
     status = switch_ecmp_group_get(device, ecmp_handle, &ecmp_info);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
-          "ecmp info get failed on device %d ecmp handle 0x%lx: "
-          "ecmp get Failed:(%s)\n",
+          "Failed to get ecmp info on device %d handle: 0x%lx, error: %s",
           device,
           ecmp_handle,
           switch_error_to_string(status));
@@ -413,7 +414,8 @@ switch_status_t switch_api_l3_route_add(
 
     status = switch_pd_ecmp_hash_table_entry(device, ecmp_info, true);
     if (status != SWITCH_STATUS_SUCCESS) {
-        VLOG_ERR("ipv4 table update failedi for NHOP action \n");
+        VLOG_ERR("ipv4 table update failed for NHOP action, "
+                 "error: %s\n", switch_error_to_string(status));
         return status;
     }
   }
@@ -516,7 +518,8 @@ switch_status_t switch_api_l3_route_delete(switch_device_t device,
                                         false, SWITCH_ACTION_NONE);
     SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
     if(status != SWITCH_STATUS_SUCCESS)
-      VLOG_ERR("ipv4 table delete] failed \n");
+      VLOG_ERR("ipv4 table delete failed, error"
+                ": %s\n", switch_error_to_string(status));
   }
 
   status = switch_route_hashtable_remove(device, route_handle);

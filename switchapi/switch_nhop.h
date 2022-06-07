@@ -129,8 +129,6 @@ typedef struct switch_ecmp_info_s
 {
   switch_handle_t ecmp_group_handle;
 
-//  switch_handle_t * nhop_handles;
-
   switch_list_t members;
 
   switch_nhop_id_type_t id_type;

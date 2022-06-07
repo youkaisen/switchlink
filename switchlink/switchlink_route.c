@@ -75,15 +75,15 @@ static void ecmp_delete(switchlink_handle_t ecmp_h) {
         continue;
       }
 
-      if (!validate_nexthop_delete(nexthop_info.using_by,
-                                   SWITCHLINK_NHOP_FROM_ROUTE)) {
+      if (validate_nexthop_delete(nexthop_info.using_by,
+                                  SWITCHLINK_NHOP_FROM_ROUTE)) {
         VLOG_DBG("Deleting nhop 0x%lx, from ecmp_delete", nexthop_info.nhop_h);
         switchlink_nexthop_delete(nexthop_info.nhop_h);
         switchlink_db_nexthop_delete(&nexthop_info);
       } else {
           VLOG_DBG("Removing Route learn from nhop");
         nexthop_info.using_by &= ~SWITCHLINK_NHOP_FROM_ROUTE;
-        switchlink_db_nexthop_update(&nexthop_info);
+        switchlink_db_nexthop_update_using_by(&nexthop_info);
       }
     }
   }
@@ -133,7 +133,7 @@ void route_create(switchlink_handle_t vrf_h,
                    " route", nexthop_info.nhop_h);
         nhop_h = nexthop_info.nhop_h;
         nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_ROUTE;
-        switchlink_db_nexthop_update(&nexthop_info);
+        switchlink_db_nexthop_update_using_by(&nexthop_info);
       } else {
         if (!switchlink_nexthop_create(&nexthop_info)) {
           VLOG_DBG("Created nhop 0x%lx handle, update from "
@@ -293,7 +293,7 @@ static switchlink_handle_t process_ecmp(uint8_t family,
                    " route", nexthop_info.nhop_h);
           ecmp_info.nhops[ecmp_info.num_nhops] = nexthop_info.nhop_h;
           nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_ROUTE;
-          switchlink_db_nexthop_update(&nexthop_info);
+          switchlink_db_nexthop_update_using_by(&nexthop_info);
         } else {
           if (!switchlink_nexthop_create(&nexthop_info)) {
              VLOG_DBG("Created nhop 0x%lx handler, update from"

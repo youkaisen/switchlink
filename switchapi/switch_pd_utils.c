@@ -42,7 +42,7 @@ bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
 
   status = bf_rt_session_create(session_t);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Failed to create bfrt session");
+      VLOG_ERR("Failed to create bfrt session, error: %d", status);
       return status;
   }
 
@@ -50,7 +50,8 @@ bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
   status = bf_rt_info_get(device_id, pipeline_name,
                           (const bf_rt_info_hdl **)bfrt_info_hdl_t);
   if(status != BF_SUCCESS) {
-      VLOG_ERR("Failed to get bfrt handle for pipeline: %s", pipeline_name);
+      VLOG_ERR("Failed to get bfrt handle for pipeline: %s, "
+               "error: %d", pipeline_name, status);
       return status;
   }
 
@@ -62,34 +63,39 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
                                                 bf_rt_session_hdl *session_t,
                                                 bool entry_type) {
 
-  bf_status_t status;
+  bf_status_t status = BF_SUCCESS;
+  bf_status_t return_status = BF_SUCCESS;
 
   if (entry_type && data_hdl_t) {
       // Data handle is created only when entry is added to backend
       status = bf_rt_table_data_deallocate(data_hdl_t);
       if(status != BF_SUCCESS) {
-          VLOG_ERR("Failed to deallocate data handler");
-          return status;
+          // Log an error and continue to de-alloc remaining handles
+          VLOG_ERR("Failed to deallocate data handle, error: %d", status);
+          return_status = status;
       }
   }
 
   if (key_hdl_t) {
       status = bf_rt_table_key_deallocate(key_hdl_t);
       if(status != BF_SUCCESS) {
-          VLOG_ERR("Failed to deallocate key handler");
-          return status;
+          // Log an error and continue to de-alloc remaining handles
+          VLOG_ERR("Failed to deallocate key handle, error: %d", status);
+          return_status = status;
       }
   }
 
   if (session_t) {
       status = bf_rt_session_destroy(session_t);
       if(status != BF_SUCCESS) {
-          VLOG_ERR("Failed to destroy session");
-          return status;
+          VLOG_ERR("Failed to destroy session, error: %d", status);
+          return_status = status;
       }
   }
 
-  return status;
+  // Return consolidated return status. If any API returns error, proceed
+  // with de-alloc of remaining handle but return consolidated return_status.
+  return return_status;
 }
 
 void
@@ -118,7 +124,7 @@ switch_pd_to_get_port_id(switch_api_rif_info_t *port_rif_info)
 
         if (!strcmp((port_info)->port_attrib.port_name, if_name)) {
             // With multi-pipeline support, return target dp index
-            // for both direction
+            // for both direction.
             VLOG_DBG("found the target dp index %d for sdk port id %d",
                       port_info->port_attrib.port_in_id, i);
             port_rif_info->port_id = port_info->port_attrib.port_in_id;
@@ -146,4 +152,3 @@ switch_pd_to_get_port_id(switch_api_rif_info_t *port_rif_info)
 
     return;
 }
-

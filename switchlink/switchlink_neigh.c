@@ -34,10 +34,24 @@
 
 VLOG_DEFINE_THIS_MODULE(switchlink_neigh)
 
+/*
+ * Routine Description:
+ *    Validate if any other feature is using this NHOP
+ *
+ * Arguments:
+ *    [in] using_by - Flag which has consolidated features using this nhop.
+ *    [in] type - Feature enum type, to be checked if this feature is the only
+ *                feature referring to this NHOP.
+ *
+ * Return Values:
+ *    true: if this NHOP can be deleted.
+ *    false: if this NHOP is referred by other features.
+ */
+
 bool
 validate_nexthop_delete(uint32_t using_by,
                         switchlink_nhop_using_by_e type) {
-  return (using_by & ~(type)) ? true : false;
+  return (using_by & ~(type)) ? false : true;
 }
 
 /*
@@ -143,15 +157,15 @@ static void neigh_delete(switchlink_handle_t vrf_h,
 
   status = switchlink_db_nexthop_get_info(&nexthop_info);
   if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
-      if (!validate_nexthop_delete(nexthop_info.using_by,
-                                   SWITCHLINK_NHOP_FROM_NEIGHBOR)) {
+      if (validate_nexthop_delete(nexthop_info.using_by,
+                                  SWITCHLINK_NHOP_FROM_NEIGHBOR)) {
           VLOG_DBG("Deleting nhop with neighbor delete 0x%lx", nexthop_info.nhop_h);
           switchlink_nexthop_delete(nexthop_info.nhop_h);
           switchlink_db_nexthop_delete(&nexthop_info);
       } else {
           VLOG_DBG("Removing Neighbor learn from nhop");
           nexthop_info.using_by &= ~SWITCHLINK_NHOP_FROM_NEIGHBOR;
-          switchlink_db_nexthop_update(&nexthop_info);
+          switchlink_db_nexthop_update_using_by(&nexthop_info);
       }
   }
 
@@ -235,7 +249,7 @@ void neigh_create(switchlink_handle_t vrf_h,
   if (!nhop_available) {
     switchlink_db_nexthop_add(&nexthop_info);
   } else {
-    switchlink_db_nexthop_update(&nexthop_info);
+    switchlink_db_nexthop_update_using_by(&nexthop_info);
   }
 
   // add a host route

@@ -656,18 +656,6 @@ char *switch_handle_type_to_string(switch_handle_type_t handle_type) {
   }
 }
 
-static char *switch_direction_to_string(switch_direction_t direction) {
-  switch (direction) {
-    case SWITCH_API_DIRECTION_INGRESS:
-      return "ingress";
-    case SWITCH_API_DIRECTION_EGRESS:
-      return "egress";
-    case SWITCH_API_DIRECTION_BOTH:
-      return "ingress/egress";
-    default:
-      return "unknown direction";
-  }
-}
 
 switch_status_t switch_pd_status_to_status(bf_status_t pd_status) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;

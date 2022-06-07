@@ -48,6 +48,7 @@ static switch_nhop_type_t sai_nhop_type_to_switch_nhop_type(
  *
  * Arguments:
  *    [out] next_hop_id - next hop id
+ *    [in] switch_id - device ID
  *    [in] attr_count - number of attributes
  *    [in] attr_list - array of attributes
  *

@@ -619,7 +619,7 @@ switchlink_db_status_t switchlink_db_nexthop_get_info(
  *    SWITCHLINK_DB_STATUS_SUCCESS on success
  *    SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND otherwise
  */
-switchlink_db_status_t switchlink_db_nexthop_update(
+switchlink_db_status_t switchlink_db_nexthop_update_using_by(
     switchlink_db_nexthop_info_t *nexthop_info) {
   tommy_node *node = tommy_list_head(&switchlink_db_nexthop_obj_list);
   while (node) {
@@ -645,6 +645,7 @@ switchlink_db_status_t switchlink_db_nexthop_update(
  *    Get nexthop entry from switchlink database
  *
  * Arguments:
+ *    [in] nhop_h - hexthop handler
  *    [out] nexthop_info - nexthop info
  *
  * Return Values:
