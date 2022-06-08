@@ -3,21 +3,14 @@
 
 #include <core.p4>
 #include "pna.p4"
+#include "lnw_ct.p4"
 
-// TODO Andy: There should be some form of this in pna.p4 include file.
 extern void recirculate();
 
-/* TODO: Add Control plane and exception packet flows */
-/* TODO: Receive flows taht we didn't finish last time */
-
-const PortId_t DEFAULT_MGMT_VPORT = (PortId_t) 0;   // IMC
-
 // These are the initial values only.  Runtime can change these later.
-const PortId_t INITIAL_DEFAULT_P0_VPORT = (PortId_t) 0;
-const PortId_t INITIAL_DEFAULT_P1_VPORT = (PortId_t) 0;
+const PortId_t DEFAULT_MGMT_VPORT = (PortId_t) 0;
 const PortId_t DEFAULT_EXCEPTION_VPORT  = (PortId_t) 0;
 const PortId_t DEFAULT_DEBUG_VPORT      = (PortId_t) 0;
-
 
 /*  
  * Network-to-host traffic - Traffic coming in from Tunnel port
@@ -41,27 +34,6 @@ bool TxPkt (in pna_main_input_metadata_t istd) {
 
 #define TUNNEL_ENABLE
 
-void copy_header_vlan(inout vlan_t[2] hdr, in vlan_t[2] outer_hdr) {
-    if (hdr[0].isValid()) {
-        hdr[0].pcp_cfi_vid = outer_hdr[0].pcp_cfi_vid;
-        hdr[0].ether_type = outer_hdr[0].ether_type;
-    }
-}
-
-void copy_header_arp(inout arp_t hdr, in arp_t outer_hdr) {
-    hdr.hw_type = outer_hdr.hw_type;
-    hdr.proto_type = outer_hdr.proto_type;
-    hdr.hw_addr_len = outer_hdr.hw_addr_len;
-    hdr.proto_addr_len = outer_hdr.proto_addr_len;
-    hdr.opcode = outer_hdr.opcode;
-    hdr.sender_hw_addr = outer_hdr.sender_hw_addr;
-    hdr.sender_proto_addr = outer_hdr.sender_proto_addr;
-    hdr.target_hw_addr = outer_hdr.target_hw_addr;
-    hdr.target_proto_addr = outer_hdr.target_proto_addr;
-}
-
-
-
 control PreControlImpl(
         in    headers_t  hdr,
         inout local_metadata_t meta,
@@ -76,7 +48,12 @@ control linux_networking_control(inout headers_t hdr,
         in pna_main_input_metadata_t istd,
         inout pna_main_output_metadata_t ostd)
 {
-    ActionRef_t vendormeta_mod_action_ref = (16w1 << NO_MODIFY);
+    Hash<bit<16>>(PNA_HashAlgorithm_t.TARGET_DEFAULT) src_port_hash_fn;
+    Hash<bit<16>>(PNA_HashAlgorithm_t.TARGET_DEFAULT) ecmp_hash_fn;
+    bool ecmp_group_id_valid = false;
+    InternetChecksum() ck;
+
+    ActionRef_t vendormeta_mod_action_ref = 0;
     ModDataPtr_t vendormeta_mod_data_ptr = 0xFFFF;
     ModDataPtr_t vendormeta_neighbor_mod_data_ptr = 0xFFFF;
 
@@ -104,18 +81,15 @@ control linux_networking_control(inout headers_t hdr,
         actions = {
             do_recirculate;
         }
+
         const default_action = do_recirculate;
         size = 0;
     }
 
     // ************ Add outer IP encapsulation **************************
 
-    InternetChecksum() ck;
-    Hash<bit<16>>(PNA_HashAlgorithm_t.TARGET_DEFAULT) src_port_hash_fn;
-
     action add_udp_header(bit<16> dst_port) {
-        //    hdr.outer_udp.src_port = istd.common.hash;
-        hdr.outer_udp.src_port = 32000;
+        hdr.outer_udp.src_port = local_metadata.hash;
         hdr.outer_udp.dst_port = dst_port;
         hdr.outer_udp.checksum = 0;
 #ifdef UDP_CHECKSUM_ENABLE
@@ -193,24 +167,30 @@ control linux_networking_control(inout headers_t hdr,
         hdr.ethernet.setValid();
         hdr.outer_ethernet.setInvalid();
 
-#ifdef COPY_HEADER
-        if (hdr.outer_vlan[0].isValid() || hdr.outer_vlan[1].isValid()) {
-            copy_header_vlan(hdr.vlan, hdr.outer_vlan);
+        if (hdr.outer_vlan[0].isValid()) {
+            hdr.vlan[0].pcp_cfi_vid = hdr.outer_vlan[0].pcp_cfi_vid;
+            hdr.vlan[0].ether_type = hdr.outer_vlan[0].ether_type;
             hdr.outer_vlan[0].setInvalid();
-            hdr.outer_vlan[1].setInvalid();
         }
 
         if (hdr.outer_vlan[1].isValid()) {
-            copy_header_vlan(hdr.vlan[1], hdr.outer_vlan[1]);
+            hdr.vlan[1].pcp_cfi_vid = hdr.outer_vlan[1].pcp_cfi_vid;
+            hdr.vlan[1].ether_type = hdr.outer_vlan[1].ether_type;
             hdr.outer_vlan[1].setInvalid();
         }
 
         if (hdr.outer_arp.isValid()) {
-            copy_header_arp(hdr.arp, hdr.outer_arp);
+            hdr.arp.hw_type = hdr.outer_arp.hw_type;
+            hdr.arp.proto_type = hdr.outer_arp.proto_type;
+            hdr.arp.hw_addr_len = hdr.outer_arp.hw_addr_len;
+            hdr.arp.proto_addr_len = hdr.outer_arp.proto_addr_len;
+            hdr.arp.opcode = hdr.outer_arp.opcode;
+            hdr.arp.sender_hw_addr = hdr.outer_arp.sender_hw_addr;
+            hdr.arp.sender_proto_addr = hdr.outer_arp.sender_proto_addr;
+            hdr.arp.target_hw_addr = hdr.outer_arp.target_hw_addr;
+            hdr.arp.target_proto_addr = hdr.outer_arp.target_proto_addr;
             hdr.outer_arp.setInvalid();
         }
-
-#endif //COPY_HEADER
 
         if (hdr.outer_ipv4.isValid()) {
             hdr.ipv4.version_ihl = hdr.outer_ipv4.version_ihl;
@@ -264,7 +244,7 @@ control linux_networking_control(inout headers_t hdr,
         add_outer_ipv4_vxlan(src_addr, dst_addr, dst_port, vni);
     }
 
-    // SAI API: sai_create_tunnel
+    // SAI API: create_tunnel
     table vxlan_encap_mod_table {
         key = {
             vendormeta_mod_data_ptr: exact;
@@ -273,6 +253,7 @@ control linux_networking_control(inout headers_t hdr,
             vxlan_encap;
             NoAction;
         }
+
         const default_action = NoAction;
     }
 
@@ -288,83 +269,29 @@ control linux_networking_control(inout headers_t hdr,
         hdr.vxlan.setInvalid();
     }
 
-    action vxlan_decap_outer_ipv6 () {
-        hdr.outer_ethernet.setInvalid();
-        hdr.outer_ipv6.setInvalid();
-        hdr.outer_udp.setInvalid();
-        hdr.vxlan.setInvalid();
+    action set_src_mac(ethernet_addr_t src_mac_addr) {
+        hdr.outer_ethernet.src_addr = src_mac_addr;
     }
 
-    action set_src_mac_start(bit<16> src_mac_addr_first) {
-        hdr.outer_ethernet.src_addr[47:32] = src_mac_addr_first;
-    }
-
-    // SAI API: sai_create_neighbor_entry
-    table rif_mod_table_start {
+    // SAI API: create_neighbor_entry
+    table rif_mod_table {
         key = {
-            local_metadata.rif_mod_map_id : exact; /* index is mod map table */
+            local_metadata.rif_mod_map_id : exact;
         }
         actions = {
-            set_src_mac_start; /* 2 bytes for port, 6 bytes for mac addr */
+            set_src_mac;
             @defaultonly NoAction;
         }
+
         const default_action = NoAction;
         size = 512;
     }
 
-    action set_src_mac_mid(bit<16> src_mac_addr_mid) {
-        /* src_mac_mid */
-        hdr.outer_ethernet.src_addr[31:16] = src_mac_addr_mid;
-    }
-
-    // SAI API: sai_create_neighbor_entry
-    table rif_mod_table_mid {
-        key = {
-            local_metadata.rif_mod_map_id : exact; /* index is mod map table */
-        }
-        actions = {
-            set_src_mac_mid; /* 2 bytes for port, 6 bytes for mac addr */
-            @defaultonly NoAction;
-        }
-        const default_action = NoAction;
-        size = 512;
-    }
-
-    action set_src_mac_last(bit<16> src_mac_addr_last) {
-        /* last 2 bytes */
-        hdr.outer_ethernet.src_addr[15:0] = src_mac_addr_last;
-    }
-
-    // SAI API: sai_create_neighbor_entry
-    table rif_mod_table_last {
-        key = {
-            local_metadata.rif_mod_map_id : exact; /* index is mod map table */
-        }
-        actions = {
-            set_src_mac_last; /* 2 bytes for port, 6 bytes for mac addr */
-            @defaultonly NoAction;
-        }
-        const default_action = NoAction;
-        size = 512;
-    }
-
-#undef P4_COMPILER_SUPPORTS_TABLE_APPLY_INSIDE_OF_ACTION
     action set_outer_mac(ethernet_addr_t dst_mac_addr) {
         hdr.outer_ethernet.dst_addr = dst_mac_addr;
-#ifdef P4_COMPILER_SUPPORTS_TABLE_APPLY_INSIDE_OF_ACTION
-        // TODO: The P4_16 language specification, and open source p4test
-        // front-end compiler, do not support making table.apply() calls
-        // from inside of an action.  The #ifdef here is to make it quick
-        // to switch between the version of this code that includes these
-        // apply() calls, and one that does not, for different P4
-        // compilers we want to pass this code through.
-        rif_mod_table_start.apply();
-        rif_mod_table_mid.apply();
-        rif_mod_table_last.apply();
-#endif  // P4_COMPILER_SUPPORTS_TABLE_APPLY_INSIDE_OF_ACTION
     }
 
-    // SAI API: sai_create_neighbor_entry
+    // SAI API: create_neighbor_entry
     table neighbor_mod_table {
         key = {
             vendormeta_mod_data_ptr : exact;
@@ -383,12 +310,7 @@ control linux_networking_control(inout headers_t hdr,
         vendormeta_mod_data_ptr = tunnel_id;
     }
 
-    action decap_outer_ipv6(tunnel_id_t tunnel_id) {
-        local_metadata.tunnel.id = tunnel_id;
-        vendormeta_mod_action_ref = vendormeta_mod_action_ref | (16w1 << VXLAN_DECAP_OUTER_IPV6);
-    }
-
-    // SAI API: sai_create_tunnel_term_table_entry
+    // SAI API: create_tunnel_term_table_entry
     table ipv4_tunnel_term_table {
         key = {
             local_metadata.tunnel.tun_type : exact @name("tunnel_type");
@@ -397,35 +319,24 @@ control linux_networking_control(inout headers_t hdr,
         }
         actions = {
             @tableonly decap_outer_ipv4;
-            @defaultonly NoAction;
-            //      @defaultonly set_exception;
+            @defaultonly set_exception;
         }
-        default_action = NoAction;
-        //    default_action = set_exception(DEFAULT_EXCEPTION_VPORT);  // The runtime sets default vPort per external port and per host port
+        default_action = set_exception(DEFAULT_EXCEPTION_VPORT);
     }
 
     action set_tunnel(ModDataPtr_t tunnel_id, ipv4_addr_t dst_addr) {
-        vendormeta_mod_action_ref = vendormeta_mod_action_ref | (16w1 << VXLAN_ENCAP);
-        vendormeta_mod_data_ptr = tunnel_id; /* ptr can be tunnel_id */
+        vendormeta_mod_data_ptr = tunnel_id;
         local_metadata.ipv4_dst_match = dst_addr;
         local_metadata.is_tunnel = 1;
     }
 
     action l2_fwd(PortId_t port) {
         send_to_port(port);
-        vendormeta_mod_action_ref = vendormeta_mod_action_ref | (16w1 << NO_MODIFY);
     }
 
     // Rx: do set_exception on miss
     // Tx: NoAction
     action l2_fwd_miss_action (PortId_t port) {
-        // Proposal from Anjali: Compile-time error if the 'if'
-        // expression is anything except RxPkt(istd) or TxPkt(istd).
-        // We might generalize this in the future.
-        // If default miss action has such an if expression, it is a
-        // compile-time error to apply the table anywhere except that
-        // there is an 'if' condition that implies RxPkt(istd), or
-        // implies TxPkt(istd).
         if (RxPkt(istd)) {
             set_exception(port);
         } else {
@@ -433,7 +344,7 @@ control linux_networking_control(inout headers_t hdr,
         }
     }
 
-    // SAI API: sai_create_neighbor_entry
+    // SAI API: create_neighbor_entry
     table l2_fwd_rx_table {
         key = {
             hdr.outer_ethernet.dst_addr : exact @name("dst_mac") @id(1)
@@ -441,15 +352,14 @@ control linux_networking_control(inout headers_t hdr,
         }
         actions = {
             l2_fwd;
-            @defaultonly NoAction;
             @defaultonly l2_fwd_miss_action;
         }
-        const default_action = NoAction;
-        //    const default_action = l2_fwd_miss_action(DEFAULT_MGMT_VPORT);
+
+        const default_action = l2_fwd_miss_action(DEFAULT_MGMT_VPORT);
         size = 65536;
     }
 
-    // SAI API: sai_create_fdb_entry
+    // SAI API: create_fdb_entry
     table l2_fwd_rx_with_tunnel_table {
         key = {
             hdr.ethernet.dst_addr : exact @name("dst_mac") @id(1)
@@ -457,15 +367,14 @@ control linux_networking_control(inout headers_t hdr,
         }
         actions = {
             l2_fwd;
-            @defaultonly NoAction;
             @defaultonly l2_fwd_miss_action;
         }
-        const default_action = NoAction;
-        //    const default_action = l2_fwd_miss_action(DEFAULT_MGMT_VPORT);
+
+        const default_action = l2_fwd_miss_action(DEFAULT_MGMT_VPORT);
         size = 65536;
     }
 
-    // SAI API: sai_create_fdb_entry
+    // SAI API: create_fdb_entry
     table l2_fwd_tx_table {
         key = {
             hdr.outer_ethernet.dst_addr : exact @name("dst_mac") @id(1)
@@ -474,23 +383,17 @@ control linux_networking_control(inout headers_t hdr,
         actions = {
             l2_fwd;
             set_tunnel;
-            @defaultonly NoAction;
             @defaultonly l2_fwd_miss_action;
         }
-        const default_action = NoAction;
-        //    const default_action = l2_fwd_miss_action(DEFAULT_MGMT_VPORT);
+
+        const default_action = l2_fwd_miss_action(DEFAULT_MGMT_VPORT);
         size = 65536;
     }
-
-    Hash<bit<16>>(PNA_HashAlgorithm_t.TARGET_DEFAULT) ecmp_hash_fn;
-
-    bool ecmp_group_id_valid = false;
 
     action drop() {
         drop_packet();
     }
 
-    /* get egress port from rif_mod in control plane */
     action set_nexthop(router_interface_id_t router_interface_id,
             neighbor_id_t neighbor_id, PortId_t egress_port) {
         vendormeta_mod_action_ref = vendormeta_mod_action_ref | (16w1 << NEIGHBOR);
@@ -499,32 +402,35 @@ control linux_networking_control(inout headers_t hdr,
         send_to_port(egress_port);
     }
 
-    // SAI API: sai_create_next_hop_entry && sai_create_neighbor_entry
+    // SAI API: create_next_hop && create_neighbor_entry
     table nexthop_table {
         key = {
             local_metadata.nexthop_id : exact;
         }
         actions = {
             set_nexthop;
+            @defaultonly set_exception;
         }
+
         size = 65536;
-        //    const default_action = set_exception(DEFAULT_DEBUG_VPORT);
+        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
     }
 
     action set_nexthop_id (bit<16> nexthop_id) {
         local_metadata.nexthop_id = nexthop_id;
     }
 
-    // SAI API: sai_create_next_hop_entry && sai_create_neighbor_entry
+    // SAI API: create_next_hop_group && create_neighbor_entry
     table ecmp_hash_table {
         key = {
+            local_metadata.hash : exact;
             local_metadata.host_info_tx_extended_flex_0 :exact;
-            //  istd.common.hash : exact;
         }
         actions = {
             set_nexthop_id;
             @defaultonly NoAction;
         }
+
         const default_action = NoAction;
         size = 65536;
     }
@@ -534,20 +440,19 @@ control linux_networking_control(inout headers_t hdr,
         local_metadata.host_info_tx_extended_flex_0 = ecmp_group_id;
     }
 
-    // SAI API: sai_create_next_hop_entry & sai_create_route_entry
+    // SAI API: create_next_hop && create_route_entry
     table ipv4_table {
         key = {
-            //      local_metadata.32_bit_zeros : ternary;
             local_metadata.ipv4_dst_match : lpm;
         }
 
         actions = {
             set_nexthop_id;
             ecmp_hash_action; /* not used in RX direction */
-            @defaultonly NoAction;
+            @defaultonly set_exception;
         }
 
-        const default_action = NoAction;
+        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
         size = 65536;
     }
 
@@ -575,12 +480,11 @@ control linux_networking_control(inout headers_t hdr,
         }
 
         actions = {
-            NoAction;
             set_control_dest;
+            @defaultonly set_exception;
         }
 
-        const default_action = NoAction;
-        //        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
+        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
     }
 
     table handle_rx_exception_pkts {
@@ -589,12 +493,10 @@ control linux_networking_control(inout headers_t hdr,
         }
 
         actions = {
-            NoAction;
-            set_exception;
+            @defaultonly set_exception;
         }
 
-        const default_action = NoAction;
-        //const default_action = set_exception(DEFAULT_DEBUG_VPORT);
+        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
     }
 
     table handle_tx_control_vlan_pkts_table {
@@ -604,12 +506,11 @@ control linux_networking_control(inout headers_t hdr,
         }
 
         actions = {
-            NoAction;
             pop_vlan_fwd;
+            @defaultonly set_exception;
         }
 
-        const default_action = NoAction;
-        //const default_action = set_exception(DEFAULT_DEBUG_VPORT);
+        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
     }
 
     table handle_tx_control_pkts_table {
@@ -618,13 +519,12 @@ control linux_networking_control(inout headers_t hdr,
         }
 
         actions = {
-            NoAction;
             push_vlan_fwd;
             set_control_dest;
+            @defaultonly set_exception;
         }
 
-        const default_action = NoAction;
-        //const default_action = set_exception(DEFAULT_DEBUG_VPORT);
+        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
     }
 
     table handle_tx_exception_pkts {
@@ -633,19 +533,17 @@ control linux_networking_control(inout headers_t hdr,
         }
 
         actions = {
-            NoAction;
             set_exception;
         }
 
-        const default_action = NoAction;
-        //        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
+        const default_action = set_exception(DEFAULT_DEBUG_VPORT);
     }
 
 #ifdef ECMP
     const PNA_HashAlgorithm_t ECMP_HASH_ALGO = PNA_HashAlgorithm_t.TARGET_DEFAULT;
     ActionSelector(ECMP_HASH_ALGO, 128, 10) as1;
 
-    // SAI API: sai_create_next_hop_entry && sai_create_neighbor_entry
+    // SAI API: create_next_hop_group && create_neighbor_entry
     table ecmp_udp_hash {
         key = {
             hdr.ipv4.src_addr:selector;
@@ -677,62 +575,46 @@ control linux_networking_control(inout headers_t hdr,
             } else {
                 switch (l2_fwd_tx_table.apply().action_run) {
                     set_tunnel: {
+                        // Overlay MAC addresses used for source port calculation
+                        local_metadata.hash = src_port_hash_fn.get_hash({
+                            hdr.outer_ethernet.src_addr,
+                            hdr.outer_ethernet.dst_addr});
+
                         ipv4_table.apply();
+
+                        if ((local_metadata.is_tunnel == 1) && (ecmp_group_id_valid)) {
+                            // Underlay 5 Tuple used for ECMP loadbalancing
+                            local_metadata.hash = ecmp_hash_fn.get_hash({
+                                hdr.outer_ipv4.src_addr,
+                                hdr.outer_ipv4.dst_addr,
+                                hdr.outer_ipv4.protocol,
+                                hdr.outer_udp.src_port,
+                                hdr.outer_udp.dst_port});
+
+                            ecmp_hash_table.apply();
+                        }
+                        vxlan_encap_mod_table.apply();
+
                         nexthop_table.apply();
                     }
                 }
             }
         }
 
-
-        if ((vendormeta_mod_action_ref & (16w1 << VXLAN_ENCAP)) != 0) {
-            vxlan_encap_mod_table.apply();
-        }
+        ct_tcp.apply(hdr, local_metadata, istd);
 
         if ((vendormeta_mod_action_ref & (16w1 << VXLAN_DECAP_OUTER_IPV4)) != 0) {
             vxlan_decap_outer_ipv4();
-        }
-
-        if ((vendormeta_mod_action_ref & (16w1 << VXLAN_DECAP_OUTER_IPV6)) != 0) {
-            vxlan_decap_outer_ipv6();
         }
 
         if ((vendormeta_mod_action_ref & (16w1 << NEIGHBOR)) != 0) {
             vendormeta_mod_data_ptr = vendormeta_neighbor_mod_data_ptr;
             switch (neighbor_mod_table.apply().action_run) {
                 set_outer_mac: {
-                    rif_mod_table_start.apply();
-                    rif_mod_table_mid.apply();
-                    rif_mod_table_last.apply();
+                    rif_mod_table.apply();
                 }
             }
         }
-
-        if ((vendormeta_mod_action_ref & (16w1 << NO_MODIFY)) != 0) {
-            no_modify();
-        }
-
-
-#ifdef MODIFY_SWITCH_BLOCK
-        switch (vendormeta_mod_action_ref) {
-            VXLAN_ENCAP: { vxlan_encap_mod_table.apply(); }
-            VXLAN_DECAP_OUTER_IPV4: { vxlan_decap_outer_ipv4(); }
-            VXLAN_DECAP_OUTER_IPV6: { vxlan_decap_outer_ipv6(); }
-
-            NEIGHBOR: {
-                switch (neighbor_mod_table.apply().action_run) {
-                    set_outer_mac: {
-                        rif_mod_table_start.apply();
-                        rif_mod_table_mid.apply();
-                        rif_mod_table_last.apply();
-                    }
-                    default: { /* body omitted */ }
-                }
-            }
-            //neighbor_mod_table.apply(); }
-            NO_MODIFY: { no_modify(); }
-        }
-#endif //MODIFY_SWITCH_BLOCK
     }
 }  // control main
 

@@ -18,6 +18,9 @@
 #include "switch_pd_routing.h"
 #include "switch_nhop.h"
 
+#ifndef __SWITCH_NHOP_INT_H__
+#define __SWITCH_NHOP_INT_H__
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -50,7 +53,6 @@ extern "C" {
 
 #define switch_nhop_handle_delete(_device, _handle, _count) \
   switch_handle_delete(_device, SWITCH_HANDLE_TYPE_NHOP, _handle)
-
 
 #define switch_ecmp_handle_delete_contiguous(_device, _handle, count) \
   switch_handle_delete_contiguous(                                    \
@@ -86,6 +88,9 @@ extern "C" {
     switch_handle_get(                                              \
         _device, SWITCH_HANDLE_TYPE_ECMP_GROUP, _handle, (void **)_info); \
   })
+
+#define switch_ecmp_handle_delete(_device, _handle) \
+  switch_handle_delete(_device, SWITCH_HANDLE_TYPE_ECMP_GROUP, _handle)
 
 #define SWITCH_ECMP_MEMBER_INIT(_m)                         \
   do {                                                      \
@@ -206,25 +211,12 @@ typedef struct switch_nhop_info_s {
   switch_handle_t nhop_ref_count;
 
   /** nhop flags */
-  switch_uint64_t flags;
+  switch_uint32_t flags;
 
   switch_pd_routing_info_t switch_pd_routing_info;
   /** Number of contiguous nexthop groups */
   unsigned int num_nhop_groups;
 } switch_nhop_info_t;
-
-/** ecmp info struct */
-typedef struct switch_ecmp_info_s
-{
-  switch_handle_t ecmp_group_handle;
-
-  switch_handle_t * nhop_handles;
-
-  switch_list_t members;
-
-  switch_nhop_id_type_t id_type;
-
-} switch_ecmp_info_t;
 
 /** nhop device context */
 typedef struct switch_nhop_context_s {
@@ -291,3 +283,4 @@ switch_status_t switch_nhop_ecmp_member_list_remove(
 }
 #endif
 
+#endif /* __SWITCH_NHOP_INT_H__ */

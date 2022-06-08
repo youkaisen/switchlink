@@ -45,17 +45,19 @@ switch_status_t switch_pd_tunnel_entry(
     bf_rt_id_t data_field_id;
 
     bf_rt_target_t dev_tgt;
-    bf_rt_session_hdl *session;
-    bf_rt_info_hdl *bfrt_info_hdl;
-    bf_rt_table_key_hdl *key_hdl;
-    bf_rt_table_data_hdl *data_hdl;
-    const bf_rt_table_hdl *table_hdl;
+    bf_rt_session_hdl *session = NULL;
+    bf_rt_info_hdl *bfrt_info_hdl = NULL;
+    bf_rt_table_key_hdl *key_hdl = NULL;
+    bf_rt_table_data_hdl *data_hdl = NULL;
+    const bf_rt_table_hdl *table_hdl = NULL;
     uint32_t network_byte_order;
 
     dev_tgt.dev_id = device;
     dev_tgt.pipe_id = 0;
     dev_tgt.direction = 0xFF;
     dev_tgt.prsr_id = 0xFF;
+
+    VLOG_DBG("%s", __func__);
 
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
@@ -64,20 +66,20 @@ switch_status_t switch_pd_tunnel_entry(
         return switch_pd_status_to_status(status);
     }
 
-    table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
+    table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
     status = bf_rt_table_from_name_get(bfrt_info_hdl,
                                        LNW_VXLAN_ENCAP_MOD_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get table handle for: %s",
-                  LNW_VXLAN_ENCAP_MOD_TABLE);
+        VLOG_ERR("Unable to get table handle for: %s, error: %d",
+                  LNW_VXLAN_ENCAP_MOD_TABLE, status);
         goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to allocate key handle for: %s",
-                  LNW_VXLAN_ENCAP_MOD_TABLE);
+        VLOG_ERR("Unable to allocate key handle for: %s, error: %d",
+                  LNW_VXLAN_ENCAP_MOD_TABLE, status);
         goto dealloc_handle_session;
     }
 
@@ -86,15 +88,16 @@ switch_status_t switch_pd_tunnel_entry(
                     LNW_VXLAN_ENCAP_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR,
                     &field_id);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get field ID for key: %s",
-                  LNW_VXLAN_ENCAP_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR);
+        VLOG_ERR("Unable to get field ID for key: %s, error: %d",
+                  LNW_VXLAN_ENCAP_MOD_TABLE_KEY_VENDORMETA_MOD_DATA_PTR,
+                  status);
         goto dealloc_handle_session;
     }
 
     status = bf_rt_key_field_set_value(key_hdl, field_id, 0 /*vni value*/);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to set value for key ID: %d for vxlan_encap_mod_table",
-                 field_id);
+        VLOG_ERR("Unable to set value for key ID: %d for vxlan_encap_mod_table"
+                 ", error: %d", field_id, status);
         goto dealloc_handle_session;
     }
 
@@ -109,16 +112,16 @@ switch_status_t switch_pd_tunnel_entry(
                             LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP,
                             &action_id);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get action allocator ID for: %s",
-                      LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP);
+            VLOG_ERR("Unable to get action allocator ID for: %s, error: %d",
+                      LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP, status);
             goto dealloc_handle_session;
         }
 
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get data handler for acion: %s",
-                     LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP);
+            VLOG_ERR("Unable to get data handler for acion: %s, error: %d",
+                     LNW_VXLAN_ENCAP_MOD_TABLE_ACTION_VXLAN_ENCAP, status);
             goto dealloc_handle_session;
         }
 
@@ -127,8 +130,8 @@ switch_status_t switch_pd_tunnel_entry(
                                     LNW_ACTION_VXLAN_ENCAP_PARAM_SRC_ADDR,
                                     action_id, &data_field_id);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get data field id param for: %s",
-                      LNW_ACTION_VXLAN_ENCAP_PARAM_SRC_ADDR);
+            VLOG_ERR("Unable to get data field id param for: %s, error: %d",
+                      LNW_ACTION_VXLAN_ENCAP_PARAM_SRC_ADDR, status);
             goto dealloc_handle_session;
         }
 
@@ -139,7 +142,8 @@ switch_status_t switch_pd_tunnel_entry(
                                     sizeof(uint32_t));
 
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
+            VLOG_ERR("Unable to set action value for ID: %d, error: %d",
+                      data_field_id, status);
             goto dealloc_handle_session;
         }
 
@@ -148,8 +152,8 @@ switch_status_t switch_pd_tunnel_entry(
                                     LNW_ACTION_VXLAN_ENCAP_PARAM_DST_ADDR,
                                     action_id, &data_field_id);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get data field id param for: %s",
-                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_ADDR);
+            VLOG_ERR("Unable to get data field id param for: %s, error: %d",
+                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_ADDR, status);
             goto dealloc_handle_session;
         }
 
@@ -160,7 +164,8 @@ switch_status_t switch_pd_tunnel_entry(
                                     sizeof(uint32_t));
 
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
+            VLOG_ERR("Unable to set action value for ID: %d, error: %d",
+                      data_field_id, status);
             goto dealloc_handle_session;
         }
 
@@ -169,8 +174,8 @@ switch_status_t switch_pd_tunnel_entry(
                                     LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT,
                                     action_id, &data_field_id);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get data field id param for: %s",
-                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT);
+            VLOG_ERR("Unable to get data field id param for: %s, error: %d",
+                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT, status);
             goto dealloc_handle_session;
         }
 
@@ -181,7 +186,8 @@ switch_status_t switch_pd_tunnel_entry(
                                     sizeof(uint16_t));
 
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
+            VLOG_ERR("Unable to set action value for ID: %d, error: %d",
+                      data_field_id, status);
             goto dealloc_handle_session;
         }
 
@@ -190,22 +196,23 @@ switch_status_t switch_pd_tunnel_entry(
                                     LNW_ACTION_VXLAN_ENCAP_PARAM_VNI,
                                     action_id, &data_field_id);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get data field id param for: %s",
-                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT);
+            VLOG_ERR("Unable to get data field id param for: %s, error: %d",
+                      LNW_ACTION_VXLAN_ENCAP_PARAM_DST_PORT, status);
             goto dealloc_handle_session;
         }
 
         status = bf_rt_data_field_set_value_ptr(data_hdl, data_field_id, 0,
                                             sizeof(uint32_t));
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
+            VLOG_ERR("Unable to set action value for ID: %d, error: %d",
+                      data_field_id, status);
             goto dealloc_handle_session;
         }
 
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to add table entry");
+            VLOG_ERR("Unable to add table entry, error: %d", status);
             goto dealloc_handle_session;
         }
     } else {
@@ -213,12 +220,15 @@ switch_status_t switch_pd_tunnel_entry(
         VLOG_INFO("Delete vxlan_encap_mod_table entry");
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to delete vxlan_encap_mod_table entry");
+            VLOG_ERR("Unable to delete vxlan_encap_mod_table entry, error"
+                     ": %d", status);
             goto dealloc_handle_session;
         }
     }
 
 dealloc_handle_session:
+    free((bf_rt_table_hdl *)table_hdl);
+    free(bfrt_info_hdl);
     status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                  entry_add);
     if(status != BF_SUCCESS) {
@@ -241,17 +251,19 @@ switch_status_t switch_pd_tunnel_term_entry(
     bf_rt_id_t data_field_id;
 
     bf_rt_target_t dev_tgt;
-    bf_rt_session_hdl *session;
-    bf_rt_info_hdl *bfrt_info_hdl;
-    bf_rt_table_key_hdl *key_hdl;
-    bf_rt_table_data_hdl *data_hdl;
-    const bf_rt_table_hdl *table_hdl;
+    bf_rt_session_hdl *session = NULL;
+    bf_rt_info_hdl *bfrt_info_hdl = NULL;
+    bf_rt_table_key_hdl *key_hdl = NULL;
+    bf_rt_table_data_hdl *data_hdl = NULL;
+    const bf_rt_table_hdl *table_hdl = NULL;
     uint32_t network_byte_order;
 
     dev_tgt.dev_id = device;
     dev_tgt.pipe_id = 0;
     dev_tgt.direction = 0xFF;
     dev_tgt.prsr_id = 0xFF;
+
+    VLOG_DBG("%s", __func__);
 
     status = switch_pd_allocate_handle_session(device, PROGRAM_NAME,
                                                &bfrt_info_hdl, &session);
@@ -260,20 +272,20 @@ switch_status_t switch_pd_tunnel_term_entry(
         return switch_pd_status_to_status(status);
     }
 
-    table_hdl = (bf_rt_table_hdl *)malloc(sizeof(table_hdl));
+    table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
     status = bf_rt_table_from_name_get(bfrt_info_hdl,
                                        LNW_IPV4_TUNNEL_TERM_TABLE,
                                        &table_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get table handle for: %s",
-                  LNW_IPV4_TUNNEL_TERM_TABLE);
+        VLOG_ERR("Unable to get table handle for: %s, error: %d",
+                  LNW_IPV4_TUNNEL_TERM_TABLE, status);
         goto dealloc_handle_session;
     }
 
     status = bf_rt_table_key_allocate(table_hdl, &key_hdl);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to allocate key handle for: %s",
-                  LNW_IPV4_TUNNEL_TERM_TABLE);
+        VLOG_ERR("Unable to allocate key handle for: %s, error: %d",
+                  LNW_IPV4_TUNNEL_TERM_TABLE, status);
         goto dealloc_handle_session;
     }
 
@@ -282,16 +294,16 @@ switch_status_t switch_pd_tunnel_term_entry(
                     LNW_IPV4_TUNNEL_TERM_TABLE_KEY_TUNNEL_TYPE,
                     &field_id);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get field ID for key: %s",
-                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_TUNNEL_TYPE);
+        VLOG_ERR("Unable to get field ID for key: %s, error: %d",
+                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_TUNNEL_TYPE, status);
         goto dealloc_handle_session;
     }
 
     /* From p4 file the value expected is TUNNEL_TYPE_VXLAN=2 */
     status = bf_rt_key_field_set_value(key_hdl, field_id, 2);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to set value for key ID: %d of ipv4_tunnel_term_table",
-                 field_id);
+        VLOG_ERR("Unable to set value for key ID: %d of ipv4_tunnel_term_table"
+                 ", error: %d", field_id, status);
         goto dealloc_handle_session;
     }
 
@@ -300,8 +312,8 @@ switch_status_t switch_pd_tunnel_term_entry(
                     LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_SRC,
                     &field_id);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get field ID for key: %s",
-                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_SRC);
+        VLOG_ERR("Unable to get field ID for key: %s, error: %d",
+                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_SRC, status);
         goto dealloc_handle_session;
     }
 
@@ -312,7 +324,8 @@ switch_status_t switch_pd_tunnel_term_entry(
                                            (const uint8_t *)&network_byte_order,
                                            sizeof(uint32_t));
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to set value for key ID: %d", field_id);
+        VLOG_ERR("Unable to set value for key ID: %d, error: %d",
+                  field_id, status);
         goto dealloc_handle_session;
     }
 
@@ -321,8 +334,8 @@ switch_status_t switch_pd_tunnel_term_entry(
                     LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_DST,
                     &field_id);
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to get field ID for key: %s",
-                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_DST);
+        VLOG_ERR("Unable to get field ID for key: %s, error: %d",
+                  LNW_IPV4_TUNNEL_TERM_TABLE_KEY_IPV4_DST, status);
         goto dealloc_handle_session;
     }
 
@@ -333,7 +346,8 @@ switch_status_t switch_pd_tunnel_term_entry(
                                            (const uint8_t *)&network_byte_order,
                                            sizeof(uint32_t));
     if(status != BF_SUCCESS) {
-        VLOG_ERR("Unable to set value for key ID: %d", field_id);
+        VLOG_ERR("Unable to set value for key ID: %d, error: %d",
+                  field_id, status);
         goto dealloc_handle_session;
     }
 
@@ -347,8 +361,9 @@ switch_status_t switch_pd_tunnel_term_entry(
                             LNW_IPV4_TUNNEL_TERM_TABLE_ACTION_DECAP_OUTER_IPV4,
                             &action_id);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get action allocator ID for: %s",
-                      LNW_IPV4_TUNNEL_TERM_TABLE_ACTION_DECAP_OUTER_IPV4);
+            VLOG_ERR("Unable to get action allocator ID for: %s, error: %d",
+                      LNW_IPV4_TUNNEL_TERM_TABLE_ACTION_DECAP_OUTER_IPV4,
+                      status);
             goto dealloc_handle_session;
         }
 
@@ -356,7 +371,8 @@ switch_status_t switch_pd_tunnel_term_entry(
         status = bf_rt_table_action_data_allocate(table_hdl, action_id,
                                                   &data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get action allocator for ID : %d", action_id);
+            VLOG_ERR("Unable to get action allocator for ID: %d, error: %d",
+                      action_id, status);
             goto dealloc_handle_session;
         }
 
@@ -365,22 +381,24 @@ switch_status_t switch_pd_tunnel_term_entry(
                                     LNW_ACTION_DECAP_OUTER_IPV4_PARAM_TUNNEL_ID,
                                     action_id, &data_field_id);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to get data field id param for: %s",
-                      LNW_ACTION_DECAP_OUTER_IPV4_PARAM_TUNNEL_ID);
+            VLOG_ERR("Unable to get data field id param for: %s, error: %d",
+                      LNW_ACTION_DECAP_OUTER_IPV4_PARAM_TUNNEL_ID, status);
             goto dealloc_handle_session;
         }
 
         status = bf_rt_data_field_set_value(data_hdl, data_field_id,
                                             api_tunnel_term_info_t->tunnel_id);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to set action value for ID: %d", data_field_id);
+            VLOG_ERR("Unable to set action value for ID: %d, error: %d",
+                      data_field_id, status);
             goto dealloc_handle_session;
         }
 
         status = bf_rt_table_entry_add(table_hdl, session, &dev_tgt, key_hdl,
                                        data_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to add ipv4_tunnel_term_table entry");
+            VLOG_ERR("Unable to add ipv4_tunnel_term_table entry, error: %d",
+                      status);
             goto dealloc_handle_session;
         }
     } else {
@@ -388,12 +406,15 @@ switch_status_t switch_pd_tunnel_term_entry(
         VLOG_INFO("Delete ipv4_tunnel_term_table entry");
         status = bf_rt_table_entry_del(table_hdl, session, &dev_tgt, key_hdl);
         if(status != BF_SUCCESS) {
-            VLOG_ERR("Unable to delete ipv4_tunnel_term_table entry");
+            VLOG_ERR("Unable to delete ipv4_tunnel_term_table entry, error: %d",
+                      status);
             goto dealloc_handle_session;
         }
     }
 
 dealloc_handle_session:
+    free((bf_rt_table_hdl *)table_hdl);
+    free(bfrt_info_hdl);
     status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                  entry_add);
     if(status != BF_SUCCESS) {

@@ -34,7 +34,7 @@ static void sai_route_entry_to_string(_In_ const sai_route_entry_t *route_entry,
   int len = 0;
   count = snprintf(entry_string,
                    SAI_MAX_ENTRY_STRING_LEN,
-                   "route: vrf %" PRIx64 " ",
+                   "route: vrf handle 0x%" PRIx64 " ",
                    route_entry->vr_id);
   sai_ipprefix_to_string(route_entry->destination,
                          SAI_MAX_ENTRY_STRING_LEN - count,
@@ -121,8 +121,6 @@ static sai_status_t sai_route_entry_update(const sai_route_entry_t *route_entry,
     switch_status = switch_api_l3_route_add(0, &api_route_entry);
 
     status = sai_switch_status_to_sai_status(switch_status);
-    /* Always return success as in case of fail SONiC will shutdown. */
-    status = SAI_STATUS_SUCCESS;
 
   return status;
 }

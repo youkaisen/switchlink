@@ -19,8 +19,9 @@
 #include <openvswitch/vlog.h>
 
 /* Local header includes */
-#include "switch_internal.h"
 #include "switch_l3.h"
+#include "switch_internal.h"
+#include "switch_nhop_int.h"
 #include "switch_pd_routing.h"
 
 VLOG_DEFINE_THIS_MODULE(switch_l3);
@@ -310,12 +311,14 @@ switch_status_t switch_route_hashtable_remove(switch_device_t device,
 switch_status_t switch_api_l3_route_add(
     switch_device_t device, switch_api_route_entry_t *api_route_entry) 
 {
-  switch_route_info_t *route_info = NULL;
+  switch_handle_t ecmp_handle = SWITCH_API_INVALID_HANDLE;
   switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
+  switch_route_info_t *route_info = NULL;
+  switch_ecmp_info_t *ecmp_info = NULL;
   switch_route_entry_t route_entry;
-  switch_handle_t vrf_handle;
-  switch_handle_t route_handle;
+  switch_handle_t route_handle = SWITCH_API_INVALID_HANDLE;
+  switch_handle_t vrf_handle = SWITCH_API_INVALID_HANDLE;
 
   if (!api_route_entry) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -378,22 +381,43 @@ switch_status_t switch_api_l3_route_add(
     return status;
   }
 
-  if(api_route_entry->nhop_handle)
-  {  
+  if (switch_handle_type_get(api_route_entry->nhop_handle) ==
+                       SWITCH_HANDLE_TYPE_NHOP) {
     status = switch_pd_ipv4_table_entry(device, api_route_entry, true,
                                         SWITCH_ACTION_NHOP);
-    SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
-      if(status != SWITCH_STATUS_SUCCESS)
-        VLOG_ERR("ipv4 table update failed \n");
-  }
-
-  if(api_route_entry->ecmp_group_id)
-  {
+    if (status != SWITCH_STATUS_SUCCESS) {
+        VLOG_ERR("ipv4 table update failed for NHOP action "
+                 ":%s \n", switch_error_to_string(status));
+        return status;
+    }
+  } else if (switch_handle_type_get(api_route_entry->nhop_handle) ==
+                                   SWITCH_HANDLE_TYPE_ECMP_GROUP) {
     status = switch_pd_ipv4_table_entry(device, api_route_entry, true,
                                         SWITCH_ACTION_ECMP);
-    SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
-    if(status != SWITCH_STATUS_SUCCESS)
-      VLOG_ERR("ipv4 table update failed \n");
+    if(status != SWITCH_STATUS_SUCCESS) {
+      VLOG_ERR("ipv4 table update failed for ECMP action"
+                ": %s\n", switch_error_to_string(status));
+      return status;
+    }
+
+    ecmp_handle = api_route_entry->nhop_handle;
+
+    status = switch_ecmp_group_get(device, ecmp_handle, &ecmp_info);
+    if (status != SWITCH_STATUS_SUCCESS) {
+      VLOG_ERR(
+          "Failed to get ecmp info on device %d handle: 0x%lx, error: %s",
+          device,
+          ecmp_handle,
+          switch_error_to_string(status));
+      return status;
+    }
+
+    status = switch_pd_ecmp_hash_table_entry(device, ecmp_info, true);
+    if (status != SWITCH_STATUS_SUCCESS) {
+        VLOG_ERR("ipv4 table update failed for NHOP action, "
+                 "error: %s\n", switch_error_to_string(status));
+        return status;
+    }
   }
 
   api_route_entry->route_handle = handle;
@@ -423,10 +447,14 @@ switch_status_t switch_api_l3_route_add(
 
 switch_status_t switch_api_l3_route_delete(switch_device_t device,
     switch_api_route_entry_t *api_route_entry) {
-  switch_route_info_t *route_info = NULL;
-  switch_status_t status = SWITCH_STATUS_SUCCESS;
+
   switch_route_entry_t route_entry;
-  switch_handle_t route_handle;  
+  switch_ecmp_info_t *ecmp_info = NULL;
+  switch_route_info_t *route_info = NULL;
+  switch_api_route_entry_t api_route_info;
+  switch_status_t status = SWITCH_STATUS_SUCCESS;
+  switch_handle_t ecmp_handle = SWITCH_API_INVALID_HANDLE;
+  switch_handle_t route_handle = SWITCH_API_INVALID_HANDLE;
 
   if (!api_route_entry) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -463,12 +491,35 @@ switch_status_t switch_api_l3_route_delete(switch_device_t device,
     return status;
   }
 
+  api_route_info = route_info->api_route_info;
   if (route_info->nhop_handle) {
-    status = switch_pd_ipv4_table_entry(device, &route_info->api_route_info,
+    if (switch_handle_type_get(api_route_info.nhop_handle) ==
+                               SWITCH_HANDLE_TYPE_ECMP_GROUP) {
+      ecmp_handle = api_route_info.nhop_handle;
+      status = switch_ecmp_group_get(device, ecmp_handle, &ecmp_info);
+      if (status != SWITCH_STATUS_SUCCESS) {
+        VLOG_ERR(
+            "ecmp info get failed on device %d ecmp handle 0x%lx: "
+            "ecmp get Failed:(%s)\n",
+            device,
+            ecmp_handle,
+            switch_error_to_string(status));
+        return status;
+      }
+
+      status = switch_pd_ecmp_hash_table_entry(device, ecmp_info, false);
+      if (status != SWITCH_STATUS_SUCCESS) {
+          VLOG_ERR("ipv4 table update failed for NHOP action \n");
+          return status;
+      }
+    }
+
+    status = switch_pd_ipv4_table_entry(device, &api_route_info,
                                         false, SWITCH_ACTION_NONE);
     SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
     if(status != SWITCH_STATUS_SUCCESS)
-      VLOG_ERR("ipv4 table delete] failed \n");
+      VLOG_ERR("ipv4 table delete failed, error"
+                ": %s\n", switch_error_to_string(status));
   }
 
   status = switch_route_hashtable_remove(device, route_handle);

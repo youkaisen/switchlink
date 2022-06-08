@@ -8,6 +8,7 @@ EXTRA_DIST += switchapi/linux_networking/metadata.p4
 EXTRA_DIST += switchapi/linux_networking/parser.p4
 EXTRA_DIST += switchapi/linux_networking/routing.p4
 EXTRA_DIST += switchapi/linux_networking/tunnel.p4
+EXTRA_DIST += switchapi/linux_networking/lnw_ct.p4
 
 lib_LTLIBRARIES += switchapi/libswitchapi.la
 

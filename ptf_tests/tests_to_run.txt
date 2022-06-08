@@ -11,7 +11,7 @@ DPDK_Hot_Plug_Remove_Multi_port:config_json='DPDK_Hot_Plug_Remove_Multi_port.jso
 l3_exact_match_with_vhost:config_json='l3_exact_match_with_vhost.json'
 l3_exact_match_with_vhost_add_del:config_json='l3_exact_match_with_vhost_add_del.json'
 l2_exact_match_with_link_port:config_json='l2_exact_match_with_link.json'
+show_tap_port_mtu.py:config_json='show_tap_port_mtu.json'
 l3_wcm_with_link_port:config_json='l3_wcm_with_link_port.json';pci_bdf='0000:af:00.0'
 max_tap_port:config_json='max_tap_port.json'
-
-
+mtu_config_test_with_tap:config_json='mtu_config_test_with_tap.json'

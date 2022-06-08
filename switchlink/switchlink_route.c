@@ -44,7 +44,12 @@ VLOG_DEFINE_THIS_MODULE(switchlink_route)
 
 static void ecmp_delete(switchlink_handle_t ecmp_h) {
   int32_t ref_count;
+  uint32_t index = 0;
+  uint8_t num_nhops = 0;
   switchlink_db_status_t status;
+  switchlink_db_nexthop_info_t nexthop_info;
+  switchlink_handle_t nhops[SWITCHLINK_ECMP_NUM_MEMBERS_MAX] = {0};
+
   status = switchlink_db_ecmp_ref_dec(ecmp_h, &ref_count);
   ovs_assert(status == SWITCHLINK_DB_STATUS_SUCCESS);
 
@@ -53,8 +58,34 @@ static void ecmp_delete(switchlink_handle_t ecmp_h) {
     memset(&ecmp_info, 0, sizeof(switchlink_db_ecmp_info_t));
     status = switchlink_db_ecmp_handle_get_info(ecmp_h, &ecmp_info);
     ovs_assert(status == SWITCHLINK_DB_STATUS_SUCCESS);
+    num_nhops = ecmp_info.num_nhops;
+    for (index = 0; index < num_nhops; index++) {
+      nhops[index] = ecmp_info.nhops[index];
+    }
+    VLOG_INFO("Deleting ecmp handler 0x%lx", ecmp_h);
     switchlink_ecmp_delete(&ecmp_info);
     switchlink_db_ecmp_delete(ecmp_h);
+
+    for (index = 0; index < num_nhops; index++) {
+      memset(&nexthop_info, 0, sizeof(switchlink_db_nexthop_info_t));
+      status = switchlink_db_nexthop_handle_get_info(nhops[index],
+                                                     &nexthop_info);
+      if (status != SWITCHLINK_DB_STATUS_SUCCESS) {
+        VLOG_ERR("Cannot get nhop info for nhop handle 0x%lx", nhops[index]);
+        continue;
+      }
+
+      if (validate_nexthop_delete(nexthop_info.using_by,
+                                  SWITCHLINK_NHOP_FROM_ROUTE)) {
+        VLOG_DBG("Deleting nhop 0x%lx, from ecmp_delete", nexthop_info.nhop_h);
+        switchlink_nexthop_delete(nexthop_info.nhop_h);
+        switchlink_db_nexthop_delete(&nexthop_info);
+      } else {
+          VLOG_DBG("Removing Route learn from nhop");
+        nexthop_info.using_by &= ~SWITCHLINK_NHOP_FROM_ROUTE;
+        switchlink_db_nexthop_update_using_by(&nexthop_info);
+      }
+    }
   }
 }
 
@@ -86,19 +117,32 @@ void route_create(switchlink_handle_t vrf_h,
   }
 
   bool ecmp_valid = false;
-  switchlink_handle_t nhop_h = 0;
+  switchlink_handle_t nhop_h = g_cpu_rx_nhop_h;
   if (!ecmp_h) {
-    switchlink_db_neigh_info_t neigh_info;
-    memset(&neigh_info, 0, sizeof(switchlink_db_neigh_info_t));
-    memcpy(&(neigh_info.ip_addr), gateway, sizeof(switchlink_ip_addr_t));
-    neigh_info.intf_h = intf_h;
-    neigh_info.vrf_h = vrf_h;
-    switchlink_db_status_t status;
-    status = switchlink_db_neighbor_get_info(&neigh_info);
-    if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
-      nhop_h = neigh_info.nhop_h;
-    } else {
-      nhop_h = g_cpu_rx_nhop_h;
+    // Ignore NULL gateway address, dont create a NHOP for that
+    if (gateway->ip.v4addr.s_addr) {
+      switchlink_db_nexthop_info_t nexthop_info;
+      memset(&nexthop_info, 0, sizeof(switchlink_db_nexthop_info_t));
+      memcpy(&(nexthop_info.ip_addr), gateway, sizeof(switchlink_ip_addr_t));
+      nexthop_info.intf_h = intf_h;
+      nexthop_info.vrf_h = vrf_h;
+      switchlink_db_status_t status;
+      status = switchlink_db_nexthop_get_info(&nexthop_info);
+      if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
+          VLOG_DBG("Received nhop 0x%lx handler, update from"
+                   " route", nexthop_info.nhop_h);
+        nhop_h = nexthop_info.nhop_h;
+        nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_ROUTE;
+        switchlink_db_nexthop_update_using_by(&nexthop_info);
+      } else {
+        if (!switchlink_nexthop_create(&nexthop_info)) {
+          VLOG_DBG("Created nhop 0x%lx handle, update from "
+                   " route", nexthop_info.nhop_h);
+          nhop_h = nexthop_info.nhop_h;
+          nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_ROUTE;
+          switchlink_db_nexthop_add(&nexthop_info);
+        }
+      }
     }
     ecmp_valid = false;
   } else {
@@ -159,6 +203,9 @@ void route_create(switchlink_handle_t vrf_h,
  */
 
 void route_delete(switchlink_handle_t vrf_h, switchlink_ip_addr_t *dst) {
+  bool ecmp_enable = false;
+  switchlink_handle_t ecmp_h;
+
   if (!dst) {
     return;
   }
@@ -179,10 +226,13 @@ void route_delete(switchlink_handle_t vrf_h, switchlink_ip_addr_t *dst) {
     return;
   }
 
+  ecmp_enable = route_info.ecmp;
+  ecmp_h = route_info.nhop_h;
+
   status = switchlink_db_route_delete(&route_info);
   if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
-    if (route_info.ecmp) {
-      ecmp_delete(route_info.nhop_h);
+    if (ecmp_enable) {
+      ecmp_delete(ecmp_h);
     }
   }
 }
@@ -232,16 +282,28 @@ static switchlink_handle_t process_ecmp(uint8_t family,
       memset(&ifinfo, 0, sizeof(switchlink_db_interface_info_t));
       status = switchlink_db_interface_get_info(rnh->rtnh_ifindex, &ifinfo);
       if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
-        switchlink_db_neigh_info_t neigh_info;
-        memset(&neigh_info, 0, sizeof(switchlink_db_neigh_info_t));
-        memcpy(&(neigh_info.ip_addr), &gateway, sizeof(switchlink_ip_addr_t));
-        neigh_info.intf_h = ifinfo.intf_h;
-        neigh_info.vrf_h = vrf_h;
-        status = switchlink_db_neighbor_get_info(&neigh_info);
+        switchlink_db_nexthop_info_t nexthop_info;
+        memset(&nexthop_info, 0, sizeof(switchlink_db_nexthop_info_t));
+        memcpy(&(nexthop_info.ip_addr), &gateway, sizeof(switchlink_ip_addr_t));
+        nexthop_info.intf_h = ifinfo.intf_h;
+        nexthop_info.vrf_h = vrf_h;
+        status = switchlink_db_nexthop_get_info(&nexthop_info);
         if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
-          ecmp_info.nhops[ecmp_info.num_nhops] = neigh_info.nhop_h;
+          VLOG_DBG("Fetched nhop 0x%lx handler, update from"
+                   " route", nexthop_info.nhop_h);
+          ecmp_info.nhops[ecmp_info.num_nhops] = nexthop_info.nhop_h;
+          nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_ROUTE;
+          switchlink_db_nexthop_update_using_by(&nexthop_info);
         } else {
-          ecmp_info.nhops[ecmp_info.num_nhops] = g_cpu_rx_nhop_h;
+          if (!switchlink_nexthop_create(&nexthop_info)) {
+             VLOG_DBG("Created nhop 0x%lx handler, update from"
+                      " route", nexthop_info.nhop_h);
+             ecmp_info.nhops[ecmp_info.num_nhops] = nexthop_info.nhop_h;
+             nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_ROUTE;
+             switchlink_db_nexthop_add(&nexthop_info);
+          } else {
+            ecmp_info.nhops[ecmp_info.num_nhops] = g_cpu_rx_nhop_h;
+          }
         }
         ecmp_info.num_nhops++;
         ovs_assert(ecmp_info.num_nhops < SWITCHLINK_ECMP_NUM_MEMBERS_MAX);

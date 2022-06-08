@@ -58,6 +58,12 @@ typedef struct switchlink_db_neigh_obj_ {
   switchlink_db_neigh_info_t neigh_info;
 } switchlink_db_neigh_obj_t;
 
+typedef struct switchlink_db_nexthop_obj_ {
+  tommy_node list_node;
+  switchlink_db_nexthop_info_t nexthop_info;
+} switchlink_db_nexthop_obj_t;
+
+
 typedef struct switchlink_db_ecmp_obj_ {
   tommy_node list_node;
   int32_t ref_count;

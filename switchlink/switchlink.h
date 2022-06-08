@@ -55,4 +55,11 @@ typedef enum switchlink_entry_type {
   SWITCHLINK_FDB_MAX = 3,
 }switchlink_entry_type_e;
 
+typedef enum switchlink_nhop_using_by {
+  SWITCHLINK_NHOP_FROM_NONE = 0,
+  SWITCHLINK_NHOP_FROM_NEIGHBOR = 1 << 0,
+  SWITCHLINK_NHOP_FROM_ROUTE = 1 << 1,
+}switchlink_nhop_using_by_e;
+
+
 #endif /* __SWITCHLINK_H__ */
