@@ -168,6 +168,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/DPDK_Hot_Plug_Remove_Multi_port.json \
 	ptf_tests/common/config/show_tap_port_mtu.json \
 	ptf_tests/common/config/l3_wcm_with_link_port.json \
+	ptf_tests/common/config/max_tap_port.json \
 	ptf_tests/common/config/mtu_config_test_with_tap.json \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
@@ -209,6 +210,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/DPDK_Hot_Plug_Remove.py \
 	ptf_tests/tests/show_tap_port_mtu.py \
 	ptf_tests/tests/l3_wcm_with_link_port.py \
+	ptf_tests/tests/max_tap_port.py \
 	ptf_tests/common/lib/tcpdump.py \
         ptf_tests/common/utils/tcpdump_utils.py \
 	ptf_tests/tests/mtu_config_test_with_tap.py \
