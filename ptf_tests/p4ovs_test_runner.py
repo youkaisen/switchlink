@@ -70,7 +70,7 @@ with open(args.file) as fh:
         if i.startswith("#"):
             continue
         items = i.strip().split(":")
-        test_to_run[items[0].strip()] = items[1].strip()
+        test_to_run[items[0].strip()] = ':'.join(items[1:]).strip()
         sequence.append(items[0])
 test_to_run['sequence'] = sequence
 
