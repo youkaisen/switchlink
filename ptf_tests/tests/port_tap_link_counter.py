@@ -79,328 +79,309 @@ class Tap_Link_PortCounter(BaseTest):
         num = self.config_data['traffic']['in_pkt_header']['number_pkts'][3]
         pktlen = self.config_data['traffic']['in_pkt_header']['payload_size'][1]
         total_octets_send = pktlen*num
+        # in case of background traffic noise, a small buffer is considered
+        num_buffer = num + self.config_data['traffic']['in_pkt_header']['count_buffer'][0] + 1
+        octets_buffer = pktlen* (num + num_buffer)
+
         print (f"Test {num} Unitcast packet from link to TAP")
-        print (f"Record in-octets and in-unicast-pkts counter of PORT0 before sending traffic")
-        lnk_cont_1 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_cont_1:
-            lnk_in_octs_1, lnk_in_uni_pkts_1 = lnk_cont_1['in-octets'], lnk_cont_1['in-unicast-pkts'] 
-        else:
+        send_port_id = self.config_data['traffic']['send_port'][0]
+        receive_port_id= self.config_data['traffic']['receive_port'][2]
+
+        print (f"Record counter before sending traffic")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
-        print("Recording out-octets and out-unicast-pkts of counter of TAP1 before sending traffic")
-        tap_cont_1 = gnmi_get_params_counter(self.gnmicli_params[2]) 
-        if tap_cont_1 :
-            tap_out_octs_1, tap_out_uni_pkts_1 = tap_cont_1['out-octets'], tap_cont_1['out-unicast-pkts']
-        else:
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
+        if not send_cont_1:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP1")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
     
         pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][0], pktlen=pktlen)
-        send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt, count=num)
+        send_packet(self, port_ids[send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][2]][1]])
+            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
             print(f"PASS: Verification of {num} packets passed per rule 2")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of packets sent failed with exception {err}")
         
-        print (f"Record in-octets and in-unicast-pkts counter of Link Port PORT0 after sending traffic")
-        lnk_cont_2 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_cont_2:
-            lnk_in_octs_2, lnk_in_uni_pkts_2 = lnk_cont_2['in-octets'], lnk_cont_2['in-unicast-pkts']
-        else:
+        print (f"Record counter after sending traffic")
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
-       
-        print(f"Recording out-octets and out-unicast-pkts of counter of TAP1 after sending traffic ")
-        tap_cont_2 = gnmi_get_params_counter(self.gnmicli_params[2])
-        if tap_cont_2:
-            tap_out_octs_2, tap_out_uni_pkts_2 = tap_cont_2['out-octets'], tap_cont_2['out-unicast-pkts']
-        else:
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP1")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
         #Idealy we expect counter update is equal to expected num but sometimes the port
         #also receive other unpredicatable brackgroud traffic noise such IPv6 which cause more count.
-        #Thus we have to implement the counter update must be equal or larger then num
+        #Thus we have to implement the counter update within a buffer range
         #This note apply to all other counter verification
-        lnk_pks_update = lnk_in_uni_pkts_2 - lnk_in_uni_pkts_1
-        lnk_octs_update = lnk_in_octs_2 - lnk_in_octs_1
-        if  lnk_pks_update >= num:
-            print(f"PASS: {num} packets expected and {lnk_pks_update} verified on PORT0 in-unicast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {lnk_pks_update} verified on PORT0 in-unicast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
+        #checking counter update
+        for each in self.config_data['traffic']['in_pkt_header']['pkts_counter']:
+            if each == 'in-unicast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-unicast-pkts':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
+    
+            if update[each] in range(num, num_buffer):
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+
+        for each in self.config_data['traffic']['in_pkt_header']["octets_counter"]:
+            if each == 'in-octets':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-octets':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
         
-        if lnk_octs_update >= total_octets_send:
-            print(f"PASS: {total_octets_send} octets expected and {lnk_octs_update} verified on PORT0 in-octets counter")
-        else:
-            print(f"FAIL: {total_octets_send} octets expected but {lnk_octs_update} verified on PORT0 in-octets counter")
-            self.result.addFailure(self, sys.exc_info())
-
-        tap_pkt_update = tap_out_uni_pkts_2 - tap_out_uni_pkts_1
-        tap_oct_upate = tap_out_octs_2 - tap_out_octs_1
-        if tap_pkt_update >= num:
-            print(f"PASS: {num} packets expected and {tap_pkt_update} verified on TAP1 out-unicast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {tap_pkt_update} verified on TAP1 out-unicast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
-
-        if tap_oct_upate >= total_octets_send:
-            print(f"PASS: {total_octets_send} octets expected and {tap_oct_upate} verified on TAP1 out-octets counter")
-        else:
-            print(f"FAIL: {total_octets_send} octets expected but {tap_oct_upate} verified on TAP1 out-octets counter")
-            self.result.addFailure(self, sys.exc_info())
+            if update[each] in range(total_octets_send, octets_buffer):
+                print(f"PASS: {total_octets_send:} octets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {total_octets_send} octets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
 
         ##another direction
-        num = self.config_data['traffic']['in_pkt_header']['number_pkts'][2]
+        num = self.config_data['traffic']['in_pkt_header']['number_pkts'][1]
         pktlen = self.config_data['traffic']['in_pkt_header']['payload_size'][0]
         total_octets_send = pktlen*num  
+        # in case of background traffic noise, a small buffer is considered
+        num_buffer = num + self.config_data['traffic']['in_pkt_header']['count_buffer'][0] + 1
+        octets_buffer = pktlen* (num + num_buffer)
+
         print (f"Test {num} Unitcast packet from TAP to Link")
         print (f"Record in-octets and in-unicast-pkts counter of TAP0 before sending traffic")
-        tap_cont_1 = gnmi_get_params_counter(self.gnmicli_params[1])
-        if tap_cont_1:
-            tap_in_octs_1, tap_in_uni_pkts_1 = tap_cont_1['in-octets'],tap_cont_1['in-unicast-pkts']
-        else:
+        send_port_id = self.config_data['traffic']['send_port'][1]
+        receive_port_id = self.config_data['traffic']['receive_port'][0]
+
+        print (f"Record counter before sending traffic")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP0")
-     
-        print("Recording out-octets and out-unicast-pkts of counter of PORT0 before sending traffic")
-        lnk_cont_1 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_cont_1:
-            lnk_out_octs_1,lnk_out_uni_pkts_1 = tap_cont_1['out-octets'],tap_cont_1['out-unicast-pkts']
-        else:
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
+        if not send_cont_1:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
        
         pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][1], pktlen=pktlen)
-        send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt, count=num)
+        send_packet(self, port_ids[send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][1]])
+            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
             print(f"PASS: Verification of {num} packets passed per rule 4")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of packets sent failed with exception {err}")
 
-        print (f"Record in-octets and in-unicast-pkts counter of TAP0 after sending traffic")
-        tap_cont_2 = gnmi_get_params_counter(self.gnmicli_params[1])
-        if tap_cont_2:
-            tap_in_octs_2,tap_in_uni_pkts_2 = tap_cont_2['in-octets'],tap_cont_2['in-unicast-pkts']
-        else:
+        print (f"Record counter after sending traffic")
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP0")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
+
+        #checking counter update
+        for each in self.config_data['traffic']['in_pkt_header']['pkts_counter']:
+            if each == 'in-unicast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-unicast-pkts':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
         
-        print(f"Recording out-octets and out-unicast-pkts of counter of Link port PROT0 after sending traffic")
-        lnk_cont_2 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_cont_2:
-            lnk_out_octs_2,lnk_out_uni_pkts_2 = lnk_cont_2['out-octets'], lnk_cont_2['out-unicast-pkts']
-        else:
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
+            if update[each] in range(num, num_buffer):
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
 
-        lnk_pks_update = lnk_out_uni_pkts_2 - lnk_out_uni_pkts_1
-        lnk_octs_update = lnk_out_octs_2 - lnk_out_octs_1
-        if lnk_pks_update >= num:
-            print(f"PASS: {num} packets expected and {lnk_pks_update} verified on PORT0 out-unicast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {lnk_pks_update} verified on PORT0 out-unicast-pkts counter")
-
-        if lnk_octs_update >= total_octets_send:
-            print(f"PASS: {total_octets_send} octets expected and {lnk_octs_update} verified on PORT0 out-octets counter")
-        else:
-            print(f"FAIL: {total_octets_send} octets expected but {lnk_octs_update} verified on PORT0 out-octets counter")
-         
-        tap_pkt_update=tap_in_uni_pkts_2 - tap_in_uni_pkts_1
-        tap_oct_update=tap_in_octs_2 - tap_in_octs_1
-        if tap_pkt_update >= num:
-            print(f"PASS: {num} packets expected and {tap_pkt_update} verified on TAP0 in-unicast-pkts counter")
-        else:
-            print(f"FAIL: {num} octets expected but {tap_pkt_update} verified on TAP0 in-unicast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
+        for each in self.config_data['traffic']['in_pkt_header']["octets_counter"]:
+            if each == 'in-octets':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-octets':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
         
-        if  tap_oct_upate>= total_octets_send:
-            print(f"PASS:{total_octets_send} octets expected and {tap_oct_update} verified on TAP0 in-octets counter")
-        else:
-            print(f"FAIL:{total_octets_send} octets expected but {tap_oct_update} verified on TAP0 in-octets counter")
-            self.result.addFailure(self, sys.exc_info())
-
+            if update[each] in range(total_octets_send, octets_buffer):
+                print(f"PASS: {total_octets_send:} octets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {total_octets_send} octets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+        
         ###########################
         #  Multicast Counter Case
         ###########################
         num = self.config_data['traffic']['in_pkt_header']['number_pkts'][0]
+        # in case of backgroud traffic noise 
+        num_buffer = num + self.config_data['traffic']['in_pkt_header']['count_buffer'][0] + 1
         print(f"Sending {num} MultiCast packet from Link to TAP")
-        print (f"Record in-multicast-pkts of PORT0  before sending traffic")
-        lnk_in_1 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_in_1:  
-            lnk_in_mul_pkts_1 = lnk_in_1['in-multicast-pkts']
-        else:
+        
+        send_port_id = self.config_data['traffic']['send_port'][0]
+        receive_port_id = self.config_data['traffic']['receive_port'][1]
+        print (f"Record counter  before sending traffic")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
-
-        print (f"Record out-multicast-pkts of TAP0 before sending traffic")
-        tap_out_1 = gnmi_get_params_counter(self.gnmicli_params[1])
-        if tap_out_1:
-            tap_out_mul_pkts_1 = tap_out_1['out-multicast-pkts']
-        else:
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
+        if not send_cont_1:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP0")
-
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+       
         pkt = simple_udp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][2],ip_src=self.config_data['traffic']['in_pkt_header']["ip_src"][0])
-        send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt, count=num)
+        send_packet(self, port_ids[ send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][1]][1]])
+            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
             print(f"PASS: Verification of packets passed per rule 1")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of packets sent failed with exception {err}")  
-        
-        print (f"Record in-multicast-pkts of PORT0 after sending traffic")   
-        lnk_in_2 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_in_2:
-             lnk_in_mul_pkts_2 = lnk_in_2['in-multicast-pkts'] 
-        else:
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
 
-        print (f"Record out-multicast-pkts of TAP0 after sending traffic")
-        tap_out_2 = gnmi_get_params_counter(self.gnmicli_params[1])
-        if tap_out_2:
-             tap_out_mul_pkts_2 = tap_out_2['out-multicast-pkts']
-        else:
+        #Record port counter after sending traffic
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP0")
-        
-        lnk_in_mul_update = lnk_in_mul_pkts_2 - lnk_in_mul_pkts_1
-        if lnk_in_mul_update >= num:
-            print(f"PASS: {num} packets expected and {lnk_in_mul_update} verified on PORT0 in-multicast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {lnk_in_mul_update} verified on PORT0 in-multicast-pkts counter")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
             self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
-        tap_out_mul_update = tap_out_mul_pkts_2 - tap_out_mul_pkts_1
-        if tap_out_mul_update >= num:
-            print(f"PASS: {num} packets expected and {tap_out_mul_update} verified on TAP0 out-multicast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but { tap_out_mul_update} verified on TAP0 out-multicast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
-        
+        #checking counter update
+        for each in self.config_data['traffic']['in_pkt_header']['mul_pkts_counter']:
+            if each == 'in-multicast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'mul_pkts_counter':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
+
+            if update[each] in range(num, num_buffer):
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+
+        ##another direction
         num = self.config_data['traffic']['in_pkt_header']['number_pkts'][1]
+        # in case of backgroud traffic noise 
+        num_buffer = num + self.config_data['traffic']['in_pkt_header']['count_buffer'][0] + 1
         print(f"Sending {num} MultiCast packet from TAP to Link")
+        send_port_id = self.config_data['traffic']['send_port'][1]
+        receive_port_id = self.config_data['traffic']['receive_port'][0]
 
-        print (f"Record out-multicast-pkts of PORT0 before sending traffic")
-        lnk_out_1 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_out_1:
-            lnk_out_mul_pkts_1 = lnk_out_1['out-multicast-pkts']
-        else:
+        print (f"Record counter before sending multicast traffic")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
-
-        print (f"Record in-multicast-pkts of TAP0 before sending traffic")
-        tap_in_1 = gnmi_get_params_counter(self.gnmicli_params[1])
-        if tap_in_1:
-            tap_in_mul_pkts_1 = tap_in_1['in-multicast-pkts']
-        else:
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
+        if not send_cont_1:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP0")
-
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+        
         pkt = simple_udp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][4],ip_src=self.config_data['traffic']['in_pkt_header']["ip_src"][0])
-        send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt, count=num)
+        send_packet(self, port_ids[send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][1]])
+            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
             print(f"PASS: Verification of packets passed per rule 5")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of packets sent failed with exception {err}")  
         
-        print (f"Record out-multicast-pkts of PORT0 after sending traffic")   
-        lnk_out_2 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_out_2:
-            lnk_out_mul_pkts_2 = lnk_out_2['out-multicast-pkts']
-        else:
+        #Record port counter after sending traffic
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
-        print (f"Record in-multicast-pktsof TAP0 after sending traffic")
-        tap_in_2 = gnmi_get_params_counter(self.gnmicli_params[1])
-        if tap_in_2:
-            tap_in_mul_pkts_2 = tap_in_2['in-multicast-pkts']
-        else:
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP0")
-        
-        lnk_out_mul_update =  lnk_out_mul_pkts_2 -  lnk_out_mul_pkts_1
-        if  lnk_out_mul_update >= num:
-            print(f"PASS: {num} packets expected and {lnk_out_mul_update } verified on PORT0 out-multicast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {lnk_out_mul_update} verified on PORT0 out-multicast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
+        #checking counter update
+        for each in self.config_data['traffic']['in_pkt_header']['mul_pkts_counter']:
+            if each == 'in-multicast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'mul_pkts_counter':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
 
-        tap_in_mul_update = tap_in_mul_pkts_2 - tap_in_mul_pkts_1
-        if tap_in_mul_update >= num:
-            print(f"PASS: {num} packets expected and {tap_in_mul_update} verified on TAP0 in-multicast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {tap_in_mul_update} verified on TAP0 in-multicast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
-
+            if update[each] in range(num, num_buffer):
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+    
         ###########################
         #  BroadCast Counter Case
         ########################### 
         num = self.config_data['traffic']['in_pkt_header']['number_pkts'][1]
-        print(f"Sending {num} broadcast packet from Link to TAP")
-        print (f"Record in-broadcast-pkts of PORT0  before sending traffic")
-        lnk_in_1 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_in_1:
-            lnk_in_brd_pkts_1 = lnk_in_1['in-broadcast-pkts']
-        else:
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
+        # in case of backgroud traffic noise 
+        num_buffer = num + self.config_data['traffic']['in_pkt_header']['count_buffer'][0] + 1
 
-        print (f"Record out-broadcast-pkts of TAP2 before sending traffic")
-        tap_out_1 = gnmi_get_params_counter(self.gnmicli_params[3])
-        if tap_out_1:
-             tap_out_brd_pkts_1 = tap_out_1['out-broadcast-pkts']
-        else:
+        print(f"Sending {num} broadcast packet from Link to TAP")
+        send_port_id = self.config_data['traffic']['send_port'][0]
+        receive_port_id = self.config_data['traffic']['receive_port'][3]
+
+        print (f"Record counter before sending traffic")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP2")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
+        if not send_cont_1:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
 
         pkt = simple_udp_packet( eth_dst="FF:FF:FF:FF:FF:FF",ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][3],ip_src=self.config_data['traffic']['in_pkt_header']["ip_src"][0])
-        send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt, count=num)
+        send_packet(self, port_ids[send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][3]][1]])
+            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
             print(f"PASS: Verification of packets passed per rule 3")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of packets sent failed with exception {err}")  
         
-        print (f"Record in-broadcast-pkts of PORT0 after sending traffic")   
-        lnk_in_2 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_in_2:
-            lnk_in_brd_pkts_2 = lnk_in_2['in-broadcast-pkts']
-        else:
+        print (f"Record counter after sending traffic") 
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
-        print (f"Record out-broadcast-pkts of TAP2 after sending traffic")
-        tap_out_2 = gnmi_get_params_counter(self.gnmicli_params[3])
-        if tap_out_2:
-             tap_out_brd_pkts_2 = tap_out_2['out-broadcast-pkts']
-        else:
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP2")
-        
-        lnk_in_update = lnk_in_brd_pkts_2 - lnk_in_brd_pkts_1
-        if lnk_in_update >= num:
-            print(f"PASS: {num} packets expected and {lnk_in_update} verified on PORT0 in-broadcast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {lnk_in_update} verified on PORT0 in-broadcast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
+        #checking counter update
+        for each in self.config_data['traffic']['in_pkt_header']['brd_pkts_counter']:
+            if each == 'in-broadcast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-broadcast-pkts':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
 
-        tap_out_update = tap_out_brd_pkts_2 - tap_out_brd_pkts_1
-        if tap_out_update >= num:
-            print(f"PASS: {num} packets expected and {tap_out_update} verified on TAP2 out-broadcast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {tap_out_update} verified on TAP2 out-broadcast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
+            if update[each] in range(num, num_buffer):
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
 
         print(f"Sending {num} broadcast packet from TAP to Link")
         print (f"delete existing boradcast match action from current direction")
@@ -415,21 +396,18 @@ class Tap_Link_PortCounter(BaseTest):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to add table entry {match_action}")
 
-        print (f"Record out-broadcast-pkts of PORT0 before sending traffic")
-        lnk_out_1 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_out_1:
-            lnk_out_brd_pkts_1 = lnk_out_1['out-broadcast-pkts']
-        else:
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of PORT0")
+        send_port_id = self.config_data['traffic']['send_port'][3]
+        receive_port_id = self.config_data['traffic']['receive_port'][0]
 
-        print (f"Record in-broadcast-pkts of TAP1 before sending traffic")
-        tap_in_1 = gnmi_get_params_counter(self.gnmicli_params[3])
-        if tap_in_1:
-            tap_in_brd_pkts_1 = tap_in_1['in-broadcast-pkts']
-        else:
+        print (f"Record counter  before sending traffic")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP2")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
+        if not send_cont_1:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
 
         pkt = simple_udp_packet( eth_dst="FF:FF:FF:FF:FF:FF",ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][3])
         send_packet(self, port_ids[self.config_data['traffic']['send_port'][3]], pkt, count=num)
@@ -440,36 +418,31 @@ class Tap_Link_PortCounter(BaseTest):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of packets sent failed with exception {err}")  
         
-        print (f"Record out-broadcast-pkts of PORT0 after sending traffic")   
-        lnk_out_2 = gnmi_get_params_counter(self.gnmicli_params[0])
-        if lnk_out_2:
-            lnk_out_brd_pkts_2 = lnk_out_2['out-broadcast-pkts']
-        else:
+        print (f"Record counter after sending traffic") 
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP2 ")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
-        print (f"Record in-broadcast-pkts of TAP2 after sending traffic")
-        tap_in_2 = gnmi_get_params_counter(self.gnmicli_params[3])
-        if tap_in_2:
-            tap_in_brd_pkts_2 = tap_in_2['in-broadcast-pkts']
-        else:
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: unable to get counetr of TAP1")
-        
-        link_out_update = lnk_out_brd_pkts_2 - lnk_out_brd_pkts_1
-        if link_out_update >= num:
-            print(f"PASS: {num} packets expected and {link_out_update} verified on PORT0 out-broadcast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {link_out_update} verified on PORT0 out-broadcast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
+        #checking counter update
+        for each in self.config_data['traffic']['in_pkt_header']['brd_pkts_counter']:
+            if each == 'in-broadcast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-broadcast-pkts':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
 
-        tap_in_update = tap_in_brd_pkts_2 - tap_in_brd_pkts_1
-        if tap_in_update >= num:
-            print(f"PASS: {num} packets expected and {tap_out_update} verified on TAP2 in-broadcast-pkts counter")
-        else:
-            print(f"FAIL: {num} packets expected but {tap_out_update} verified on TAP2 in-broadcast-pkts counter")
-            self.result.addFailure(self, sys.exc_info())
-
+            if update[each] in range(num, num_buffer):
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+      
         self.dataplane.kill()
 
     def tearDown(self):

@@ -76,7 +76,10 @@ def gnmi_get_params_counter(param):
     for va in value.split("\n"):
             _, counter =va.split(":")
             results.append(counter.strip().replace('"', ''))   
+<<<<<<< Updated upstream
             
+=======
+>>>>>>> Stashed changes
     iter_rslt = iter(results)
     for each in iter_rslt:
          port_counter[each] = int(next(iter_rslt))

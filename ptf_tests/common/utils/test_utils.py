@@ -278,3 +278,9 @@ def vm_ip_neigh_configuration(conn, interface, remote_ip, remote_mac):
 
 def set_telnet_conn_timeout(conn, timeout=10):
     conn.timeout=timeout
+
+def compare_counter(counter2, counter1):
+    delta =dict()
+    for key in counter2.keys():
+        delta[key] = counter2[key] -counter1[key]
+    return delta

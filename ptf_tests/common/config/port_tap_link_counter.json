@@ -43,7 +43,7 @@
     ],
     "table": [
         {
-            "description": "table_for_wcm_action",
+            "description": "table_for_wcm_action_counter",
             "switch": "br0",
             "name": "ingress.ipv4_wcm",
             "type": "entry",
@@ -70,7 +70,12 @@
             ],
             "ip_src": ["192.168.1.10"],
             "number_pkts": [200,300,400,500],
-            "payload_size": [64,1000]
+            "payload_size": [64,1000],
+            "pkts_counter": ["in-unicast-pkts","out-unicast-pkts"],
+            "octets_counter": ["in-octets", "out-octets"],
+            "mul_pkts_counter": ["in-multicast-pkts","out-multicast-pkts"],
+            "brd_pkts_counter":["in-broadcast-pkts","out-broadcast-pkts"],
+            "count_buffer":[10]
         }
     }
 }

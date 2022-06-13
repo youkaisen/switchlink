@@ -172,7 +172,11 @@ EXTRA_DIST = \
 	ptf_tests/common/config/l3_wcm_with_link_port.json \
 	ptf_tests/common/config/max_tap_port.json \
 	ptf_tests/common/config/mtu_config_test_with_tap.json \
+<<<<<<< Updated upstream
     ptf_tests/common/config/port_tap_link_counter.json \
+=======
+        ptf_tests/common/config/port_tap_link_counter.json \
+>>>>>>> Stashed changes
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
@@ -214,8 +218,11 @@ EXTRA_DIST = \
 	ptf_tests/tests/DPDK_Hot_Plug_Add_Remove_multiple_times.py \
 	ptf_tests/tests/show_tap_port_mtu.py \
 	ptf_tests/tests/l3_wcm_with_link_port.py \
+<<<<<<< Updated upstream
 	ptf_tests/tests/max_tap_port.py \
-    ptf_tests/tests/port_tap_link_counter.py \
+=======
+        ptf_tests/tests/port_tap_link_counter.py \
+>>>>>>> Stashed changes
 	ptf_tests/common/lib/tcpdump.py \
     ptf_tests/common/utils/tcpdump_utils.py \
 	ptf_tests/tests/mtu_config_test_with_tap.py \
