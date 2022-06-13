@@ -71,7 +71,7 @@ def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
                 if 'match_action' in table.keys():
                     table['del_action'] = []
                     for match_action in table['match_action']:
-                        table['del_action'].append(match_action.split(',')[0])
+                        table['del_action'].append(",".join(match_action.split(',')[:-1]))
             
             for table in data['table']:
                 if 'member_details' in table.keys():
