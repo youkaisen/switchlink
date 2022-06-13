@@ -64,6 +64,21 @@ class PortConfig(object):
                 print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
             return output
+        
+        def gnmi_cli_get_counter(self, mandatory_params, key="counter"):
+            """
+            gnmi-cli get command
+            :param mandatory_params: "device:virtual-device,name:TAP2,counters"
+            :param key: "counter".
+            :return: stdout of the gnmi-cli get command
+            :rtype: str
+            """
+            cmd = self.form_cmd(f"get \"{mandatory_params},{key}\" |grep \"name\\|uint_val\"|grep -v \"interface\\|key\\|config\\|counters\"")
+            output, return_code, _ = self.local.execute_command(cmd)
+            if return_code:
+                print(f"FAIL: {cmd}")
+                raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
+            return output
 
         def tear_down(self):
             """
