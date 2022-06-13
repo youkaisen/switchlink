@@ -90,7 +90,7 @@ EXTRA_DIST = \
 	LICENSE \
 	MAINTAINERS.rst \
 	README.rst \
-	NOTICE \
+    NOTICE \
 	.ci/linux-build.sh \
 	.ci/linux-prepare.sh \
 	.ci/osx-build.sh \
@@ -215,10 +215,11 @@ EXTRA_DIST = \
 	ptf_tests/tests/show_tap_port_mtu.py \
 	ptf_tests/tests/l3_wcm_with_link_port.py \
 	ptf_tests/tests/max_tap_port.py \
+    ptf_tests/tests/port_tap_link_counter.py \
 	ptf_tests/common/lib/tcpdump.py \
-        ptf_tests/common/utils/tcpdump_utils.py \
+    ptf_tests/common/utils/tcpdump_utils.py \
 	ptf_tests/tests/mtu_config_test_with_tap.py \
-    ptf_tests/tests/port_tap_link_counter \
+    ptf_tests/tests/port_tap_link_counter.py \
 	ptf_tests/p4runtime_test/run_p4_tests.sh \
 	ptf_tests/p4runtime_test/run_ptf_tests.py \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.p4 \
