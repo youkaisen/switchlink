@@ -4,6 +4,7 @@ Generic utility scripts for P4OVS PTF scripts.
 
 from ptf import *
 from ptf.testutils import *
+import common.lib.local_connection as local_connection
 
 import json
 import os
@@ -110,7 +111,7 @@ def vm_create(vm_location_list, memory="512M"):
         vm_name = f"VM{i}"
         vm_list.append(vm_name)
 
-        cmd = f"(qemu-kvm -smp 2 -m {memory} \
+        cmd = f"(qemu-system-x86_64 -smp 2 -m {memory} \
 -boot c -cpu host -enable-kvm -nographic \
 -L /root/pc-bios -name VM{i} \
 -hda {vm_location_list[i]} \
@@ -197,6 +198,82 @@ def vm_to_vm_ping_drop_test(conn, dst_ip, count="4"):
         print(f"FAIL: Ping to destination {dst_ip} works with {pkt_loss}% loss")
         return False
 
+
+def vm_port_flapping(conn, config_data, result):
+    """ Read live data from telnet connection
+    :param conn: VM1 telnet instance
+    :type conn: 'obj' type
+    :param config_data: input configuration dictionary
+    :type config_data: dict
+    :param result: instance of unittest.TestResult() for test result logging
+    :type result: 'obj' type
+    :return: True or False
+    :rtype: boolean
+    """
+    ping_cmd = f"ping -w 30 {config_data['vm'][0]['remote_ip']}"
+    print(ping_cmd)
+    res = conn.sendCmd(ping_cmd)
+    if res:
+        print('Traffic started from VM1 -> VM2')
+    else:
+        result.addFailure(sys.exc_info())
+        print('failed to start ping')
+        return False
+    try:
+        down_cmd = f"ip link set {config_data['port'][1]['interface']} " \
+                   f"down"
+        up_cmd = f"ip link set {config_data['port'][1]['interface']} up"
+        lookup_string1 = f"64 bytes from {config_data['vm'][0]['remote_ip']}"
+        while True:
+            line = conn.tn.read_until(b"ms", 30).decode('utf-8')
+            print(f'{line}')
+            if lookup_string1 in line:
+                print(f'Traffic is running successfully. '
+                      f'Now bring VM2 interface down')
+                if not conn.sendCmd(down_cmd):
+                    result.addFailure(sys.exc_info())
+                    print(f'Failed to bring VM2 interface down')
+                lookup_string1 = "None"
+                sys.stdout.flush()
+                print(f'VM2 interface is down')
+            elif down_cmd in line:
+                print('No traffic is running, '
+                      'bring VM2 interface up')
+                if not conn.sendCmd(up_cmd):
+                    result.addFailure(sys.exc_info())
+                    print(f'Failed to bring VM2 interface up')
+                lookup_string1 = f"64 bytes from {config_data['vm'][0]['remote_ip']}"
+                down_cmd = "None"
+                sys.stdout.flush()
+            if lookup_string1 in line:
+                print('traffic is resumed as expected, Port flapping is '
+                      'successful')
+                return True
+    except Exception as err:
+        print(f"Read CLI output failed with error: {err}")
+        return False
+
+
+def get_port_status(interface_ip_list):
+    """Get port status using ethtool utility
+    :param interface_ip_list: list of dict; An pair of interface with IP
+    :type interface_ip_list: list [{},{}]
+    :return: True or False
+    :rtype: boolean
+    """
+    local = local_connection.Local()
+    for interface_ipv4_dict in interface_ip_list:
+        for interface, ip in interface_ipv4_dict.items():
+            cmd = f'ethtool {interface} |grep "Link detected:" |cut -d " ' \
+                  f'" -f3 '
+            out, _, err = local.execute_command(cmd)
+            out = str(out).rstrip('\n')
+            if out == "yes":
+                print(f'{interface} link detected')
+            else:
+                print(f'Failed to detect {interface}')
+                return False
+    return True
 
 def vm_create_with_hotplug(config_data, memory="512M"):
     """
