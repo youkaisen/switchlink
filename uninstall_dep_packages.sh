@@ -61,6 +61,13 @@ cd $SRC_DIR/$MODULE/build
 sudo make uninstall
 sudo ldconfig
 
+#gtest uninstall
+MODULE="googletest"
+echo "####  Uninstalling the '$MODULE' module ####"
+cd $SRC_DIR/$MODULE/build
+sudo make uninstall
+sudo ldconfig
+
 #glog uninstall
 MODULE="glog"
 echo "####  Uninstalling the '$MODULE' module ####"
