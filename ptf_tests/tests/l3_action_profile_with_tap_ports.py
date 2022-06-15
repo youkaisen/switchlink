@@ -24,7 +24,7 @@ from scapy.all import *
 import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
 from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict
-from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params, ip_set_ipv4
+from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params, ip_set_ipv4, gnmi_get_params_counter
 
 class L3_Verify_Traffic_with_Action_Profile(BaseTest):
 
@@ -83,10 +83,26 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"Failed to add table entry {match_action}")
 
+        num = self.config_data['traffic']['number_pkts'][0]
+        pktlen = self.config_data['traffic']['payload_size'][0]
+        total_octets_send = pktlen*num
+
+        send_port_id, receive_port_id = 0,1
+        #Record port counter before sending traff
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_1:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+
+        # verify whether traffic hits group-1
         # forming UDP packet
         print(f"Sending UDP packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_1']}")
-        pkt = simple_udp_packet(ip_dst = self.config_data['traffic']['in_pkt_header']['ip_dst_1'])
-        send_packet(self, port_ids[0], pkt)
+        pkt = simple_udp_packet(ip_dst = self.config_data['traffic']['in_pkt_header']['ip_dst_1'], pktlen=pktlen)
+        send_packet(self, port_ids[0], pkt,count=num)
 
         # Verify pkt recvd
         print(f"Verifying UDP packet received on {port_ids[1]}")
@@ -96,11 +112,62 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of UDP packets sent failed with exception {err}")
+  
+        #Record port counter after sending traffic
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print(f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+
+        #checking counter update
+        for each in self.config_data['traffic']['pkts_counter']:
+            if each == 'in-unicast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-unicast-pkts':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
+        
+            if update[each] >= num:
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+
+        for each in self.config_data['traffic']["octets_counter"]:
+            if each == 'in-octets':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-octets':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
+        
+            if update[each] >= total_octets_send:
+                print(f"PASS: {total_octets_send:} octets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {total_octets_send} octets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+
+        # Record TCP counter
+        send_port_id, receive_port_id = 0,1
+        #Record port counter before sending traff
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_1:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
 
         # forming TCP packet
         print(f"Sending TCP packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_1']}")
-        pkt = simple_tcp_packet(ip_dst = self.config_data['traffic']['in_pkt_header']['ip_dst_1'])
-        send_packet(self, port_ids[0], pkt)
+        pkt = simple_tcp_packet(ip_dst = self.config_data['traffic']['in_pkt_header']['ip_dst_1'], pktlen=pktlen)
+        send_packet(self, port_ids[0], pkt,count=num)
 
         # Verify pkt recvd
         print(f"Verifying TCP packet received on {port_ids[1]}")
@@ -110,11 +177,62 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of TCP packets sent failed with exception {err}")
+        
+        #Record port counter after sending traffic
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print(f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+
+        #checking counter update
+        for each in self.config_data['traffic']['pkts_counter']:
+            if each == 'in-unicast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-unicast-pkts':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
+        
+            if update[each] >= num:
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+
+        for each in self.config_data['traffic']["octets_counter"]:
+            if each == 'in-octets':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-octets':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
+        
+            if update[each] >= total_octets_send:
+                print(f"PASS: {total_octets_send:} octets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {total_octets_send} octets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+
+        #Record UDP MultiCast counter
+        send_port_id, receive_port_id = 0,2
+        #Record port counter before sending traff
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_1:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
 
         # forming UDP Multicast packet
         print(f"Sending UDP Multicast packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_2']}")
         pkt = simple_udp_packet(ip_dst = self.config_data['traffic']['in_pkt_header']['ip_dst_2'])
-        send_packet(self, port_ids[0], pkt)
+        send_packet(self, port_ids[0], pkt, count=num)
 
         # Verify pkt recvd
         print(f"Verifying UDP Multicast packet received on {port_ids[2]}")
@@ -124,13 +242,48 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of UDP Multicast packets sent failed with exception {err}")
+        
+        #Record port counter after sending traffic
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print(f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
 
+        #checking counter update
+        for each in self.config_data['traffic']['mul_pkts_counter']:
+            if each == 'in-multicast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'mul_pkts_counter':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
+
+            if update[each] >= num:
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
+
+        #Record port counter before sending traff
+        send_port_id, receive_port_id = 0,3
+        receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_1:  
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+        send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_1:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
 
         # forming UDP Broadcast packet
         print(f"Sending UDP Broadcast packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_3']}")
         pkt = simple_udp_packet(ip_dst = self.config_data['traffic']['in_pkt_header']['ip_dst_3'])
-        send_packet(self, port_ids[0], pkt)
-
+        send_packet(self, port_ids[0], pkt,count=num)
+        
         # Verify pkt recvd
         print(f"Verifying UDP Broadcast packet received on {port_ids[3]}")
         try:
@@ -139,6 +292,31 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"FAIL: Verification of UDP Broadcast packets sent failed with exception {err}")
+
+        #Record port counter after sending traffic
+        send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+        if not send_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print(f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+        receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
+        if not receive_cont_2:
+            self.result.addFailure(self, sys.exc_info())
+            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+
+        #checking counter update
+        for each in self.config_data['traffic']['brd_pkts_counter']:
+            if each == 'in-broadcast-pkts':
+                update = test_utils.compare_counter(send_cont_2,send_cont_1)
+                port = self.config_data['port'][send_port_id]['name']
+            if each == 'out-broadcast-pkts':
+                update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
+                port = self.config_data['port'][receive_port_id]['name']
+
+            if update[each] >= num:
+                print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
+            else:
+                print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
+                self.result.addFailure(self, sys.exc_info())
 
         self.dataplane.kill()
 

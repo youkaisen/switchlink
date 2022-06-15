@@ -77,6 +77,12 @@
     "ip_dst_2": "224.0.0.1",
     "ip_dst_3": "255.255.255.255"
    },
-         "out_pkt_header": []
+         "out_pkt_header": [],
+         "number_pkts": [500],
+         "payload_size": [1000],
+         "pkts_counter": ["in-unicast-pkts","out-unicast-pkts"],
+         "octets_counter": ["in-octets", "out-octets"],
+         "mul_pkts_counter": ["in-multicast-pkts","out-multicast-pkts"],
+         "brd_pkts_counter":["in-broadcast-pkts","out-broadcast-pkts"]
          }
  }     
