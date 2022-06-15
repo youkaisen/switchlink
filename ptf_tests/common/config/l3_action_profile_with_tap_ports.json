@@ -83,6 +83,7 @@
          "pkts_counter": ["in-unicast-pkts","out-unicast-pkts"],
          "octets_counter": ["in-octets", "out-octets"],
          "mul_pkts_counter": ["in-multicast-pkts","out-multicast-pkts"],
-         "brd_pkts_counter":["in-broadcast-pkts","out-broadcast-pkts"]
+         "brd_pkts_counter":["in-broadcast-pkts","out-broadcast-pkts"],
+         "count_buffer": [10]
          }
  }     

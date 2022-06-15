@@ -75,6 +75,10 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
                 'table_for_ipv4' : 'match_action'
                 }
 
+        # There would have many traffic noise when bring up port initally. Waiting for 
+        # backgroud traffic pypassing.Then it'll be more clean to count expected traffic
+        time.sleep(10)
+
         for table in self.config_data['table']:
             print(f"Scenario : l3 verify traffic with action profile : {table['description']}")
             print(f"Adding {table['description']} rules")
@@ -86,17 +90,20 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         num = self.config_data['traffic']['number_pkts'][0]
         pktlen = self.config_data['traffic']['payload_size'][0]
         total_octets_send = pktlen*num
+        # In case of background traffic noise, a small buffer is considered
+        num_buffer = num + self.config_data['traffic']['count_buffer'][0] + 1
+        octets_buffer = pktlen * num_buffer
 
         send_port_id, receive_port_id = 0,1
         #Record port counter before sending traff
         receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
         if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
         send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
         if not send_cont_1:
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
 
         # verify whether traffic hits group-1
         # forming UDP packet
@@ -117,11 +124,11 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
         if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            print(f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
         receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
         if not receive_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
         #checking counter update
         for each in self.config_data['traffic']['pkts_counter']:
@@ -132,7 +139,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
                 update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
                 port = self.config_data['port'][receive_port_id]['name']
         
-            if update[each] >= num:
+            if update[each] in range(num, num_buffer):
                 print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
             else:
                 print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
@@ -146,7 +153,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
                 update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
                 port = self.config_data['port'][receive_port_id]['name']
         
-            if update[each] >= total_octets_send:
+            if update[each] in range(total_octets_send, octets_buffer):
                 print(f"PASS: {total_octets_send:} octets expected and {update[each]} verified on {port} {each} counter")
             else:
                 print(f"FAIL: {total_octets_send} octets expected but {update[each]} verified on {port} {each} counter")
@@ -158,11 +165,11 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
         if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
         send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
         if not send_cont_1:
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
 
         # forming TCP packet
         print(f"Sending TCP packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_1']}")
@@ -182,11 +189,11 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
         if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            print(f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
         receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
         if not receive_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
         #checking counter update
         for each in self.config_data['traffic']['pkts_counter']:
@@ -197,7 +204,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
                 update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
                 port = self.config_data['port'][receive_port_id]['name']
         
-            if update[each] >= num:
+            if update[each] in range(num, num_buffer):
                 print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
             else:
                 print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
@@ -211,7 +218,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
                 update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
                 port = self.config_data['port'][receive_port_id]['name']
         
-            if update[each] >= total_octets_send:
+            if update[each] in range(total_octets_send, octets_buffer):
                 print(f"PASS: {total_octets_send:} octets expected and {update[each]} verified on {port} {each} counter")
             else:
                 print(f"FAIL: {total_octets_send} octets expected but {update[each]} verified on {port} {each} counter")
@@ -223,11 +230,11 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
         if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
         send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
         if not send_cont_1:
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
 
         # forming UDP Multicast packet
         print(f"Sending UDP Multicast packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_2']}")
@@ -247,11 +254,11 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
         if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            print(f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
         receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
         if not receive_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
         #checking counter update
         for each in self.config_data['traffic']['mul_pkts_counter']:
@@ -262,7 +269,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
                 update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
                 port = self.config_data['port'][receive_port_id]['name']
 
-            if update[each] >= num:
+            if update[each] in range(num, num_buffer):
                 print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
             else:
                 print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
@@ -273,11 +280,11 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         receive_cont_1 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
         if not receive_cont_1:  
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
         send_cont_1 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
         if not send_cont_1:
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
 
         # forming UDP Broadcast packet
         print(f"Sending UDP Broadcast packet from {port_ids[0]} to {self.config_data['traffic']['in_pkt_header']['ip_dst_3']}")
@@ -297,11 +304,11 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         send_cont_2 = gnmi_get_params_counter(self.gnmicli_params[send_port_id])
         if not send_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            print(f"FAIL: unable to get counetr of {self.config_data['port'][send_port_id]['name']}")
+            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
         receive_cont_2 = gnmi_get_params_counter(self.gnmicli_params[receive_port_id])
         if not receive_cont_2:
             self.result.addFailure(self, sys.exc_info())
-            print (f"FAIL: unable to get counetr of {self.config_data['port'][receive_port_id]['name']}")
+            print (f"FAIL: unable to get counter of {self.config_data['port'][receive_port_id]['name']}")
 
         #checking counter update
         for each in self.config_data['traffic']['brd_pkts_counter']:
@@ -312,7 +319,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
                 update = test_utils.compare_counter(receive_cont_2,receive_cont_1)
                 port = self.config_data['port'][receive_port_id]['name']
 
-            if update[each] >= num:
+            if update[each] in range(num, num_buffer):
                 print(f"PASS: {num} packets expected and {update[each]} verified on {port} {each} counter")
             else:
                 print(f"FAIL: {num} packets expected but {update[each]} verified on {port} {each} counter")
