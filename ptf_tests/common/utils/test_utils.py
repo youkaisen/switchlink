@@ -111,7 +111,7 @@ def vm_create(vm_location_list, memory="512M"):
         vm_name = f"VM{i}"
         vm_list.append(vm_name)
 
-        cmd = f"(qemu-system-x86_64 -smp 2 -m {memory} \
+        cmd = f"(qemu-kvm -smp 2 -m {memory} \
 -boot c -cpu host -enable-kvm -nographic \
 -L /root/pc-bios -name VM{i} \
 -hda {vm_location_list[i]} \
