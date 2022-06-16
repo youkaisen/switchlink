@@ -81,6 +81,22 @@ def gen_dep_files_p4c_ovs_pipeline_builder(config_data):
 
     return True
 
+def qemu_version(ver="6.1.0"):
+    """
+    To Add/Del same Hotplug mutiple times need to check qemu version >= 6.1.0.
+    Below 6.1.0  version functionality will fail.
+    """
+    local = Local()
+    cmd = f'''qemu-system-x86_64 --version | head -1 | cut -d" " -f4'''
+    print(cmd)
+
+    out, returncode, err = local.execute_command(cmd)
+    result = out.strip() >= ver
+    if result:
+        print(f"PASS: {cmd}")
+        return out.strip()
+
+    return False 
 
 def vm_create(vm_location_list, memory="512M"):
     """

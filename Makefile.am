@@ -147,6 +147,7 @@ EXTRA_DIST = \
 	ptf_tests/pre_test.sh \
 	ptf_tests/p4ovs_test_runner.py \
 	ptf_tests/tests_to_run.txt \
+	ptf_tests/tests_to_run_CI.txt \
 	ptf_tests/common/__init__.py \
 	ptf_tests/common/config/l3_exact_match_with_tap.json \
 	ptf_tests/common/config/l3_action_selector_with_tap_test2.json \
@@ -166,6 +167,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/DPDK_Hot_Plug_multi_port_test.json \
 	ptf_tests/common/config/DPDK_Hot_Plug_Remove.json \
 	ptf_tests/common/config/DPDK_Hot_Plug_Remove_Multi_port.json \
+	ptf_tests/common/config/DPDK_Hot_Plug_Add_Remove_multiple_times.json \
 	ptf_tests/common/config/show_tap_port_mtu.json \
 	ptf_tests/common/config/l3_wcm_with_link_port.json \
 	ptf_tests/common/config/max_tap_port.json \
@@ -211,6 +213,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/DPDK_Hot_Plug_multi_port_test.py \
 	ptf_tests/tests/DPDK_Hot_Plug_Remove_Multi_port.py \
 	ptf_tests/tests/DPDK_Hot_Plug_Remove.py \
+	ptf_tests/tests/DPDK_Hot_Plug_Add_Remove_multiple_times.py \
 	ptf_tests/tests/show_tap_port_mtu.py \
 	ptf_tests/tests/l3_wcm_with_link_port.py \
 	ptf_tests/tests/max_tap_port.py \
