@@ -47,40 +47,6 @@ VLOG_DEFINE_THIS_MODULE(switchlink_link);
 
 /*
  * Routine Description:
- *    Create tuntap interface
- *
- * Arguments:
- *    [in] tunp - tuntap interface info
- *
- * Return Values:
- *    void
- */
-
-static void tuntap_create(switchlink_db_tuntap_info_t *tunp) {
-  switchlink_db_status_t status;
-  switchlink_db_tuntap_info_t tunpinfo;
-
-  status = switchlink_db_tuntap_get_info(tunp->ifindex, &tunpinfo);
-  if (status == SWITCHLINK_DB_STATUS_ITEM_NOT_FOUND) {
-    // create the tuntap port
-    status = switchlink_tuntap_create(tunp, &(tunp->tunp_h));
-    if (status != 0) {
-        VLOG_ERR("newlink: Failed to create tunnel tap, error: %d\n",
-                  status);
-        return;
-    }
-    // add the mapping to the db
-    switchlink_db_tuntap_add(tunp->ifindex, tunp);
-    memcpy(&tunpinfo, tunp, sizeof(switchlink_db_tuntap_info_t));
-  } else {
-    // tuntap interface has already been created
-    // Update mac addr, if needed?
-  }
-  // update bridge and other domain for the tuntap port, as needed
-}
-
-/*
- * Routine Description:
  *    Wrapper function to create interface
  *
  * Arguments:
@@ -385,19 +351,6 @@ void process_link_msg(struct nlmsghdr *nlmsg, int type) {
 
   if (type == RTM_NEWLINK) {
     switch (link_type) {
-/*      case SWITCHLINK_LINK_TYPE_TUN:
-        if(strstr(intf_info.ifname, "TAP") != NULL) {
-          memset(&tunp, 0, sizeof(switchlink_db_tuntap_info_t));
-          ovs_strzcpy(tunp.ifname, intf_info.ifname,
-                          SWITCHLINK_INTERFACE_NAME_LEN_MAX);
-          tunp.ifindex = ifmsg->ifi_index;
-          memcpy(&(tunp.mac_addr), intf_info.mac_addr,
-                          sizeof(switchlink_mac_addr_t));
-          tunp.link_type = link_type;
-          tuntap_create(&tunp);
-        }
-        break;
-*/
       case SWITCHLINK_LINK_TYPE_BRIDGE:
       case SWITCHLINK_LINK_TYPE_BOND:
       case SWITCHLINK_LINK_TYPE_NONE:

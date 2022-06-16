@@ -164,6 +164,15 @@ switch_status_t switch_nhop_init(switch_device_t device) {
     return status;
   }
 
+  status = switch_handle_type_init(device, SWITCH_HANDLE_TYPE_ECMP_GROUP,
+                                   ECMP_HASH_TABLE_SIZE);
+
+  if (status != SWITCH_STATUS_SUCCESS) {
+    VLOG_ERR("ECMP group init Failed for device %d\n",
+                     device);
+    return status;
+  }
+
   status = switch_ecmp_member_handle_init(device);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR("ecmp member init Failed for device %d: %s\n",
@@ -197,6 +206,12 @@ switch_status_t switch_nhop_free(switch_device_t device) {
   status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_NHOP);
   if (status != SWITCH_STATUS_SUCCESS) {
     VLOG_ERR("nhop free Failed for device %d\n",
+                     device);
+  }
+
+  status = switch_handle_type_free(device, SWITCH_HANDLE_TYPE_ECMP_GROUP);
+  if (status != SWITCH_STATUS_SUCCESS) {
+    VLOG_ERR("ECMP group free Failed for device %d\n",
                      device);
   }
 
@@ -240,7 +255,7 @@ switch_status_t switch_api_nhop_handle_get(
   if (status == SWITCH_STATUS_SUCCESS) {
     *nhop_handle = nhop_info->nhop_handle;
   } else {
-    VLOG_ERR("Unable to find the entry in hashtable");
+    VLOG_DBG("Unable to find the entry in hashtable");
   }
 
   return status;
@@ -329,13 +344,13 @@ switch_status_t switch_api_ecmp_member_add (
     const switch_uint32_t num_nhops,
     const switch_handle_t *nhop_handles,
     switch_handle_t *member_handle) {
+  switch_uint32_t index = 0;
+  switch_handle_t nhop_handle = 0;
+  switch_ecmp_info_t *ecmp_info = NULL;
   switch_nhop_info_t *nhop_info = NULL;
   switch_ecmp_member_t *ecmp_member = NULL;
-  switch_handle_t ecmp_member_handle = SWITCH_API_INVALID_HANDLE;
-  switch_handle_t nhop_handle = 0;
-  switch_uint32_t index = 0;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
-  switch_ecmp_info_t *ecmp_info = NULL;
+  switch_handle_t ecmp_member_handle = SWITCH_API_INVALID_HANDLE;
 
   if (num_nhops == 0 || !nhop_handles || !ecmp_handle) {
     status = SWITCH_STATUS_INVALID_PARAMETER;
@@ -430,6 +445,7 @@ switch_status_t switch_api_ecmp_member_add (
       return status;
     }
   }
+  *member_handle = ecmp_member_handle;
   /* TODO: add the code to distribute the hash among different neighbor IDs
    * based on number of nhops here update the table for each hash-nhop entry */
   VLOG_INFO(
@@ -437,6 +453,111 @@ switch_status_t switch_api_ecmp_member_add (
       device,
       ecmp_handle,
       num_nhops);
+
+  return status;
+}
+
+switch_status_t switch_api_ecmp_delete(const switch_device_t device,
+                                       const switch_handle_t ecmp_handle) {
+  switch_uint32_t index = 0;
+  switch_node_t *node = NULL;
+  switch_uint32_t num_nhops = 0;
+  switch_handle_t *nhop_handles = NULL;
+  switch_ecmp_info_t *ecmp_info = NULL;
+  switch_ecmp_member_t *ecmp_member = NULL;
+  switch_status_t status = SWITCH_STATUS_SUCCESS;
+
+  SWITCH_ASSERT(SWITCH_ECMP_HANDLE(ecmp_handle));
+  if (!SWITCH_ECMP_HANDLE(ecmp_handle)) {
+    status = SWITCH_STATUS_INVALID_HANDLE;
+    VLOG_ERR(
+        "ecmp delete failed on device %d ecmp handle 0x%lx: "
+        "ecmp handle invalid:(%s)\n",
+        device,
+        ecmp_handle,
+        switch_error_to_string(status));
+    return status;
+  }
+
+  status = switch_ecmp_group_get(device, ecmp_handle, &ecmp_info);
+  if (status != SWITCH_STATUS_SUCCESS) {
+    VLOG_ERR(
+        "ecmp delete failed on device %d ecmp handle 0x%lx: "
+        "ecmp get failed:(%s)\n",
+        device,
+        ecmp_handle,
+        switch_error_to_string(status));
+    return status;
+  }
+
+  num_nhops = SWITCH_LIST_COUNT(&ecmp_info->members);
+
+  if (num_nhops) {
+    nhop_handles = SWITCH_MALLOC(device, sizeof(switch_handle_t), num_nhops);
+    if (!nhop_handles) {
+      status = SWITCH_STATUS_NO_MEMORY;
+      VLOG_ERR(
+          "ecmp delete failed on device %d ecmp handle 0x%lx: "
+          "memory allocation failed:(%s)\n",
+          device,
+          ecmp_handle,
+          switch_error_to_string(status));
+      return status;
+    }
+
+    FOR_EACH_IN_LIST(ecmp_info->members, node) {
+      ecmp_member = (switch_ecmp_member_t *)node->data;
+      nhop_handles[index++] = ecmp_member->nhop_handle;
+    }
+    FOR_EACH_IN_LIST_END();
+
+    status = switch_api_ecmp_member_delete(
+        device, ecmp_handle, num_nhops, nhop_handles);
+    if (status != SWITCH_STATUS_SUCCESS) {
+      VLOG_ERR(
+          "ecmp delete failed on device %d ecmp handle 0x%lx: "
+          "ecmp member delete failed:(%s)\n",
+          device,
+          ecmp_handle,
+          switch_error_to_string(status));
+      SWITCH_FREE(device, nhop_handles);
+      return status;
+    }
+    SWITCH_FREE(device, nhop_handles);
+  }
+
+  status = switch_ecmp_handle_delete(device, ecmp_handle);
+  SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
+
+  VLOG_DBG("ecmp handle deleted on device %d ecmp handle 0x%lx\n",
+                   device,
+                   ecmp_handle);
+
+  return status;
+}
+
+switch_status_t switch_api_ecmp_nhop_by_member_get(
+    const switch_device_t device,
+    const switch_handle_t ecmp_member_handle,
+    switch_handle_t *ecmp_handle,
+    switch_handle_t *nhop_handle) {
+  switch_ecmp_member_t *ecmp_member = NULL;
+  switch_status_t status = SWITCH_STATUS_SUCCESS;
+
+  SWITCH_ASSERT(SWITCH_ECMP_MEMBER_HANDLE(ecmp_member_handle));
+  status = switch_ecmp_member_get(device, ecmp_member_handle, &ecmp_member);
+  if (status != SWITCH_STATUS_SUCCESS) {
+    VLOG_ERR(
+        "ecmp member get failed on device %d "
+        "ecmp handle 0x%lx: invalid ecmp handle(%s)",
+        device,
+        ecmp_member_handle,
+        switch_error_to_string(status));
+    return status;
+  }
+
+  *ecmp_handle = ecmp_member->ecmp_handle;
+  *nhop_handle = ecmp_member->nhop_handle;
 
   return status;
 }
@@ -643,21 +764,6 @@ switch_status_t switch_api_ecmp_member_delete(
 
     status = switch_ecmp_member_handle_delete(device, member_handle);
     SWITCH_ASSERT(status == SWITCH_STATUS_SUCCESS);
-
-    if (SWITCH_NHOP_NUM_ECMP_MEMBER_REF(nhop_info) == 0) {
-      if (nhop_info->flags & SWITCH_NHOP_MARK_TO_BE_DELETED) {
-        status = switch_api_nhop_delete(device, nhop_handle);
-        if (status != SWITCH_STATUS_SUCCESS) {
-          VLOG_ERR(
-              "ecmp member delete Failed on device %d member handle 0x%lx "
-              "nhop delete Failed(%s)\n:",
-              device,
-              member_handle,
-              switch_error_to_string(status));
-          return status;
-        }
-      }
-    }
   }
 
   VLOG_INFO(
@@ -671,12 +777,12 @@ switch_status_t switch_api_ecmp_member_delete(
 
 switch_status_t switch_api_ecmp_members_delete (
     switch_device_t device, switch_handle_t ecmp_handle) {
-  switch_ecmp_info_t *ecmp_info = NULL;
-  switch_node_t *node = NULL;
-  switch_ecmp_member_t *ecmp_member = NULL;
-  switch_handle_t *nhop_handles = NULL;
-  switch_uint32_t num_nhops = 0;
   switch_uint32_t index = 0;
+  switch_uint32_t num_nhops = 0;
+  switch_node_t *node = NULL;
+  switch_ecmp_info_t *ecmp_info = NULL;
+  switch_handle_t *nhop_handles = NULL;
+  switch_ecmp_member_t *ecmp_member = NULL;
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
   SWITCH_ASSERT(SWITCH_ECMP_HANDLE(ecmp_handle));

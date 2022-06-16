@@ -172,7 +172,6 @@ switch_status_t switch_api_tunnel_term_create(
     const switch_api_tunnel_term_info_t *api_tunnel_term_info,
     switch_handle_t *tunnel_term_handle) {
     switch_status_t status = SWITCH_STATUS_SUCCESS;
-    switch_handle_t tunnel_handle;
     switch_tunnel_term_info_t *tunnel_term_info = NULL;
 
     switch_handle_t handle = SWITCH_API_INVALID_HANDLE;
@@ -186,9 +185,7 @@ switch_status_t switch_api_tunnel_term_create(
             device,
             switch_error_to_string(status));
         return status;
-     }
-
-    tunnel_handle = api_tunnel_term_info->tunnel_handle;
+    }
 
     status = switch_tunnel_term_get(device, handle, &tunnel_term_info);
     if (status != SWITCH_STATUS_SUCCESS) {

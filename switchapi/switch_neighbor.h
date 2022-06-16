@@ -76,7 +76,6 @@ typedef struct switch_neighbor_info_s {
 
 } switch_neighbor_info_t;
 
-
 switch_status_t switch_api_neighbor_attribute_get(
     const switch_device_t device,
     const switch_handle_t neighbor_handle,

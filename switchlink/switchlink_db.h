@@ -81,6 +81,14 @@ typedef struct switchlink_db_neigh_info_ {
   switchlink_mac_addr_t mac_addr;
 } switchlink_db_neigh_info_t;
 
+typedef struct switchlink_db_nexthop_info_ {
+  switchlink_handle_t vrf_h;
+  switchlink_handle_t nhop_h;
+  switchlink_handle_t intf_h;
+  switchlink_ip_addr_t ip_addr;
+  uint32_t using_by;
+} switchlink_db_nexthop_info_t;
+
 typedef struct switchlink_db_ecmp_info_ {
   switchlink_handle_t ecmp_h;
   uint8_t num_nhops;
@@ -158,6 +166,22 @@ extern switchlink_db_status_t switchlink_db_neighbor_delete(
 
 extern switchlink_db_status_t switchlink_db_neighbor_get_info(
     switchlink_db_neigh_info_t *neigh_info);
+
+/*** nexthop ***/
+extern switchlink_db_status_t switchlink_db_nexthop_add(
+    switchlink_db_nexthop_info_t *nexthop_info);
+
+extern switchlink_db_status_t switchlink_db_nexthop_delete(
+    switchlink_db_nexthop_info_t *nexthop_info);
+
+extern switchlink_db_status_t switchlink_db_nexthop_get_info(
+    switchlink_db_nexthop_info_t *nexthop_info);
+
+extern switchlink_db_status_t switchlink_db_nexthop_update_using_by(
+    switchlink_db_nexthop_info_t *nexthop_info);
+
+extern switchlink_db_status_t switchlink_db_nexthop_handle_get_info(
+    switchlink_handle_t nhop_h, switchlink_db_nexthop_info_t *nexthop_info);
 
 /*** ecmp ***/
 extern switchlink_db_status_t switchlink_db_ecmp_add(

@@ -393,6 +393,9 @@ sai_object_type_t sai_object_type_query(_In_ sai_object_id_t sai_object_id) {
     case SWITCH_HANDLE_TYPE_HASH:
       object_type = SAI_OBJECT_TYPE_HASH;
       break;
+    case SWITCH_HANDLE_TYPE_ECMP_GROUP:
+      object_type = SAI_OBJECT_TYPE_NEXT_HOP_GROUP;
+      break;
     case SWITCH_HANDLE_TYPE_BD:
     case SWITCH_HANDLE_TYPE_NEIGHBOR:
     case SWITCH_HANDLE_TYPE_RMAC:
@@ -421,7 +424,6 @@ sai_object_type_t sai_object_type_query(_In_ sai_object_id_t sai_object_id) {
     case SWITCH_HANDLE_TYPE_SR_SIDLIST:
     case SWITCH_HANDLE_TYPE_EGRESS_METER:
     case SWITCH_HANDLE_TYPE_METER_COLOR_ACTION:
-    case SWITCH_HANDLE_TYPE_ECMP_GROUP:
     case SWITCH_HANDLE_TYPE_L2_FWD_RX:
     case SWITCH_HANDLE_TYPE_L2_FWD_TX:
     case SWITCH_HANDLE_TYPE_MAX:
@@ -446,7 +448,7 @@ sai_status_t sai_initialize(void) {
 //  sai_lag_initialize(&sai_api_service);
   sai_router_interface_initialize(&sai_api_service);
   sai_next_hop_initialize(&sai_api_service);
-//  sai_next_hop_group_initialize(&sai_api_service);
+  sai_next_hop_group_initialize(&sai_api_service);
   sai_route_initialize(&sai_api_service);
   sai_virtual_router_initialize(&sai_api_service);
 //  sai_stp_initialize(&sai_api_service);

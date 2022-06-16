@@ -21,6 +21,7 @@
 #include "switch_handle.h"
 #include "switch_l3.h"
 #include "switch_rmac_int.h"
+#include "switch_nhop.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -69,19 +70,7 @@ switch_status_t switch_pd_rmac_table_entry (
     switch_handle_t rif_handle,
     bool entry_type);
 
-switch_status_t switch_pd_rif_mod_start_entry(
-    switch_device_t device,
-    switch_rmac_entry_t *rmac_entry,
-    switch_handle_t rif_handle,
-    bool entry_add);
-
-switch_status_t switch_pd_rif_mod_mid_entry(
-    switch_device_t device,
-    switch_rmac_entry_t *rmac_entry,
-    switch_handle_t rif_handle,
-    bool entry_add);
-
-switch_status_t switch_pd_rif_mod_end_entry(
+switch_status_t switch_pd_rif_mod_entry(
     switch_device_t device,
     switch_rmac_entry_t *rmac_entry,
     switch_handle_t rif_handle,
@@ -90,6 +79,9 @@ switch_status_t switch_pd_rif_mod_end_entry(
 switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
     const switch_api_route_entry_t *api_route_entry,
     bool entry_add, switch_ipv4_table_action_t action);
+
+switch_status_t switch_pd_ecmp_hash_table_entry(switch_device_t device,
+    const switch_ecmp_info_t *ecmp_info, bool entry_add);
 
 switch_status_t switch_routing_table_entry (
         switch_device_t device,

@@ -59,9 +59,9 @@
      "name": "ingress.ipv4_host",
             "type": "entry",
             "match_action": [
-                    "headers.ipv4.dst_addr=1.1.1.2,member_id=2",
-                    "headers.ipv4.dst_addr=224.0.0.1,member_id=3",
-      "headers.ipv4.dst_addr=255.255.255.255,member_id=4"
+                    "headers.ipv4.dst_addr=2.2.2.2,member_id=2",
+                    "headers.ipv4.dst_addr=224.0.0.1,member_id=2",
+                    "headers.ipv4.dst_addr=255.255.255.255,member_id=2"
             ]
   }
      ],
@@ -69,11 +69,11 @@
     "traffic": 
   {
           "type": "tcp",
-          "send_port": [0, 3],
-          "receive_port": [0, 1, 2],
+          "send_port": [0, 1],
+          "receive_port": [1, 0],
           "in_pkt_header": {
-    "ip_src": ["2.2.2.2"],
-    "ip_dst": ["1.1.1.1", "224.0.0.1", "255.255.255.255"]
+    "ip_src": ["1.1.1.1"],
+    "ip_dst": ["2.2.2.2", "224.0.0.1", "255.255.255.255"]
    },
          "out_pkt_header": []
    }

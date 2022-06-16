@@ -218,8 +218,8 @@ sai_create_tunnel(_Out_ sai_object_id_t *tunnel_id,
   }
 
   *tunnel_id = tunnel_handle;
-  VLOG_DBG("tunnel created for dest port: %d\n", tunnel_info.udp_port);
-  VLOG_ERR("Tunnel entry add, handle 0x%lx", tunnel_handle);
+  VLOG_DBG("tunnel created for dest port: %d and handle"
+           "is: 0x%lx", tunnel_info.udp_port, tunnel_handle);
 
   return status;
 }

@@ -48,7 +48,7 @@ switch_status_t switch_neighbor_init(switch_device_t device) {
                      switch_error_to_string(status));
     return status;
   }
-  
+
   status = switch_handle_type_init(
       device, SWITCH_HANDLE_TYPE_NEIGHBOR, NEIGHBOR_MOD_TABLE_SIZE);
 

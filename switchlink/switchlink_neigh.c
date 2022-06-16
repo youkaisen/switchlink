@@ -36,6 +36,26 @@ VLOG_DEFINE_THIS_MODULE(switchlink_neigh)
 
 /*
  * Routine Description:
+ *    Validate if any other feature is using this NHOP
+ *
+ * Arguments:
+ *    [in] using_by - Flag which has consolidated features using this nhop.
+ *    [in] type - Feature enum type, to be checked if this feature is the only
+ *                feature referring to this NHOP.
+ *
+ * Return Values:
+ *    true: if this NHOP can be deleted.
+ *    false: if this NHOP is referred by other features.
+ */
+
+bool
+validate_nexthop_delete(uint32_t using_by,
+                        switchlink_nhop_using_by_e type) {
+  return (using_by & ~(type)) ? false : true;
+}
+
+/*
+ * Routine Description:
  *    Delete MAC entry
  *
  * Arguments:
@@ -112,6 +132,7 @@ static void mac_create(switchlink_mac_addr_t mac_addr,
 static void neigh_delete(switchlink_handle_t vrf_h,
                          switchlink_ip_addr_t *ipaddr,
                          switchlink_handle_t intf_h) {
+  switchlink_db_nexthop_info_t nexthop_info;
   switchlink_db_neigh_info_t neigh_info;
   switchlink_db_status_t status;
 
@@ -124,10 +145,29 @@ static void neigh_delete(switchlink_handle_t vrf_h,
     return;
   }
 
+  memset(&nexthop_info, 0, sizeof(switchlink_db_nexthop_info_t));
+  nexthop_info.vrf_h = vrf_h;
+  nexthop_info.intf_h = intf_h;
+  memcpy(&(nexthop_info.ip_addr), ipaddr, sizeof(switchlink_ip_addr_t));
+
   mac_delete(neigh_info.mac_addr, g_default_bridge_h);
   VLOG_INFO("Delete a neighbor entry: 0x%x", ipaddr->ip.v4addr.s_addr);
   switchlink_neighbor_delete(&neigh_info);
   switchlink_db_neighbor_delete(&neigh_info);
+
+  status = switchlink_db_nexthop_get_info(&nexthop_info);
+  if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
+      if (validate_nexthop_delete(nexthop_info.using_by,
+                                  SWITCHLINK_NHOP_FROM_NEIGHBOR)) {
+          VLOG_DBG("Deleting nhop with neighbor delete 0x%lx", nexthop_info.nhop_h);
+          switchlink_nexthop_delete(nexthop_info.nhop_h);
+          switchlink_db_nexthop_delete(&nexthop_info);
+      } else {
+          VLOG_DBG("Removing Neighbor learn from nhop");
+          nexthop_info.using_by &= ~SWITCHLINK_NHOP_FROM_NEIGHBOR;
+          switchlink_db_nexthop_update_using_by(&nexthop_info);
+      }
+  }
 
   // delete the host route
   route_delete(g_default_vrf_h, ipaddr);
@@ -151,8 +191,10 @@ void neigh_create(switchlink_handle_t vrf_h,
                   switchlink_ip_addr_t *ipaddr,
                   switchlink_mac_addr_t mac_addr,
                   switchlink_handle_t intf_h) {
+  bool nhop_available = false;
   switchlink_db_status_t status;
   switchlink_db_neigh_info_t neigh_info;
+  switchlink_db_nexthop_info_t nexthop_info;
 
   if ((ipaddr->family == AF_INET6) &&
       IN6_IS_ADDR_MULTICAST(&(ipaddr->ip.v6addr))) {
@@ -177,17 +219,38 @@ void neigh_create(switchlink_handle_t vrf_h,
   }
 
   memcpy(neigh_info.mac_addr, mac_addr, sizeof(switchlink_mac_addr_t));
-  VLOG_INFO("Create a Nexthop entry: 0x%x", ipaddr->ip.v4addr.s_addr);
-  if (switchlink_nexthop_create(&neigh_info) == -1) {
+
+  memset(&nexthop_info, 0, sizeof(switchlink_db_nexthop_info_t));
+  nexthop_info.vrf_h = vrf_h;
+  nexthop_info.intf_h = intf_h;
+  memcpy(&(nexthop_info.ip_addr), ipaddr, sizeof(switchlink_ip_addr_t));
+
+  status = switchlink_db_nexthop_get_info(&nexthop_info);
+  if (status == SWITCHLINK_DB_STATUS_SUCCESS) {
+      nhop_available = true;
+  }
+
+  if (!nhop_available &&
+      switchlink_nexthop_create(&nexthop_info) == -1) {
     return;
   }
+
   VLOG_INFO("Create a neighbor entry: 0x%x", ipaddr->ip.v4addr.s_addr);
   if (switchlink_neighbor_create(&neigh_info) == -1) {
-    VLOG_INFO("Delete a Nexthop entry: 0x%x", ipaddr->ip.v4addr.s_addr);
-    switchlink_nexthop_delete(&neigh_info);
+    if (!nhop_available) {
+        switchlink_nexthop_delete(nexthop_info.nhop_h);
+    }
     return;
   }
+
   switchlink_db_neighbor_add(&neigh_info);
+
+  nexthop_info.using_by |= SWITCHLINK_NHOP_FROM_NEIGHBOR;
+  if (!nhop_available) {
+    switchlink_db_nexthop_add(&nexthop_info);
+  } else {
+    switchlink_db_nexthop_update_using_by(&nexthop_info);
+  }
 
   // add a host route
   route_create(g_default_vrf_h, ipaddr, ipaddr, 0, intf_h);
@@ -259,6 +322,7 @@ void process_neigh_msg(struct nlmsghdr *nlmsg, int type) {
       case NDA_DST:
         if ((nbh->ndm_state == NUD_REACHABLE) ||
             (nbh->ndm_state == NUD_PERMANENT) ||
+            (nbh->ndm_state == NUD_STALE) ||
             (nbh->ndm_state == NUD_FAILED)) {
             ipaddr_valid = true;
             ipaddr.family = nbh->ndm_family;
