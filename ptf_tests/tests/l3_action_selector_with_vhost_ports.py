@@ -30,7 +30,7 @@ from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params
 from common.lib.telnet_connection import connectionManager
 
 
-class L3_Exact_Match(BaseTest):
+class L3_Action_Selector_Vhost(BaseTest):
 
     def setUp(self):
         BaseTest.setUp(self)
@@ -48,6 +48,7 @@ class L3_Exact_Match(BaseTest):
         self.gnmicli_params = get_gnmi_params_simple(self.config_data)
 
     def runTest(self):
+
         if not test_utils.gen_dep_files_p4c_ovs_pipeline_builder(self.config_data):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to generate P4C artifacts or pb.bin")
@@ -69,24 +70,35 @@ class L3_Exact_Match(BaseTest):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"VM creation failed for {vm_name}")
       
-        
         # create telnet instance for VMs created
+        time.sleep(30)
         vm_id = 0
         for vm, port in zip(self.config_data['vm'], self.config_data['port']):
-           globals()["conn"+str(vm_id+1)] = connectionManager("127.0.0.1", f"655{vm_id}", vm['vm_username'], vm['vm_password'])
-           globals()["vm"+str(vm_id+1)+"_command_list"] = [f"ip addr add {port['ip_address']} dev {port['interface']}", f"ip link set dev {port['interface']} up", f"ip link set dev {port['interface']} address {port['mac_local']}" , f"ip route add {vm['dst_nw']} via {vm['dst_gw']} dev {port['interface']}", f"ip neigh add dev {port['interface']} {vm['remote_ip']} lladdr {vm['mac_remote']}"]
+           globals()["conn"+str(vm_id+1)] = connectionManager("127.0.0.1", f"655{vm_id}", vm['vm_username'], vm['vm_password'], timeout=30)
+           globals()["vm"+str(vm_id+1)+"_command_list"] = [f"ip addr add {port['ip']} dev {port['interface']}", f"ip link set dev {port['interface']} address {port['mac']}" , f"ip route add 0.0.0.0/0 via {vm['dst_gw']} dev {port['interface']}"]
            vm_id+=1
         
 
-        # add l3 exact match forward rules
-        for table in self.config_data['table']:
+        # add action_selector rules
+        
+        table = self.config_data['table'][0]
 
-            print(f"Scenario : {table['description']}")
-            print(f"Adding {table['description']} rules")
-            for match_action in table['match_action']:
-                if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
-                    self.result.addFailure(self, sys.exc_info())
-                    self.fail(f"Failed to add table entry {match_action}")
+        print(f"##########  Scenario : {table['description']} ##########")
+
+        print("Add action profile members")
+        for member in table['member_details']:
+            ovs_p4ctl.ovs_p4ctl_add_member_and_verify(table['switch'],table['name'],member)
+
+        print("Adding action selector groups")
+        group_count = 0
+        for group in table['group_details']:
+            ovs_p4ctl.ovs_p4ctl_add_group_and_verify(table['switch'],table['name'],group)
+            group_count+=1
+
+        print(f"Setting up rule for : {table['description']}")
+        table = self.config_data['table'][1]
+        for match_action in table['match_action']:
+            ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action)
 
         # configuring VMs
         print("Configuring VM0 ....")
@@ -95,18 +107,31 @@ class L3_Exact_Match(BaseTest):
         print("Configuring VM1 ....")
         test_utils.configure_vm(conn2, vm2_command_list)
 
-        # ping test between VMs
-        print("Ping test from VM0 to VM1")
-        result = test_utils.vm_to_vm_ping_test(conn1, self.config_data['vm'][0]['remote_ip'])
+
+        # verify whether traffic hits group-1
+        print("Verify whether traffic hits group-3 from VM0 to VM1")
+        dst_ip=self.config_data['traffic']['in_pkt_header']['ip_dst'][0]
+        result = test_utils.vm_to_vm_ping_test(conn1, dst_ip)
         if not result:
             self.result.addFailure(self, sys.exc_info())
-            print("FAIL: Ping test failed for VM0")
+            print("FAIL: Traffic test failed for group-1")
+
+        # verify whether traffic hits group-2
+        print("Verify whether traffic hits group-3 from VM0 to VM1")
+        dst_ip=self.config_data['traffic']['in_pkt_header']['ip_dst'][1]
+        result = test_utils.vm_to_vm_ping_test(conn1, dst_ip)
+        if not result:
+            self.result.addFailure(self, sys.exc_info())
+            print("FAIL: Traffic test failed for group-2")
+
+        # verify whether traffic hits group-3
+        print("Verify whether traffic hits group-3 from VM0 to VM1")
+        dst_ip=self.config_data['traffic']['in_pkt_header']['ip_dst'][2]
+        result = test_utils.vm_to_vm_ping_test(conn1, dst_ip)
+        if not result:
+            self.result.addFailure(self, sys.exc_info())
+            print("FAIL: Traffic test failed for group-3")
         
-        print("Ping test from VM1 to VM0")
-        result = test_utils.vm_to_vm_ping_test(conn2, self.config_data['vm'][1]['remote_ip'])
-        if not result:
-            self.result.addFailure(self, sys.exc_info())
-            print("FAIL: Ping test failed for VM1")
 
         # close telnet connections
         conn1.close()
@@ -115,13 +140,19 @@ class L3_Exact_Match(BaseTest):
 
     def tearDown(self):
 
-        # delete table entries
-        for table in self.config_data['table']:
-            print(f"Deleting {table['description']} rules")
-            for del_action in table['del_action']:
-                ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
+        table = self.config_data['table'][1]
 
-        if self.result.wasSuccessful():
-            print("Test has PASSED")
-        else:
-            print("Test has FAILED")
+        print(f"Deleting rules")
+        for del_action in table['del_action']:
+            ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
+
+        table = self.config_data['table'][0]
+        print("Deleting groups")
+        for del_group in table['del_group']:
+            ovs_p4ctl.ovs_p4ctl_del_group(table['switch'],table['name'],del_group)
+
+        print("Deleting members")
+        for del_member in table['del_member']:
+            ovs_p4ctl.ovs_p4ctl_del_member(table['switch'],table['name'],del_member)
+
+
