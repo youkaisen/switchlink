@@ -64,8 +64,15 @@ sudo ldconfig
 #gtest uninstall
 MODULE="googletest"
 echo "####  Uninstalling the '$MODULE' module ####"
-cd $SRC_DIR/$MODULE/build
-sudo make uninstall
+cd $SRC_DIR/
+sudo rm -rf $MODULE
+sudo ldconfig
+
+#gmock-global uninstall
+MODULE="gmock-global"
+echo "####  Removing the '$MODULE' module ####"
+cd $SRC_DIR
+sudo rm -rf $MODULE 
 sudo ldconfig
 
 #glog uninstall
