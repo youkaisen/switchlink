@@ -1,3 +1,5 @@
+//This is an example test case file with dummy function calls.
+
 #include "gmock/gmock.h"
 #include "gmock-global.h"
 #include "switchlink/switchlink_sai.c"
@@ -6,37 +8,28 @@
 
 sai_status_t mock_fdb_remove_entry( const sai_fdb_entry_t *fdb_entry)
 {
-
-	if (fdb_entry->mac_address[0] == 0xff)
-		return -1;
-	else 
-		return 0;
-
+    if (fdb_entry->mac_address[0] == 0xff)
+	return -1;
+    else 
+	return 0;
 }
 
 sai_status_t mock_fdb_create_entry( const sai_fdb_entry_t *fdb_entry)
 {
-
-        if (fdb_entry->mac_address[0] == 0xff)
-                return -1;
-        else
-                return 0;
-
+    if (fdb_entry->mac_address[0] == 0xff)
+        return -1;
+    else
+        return 0;
 }
-
 
 sai_status_t mock_vrf_create_entry( const sai_virtual_router_api_t *vrf_entry)
 {
-
-           return 0;
-
+    return 0;
 }
 
 sai_status_t mock_vrf_create_entry_2( const sai_virtual_router_api_t *vrf_entry)
 {
-
-           return -1;
-
+    return -1;
 }
 
 TEST(macdelete, case1) {

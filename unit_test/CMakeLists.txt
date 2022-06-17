@@ -5,10 +5,10 @@ project("p4ovs-unit-test")
 # These reflect the directory paths on my WSL system.
 set(P4_DRIVER "$ENV{SDE}")
 set(IPDK_OVS "$ENV{OVS}")
-set(FRAMEWORK "$ENV{SRC_FOLDER}/P4OVS_DEPS_SRC_CODE")
+set(GTEST_FRAMEWORK "$ENV{SRC_FOLDER}/P4OVS_DEPS_SRC_CODE")
 set(THIRD_PARTY "${P4_DRIVER}/third-party")
-set(GOOGLETEST "${FRAMEWORK}/googletest")
-set(GMOCK_GLOBAL "${FRAMEWORK}/gmock-global")
+set(GOOGLETEST "${GTEST_FRAMEWORK}/googletest")
+set(GMOCK_GLOBAL "${GTEST_FRAMEWORK}/gmock-global")
 set(LIBNL3 "/usr/include/libnl3")
 
 #Adding include directories
