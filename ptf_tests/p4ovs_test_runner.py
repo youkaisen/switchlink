@@ -4,13 +4,20 @@ import os
 import sys
 import datetime
 import re
+import fileinput
 
 from itertools import dropwhile
+
+def replaceAll(file,searchExp,replaceExp):
+    for line in fileinput.input(file, inplace=1):
+        if searchExp in line:
+            line = line.replace(searchExp,replaceExp)
+        sys.stdout.write(line)
 
 class MyParser(argparse.ArgumentParser):
     def print_help(self):
         print ("""
-usage: p4ovs_test_runner.py [-h] -f FILE -s P4SDE_INSTALL_PATH -o P4OVS_INSTALL_PATH [-d P4DEP_INSTALL_PATH] [-l LOG_FILE] [--verbose]
+usage: p4ovs_test_runner.py [-h] -f FILE -s P4SDE_INSTALL_PATH -o P4OVS_INSTALL_PATH [-vm VM_LOCATION_LIST] [-bdf PCI_BDF] [-d P4DEP_INSTALL_PATH] [-l LOG_FILE] [--verbose]
 
 mandatory arguments:
     -f FILE, --file FILE  Reads the test suite file default location ptf_tests/ . if kept in a different location, then mention absolute file name. This
@@ -22,6 +29,10 @@ mandatory arguments:
 
 optional arguments:
     -h, --help            show this help message and exit
+    -vm VM_LOCATION_LIST, --vm_location_list VM_LOCATION_LIST
+                        Absolute vm image location path(s) separated by comma
+    -bdf PCI_BDF, --pci_bdf PCI_BDF
+                        PCI BDF list separated by comma
     -d P4DEP_INSTALL_PATH, --p4dep_install_path P4DEP_INSTALL_PATH
                         Absolute P4OVS Dependency Install path
     -l LOG_FILE, --log_file LOG_FILE
@@ -42,6 +53,10 @@ parser.add_argument('-s', '--p4sde_install_path', type=str, required=True,
                     help="Absolute P4SDE Install path")
 parser.add_argument('-o', '--p4ovs_install_path', type=str, required=True,
                     help="Absolute P4OVS Install path")
+parser.add_argument('-vm', '--vm_location_list', type=str, required=False,
+                    help="Absolute vm image location path(s) separated by comma")
+parser.add_argument('-bdf', '--pci_bdfs', type=str, required=False,
+                    help="PCI BDF list separated by comma")
 parser.add_argument('-d', '--p4dep_install_path', type=str, required=False,
                     help="Absolute P4OVS Dependency Install path")
 parser.add_argument('-l', '--log_file', type=str, required=False,
@@ -56,6 +71,25 @@ if not args.p4dep_install_path:
 if not os.path.exists(args.file):
     print(f"File {args.file} doesn't exist")
     sys.exit()
+
+subprocess.run("cp %s %s.bkp"%(args.file,args.file), shell=True)
+# Dynamically update the tests_to_run file with the vm images
+if args.vm_location_list:
+    test_params={}
+    for k,v in enumerate(args.vm_location_list.split(',')):
+        test_params['VM'+str(k+1)]=v
+    for searchExp, replaceExp in test_params.items():
+        print(f"replacing {searchExp} with {replaceExp}")
+        replaceAll(args.file,searchExp,replaceExp)
+
+# Dynamically update the tests_to_run file with PCI BDF info
+if args.pci_bdfs:
+    test_params={}
+    for k,v in enumerate(args.pci_bdfs.split(',')):
+        test_params['VM'+str(k+1)]=v
+    for searchExp, replaceExp in test_params.items():
+        print(f"replacing {searchExp} with {replaceExp}")
+        replaceAll(args.file,searchExp,replaceExp)
 
 # Check if ptf is installed as a binary
 out = subprocess.run("ptf --help", shell=True, capture_output=True)
@@ -121,3 +155,5 @@ if args.log_file:
 
 print(summary_out)
 print(f"\n\n{cons_out}")
+print(f"Restoring {args.file}")
+subprocess.run("mv %s.bkp %s"%(args.file,args.file), shell=True)

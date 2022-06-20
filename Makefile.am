@@ -147,7 +147,6 @@ EXTRA_DIST = \
 	ptf_tests/pre_test.sh \
 	ptf_tests/p4ovs_test_runner.py \
 	ptf_tests/tests_to_run.txt \
-	ptf_tests/tests_to_run_CI.txt \
 	ptf_tests/common/__init__.py \
 	ptf_tests/common/config/l3_exact_match_with_tap.json \
 	ptf_tests/common/config/l3_action_selector_with_tap_test2.json \
