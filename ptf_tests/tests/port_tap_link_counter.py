@@ -72,7 +72,11 @@ class Tap_Link_PortCounter(BaseTest):
                 if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"Failed to add table entry {match_action}")
-        
+
+        # There would have many traffic noise when bring up port initally. Waiting for 
+        # backgroud traffic pypass.Then it's more clean to count expected traffic
+        time.sleep(10)
+
         ###########################
         #  Unicast Counter Case
         ###########################
@@ -81,7 +85,7 @@ class Tap_Link_PortCounter(BaseTest):
         total_octets_send = pktlen*num
         # in case of background traffic noise, a small buffer is considered
         num_buffer = num + self.config_data['traffic']['in_pkt_header']['count_buffer'][0] + 1
-        octets_buffer = pktlen* (num + num_buffer)
+        octets_buffer = pktlen * num_buffer
 
         print (f"Test {num} Unitcast packet from link to TAP")
         send_port_id = self.config_data['traffic']['send_port'][0]
@@ -156,7 +160,7 @@ class Tap_Link_PortCounter(BaseTest):
         total_octets_send = pktlen*num  
         # in case of background traffic noise, a small buffer is considered
         num_buffer = num + self.config_data['traffic']['in_pkt_header']['count_buffer'][0] + 1
-        octets_buffer = pktlen* (num + num_buffer)
+        octets_buffer = pktlen * num_buffer
 
         print (f"Test {num} Unitcast packet from TAP to Link")
         print (f"Record in-octets and in-unicast-pkts counter of TAP0 before sending traffic")

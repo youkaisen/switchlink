@@ -83,38 +83,51 @@ E.g. ptf --test-dir tests/ l3_exact_match_with_tap_port --pypath $PWD --test-par
 
 To run multiple tests in a suite, we need to use the script p4ovs_test_runner.py.
 
-E.g. python p4ovs_test_runner.py -f tests_to_run.txt -s /home/admin/djayakum/drop-1/P4SDE/install/ -o /home/admin/djayakum/drop-1/P4OVS  --log_file ptf_tests.log --verbose
+E.g. python p4ovs_test_runner.py -f tests_to_run.txt -s /home/admin/djayakum/drop-1/P4SDE/install/ -o /home/admin/djayakum/drop-1/P4OVS -vm /home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_1.img,/home/admin2/vm/ubuntu-20.04-server-cloudimg-amd64_2.img -bdf 0000:af:00.0,0000:af:00.1  --log_file ptf_tests.log --verbose
 
 ---
 ~ python p4ovs_test_runner.py -h
 
-usage: p4ovs_test_runner.py [-h] -f FILE -s P4SDE_INSTALL_PATH -o P4OVS_INSTALL_PATH [-d P4DEP_INSTALL_PATH] [-l LOG_FILE] [--verbose]
+usage: p4ovs_test_runner.py [-h] -f FILE -s P4SDE_INSTALL_PATH -o P4OVS_INSTALL_PATH [-vm VM_LOCATION_LIST] [-bdf PCI_BDF] [-d P4DEP_INSTALL_PATH] [-l LOG_FILE] [--verbose]
 
 
 mandatory arguments:
 
     -f FILE, --file FILE  Reads the test suite file default location ptf_tests/ . if kept in a different location, then mention absolute file name. This
+
                         file consists tests scripts to run (without .py extension) and the corresponding "test-params"
 
     -s P4SDE_INSTALL_PATH, --p4sde_install_path P4SDE_INSTALL_PATH
+
                         Absolute P4SDE Install path
 
     -o P4OVS_INSTALL_PATH, --p4ovs_install_path P4OVS_INSTALL_PATH
+
                         Absolute P4OVS Install path
+
 
 
 optional arguments:
 
     -h, --help            show this help message and exit
 
+    -vm VM_LOCATION_LIST, --vm_location_list VM_LOCATION_LIST
+
+                        Absolute vm image location path(s) separated by comma
+
+    -bdf PCI_BDF, --pci_bdf PCI_BDF
+
+                        PCI BDF list separated by comma
+
     -d P4DEP_INSTALL_PATH, --p4dep_install_path P4DEP_INSTALL_PATH
+
                         Absolute P4OVS Dependency Install path
 
     -l LOG_FILE, --log_file LOG_FILE
-                        name of the log file, by default located in ptf_tests/
-    
-    --verbose prints ptf logs in the console
 
+                        name of the log file, by default located in ptf_tests/
+
+    --verbose prints ptf logs in the console
 
 ---
 

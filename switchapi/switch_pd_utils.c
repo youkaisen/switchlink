@@ -46,7 +46,6 @@ bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
       return status;
   }
 
-  *bfrt_info_hdl_t = (bf_rt_info_hdl *)malloc(sizeof(bf_rt_info_hdl));
   status = bf_rt_info_get(device_id, pipeline_name,
                           (const bf_rt_info_hdl **)bfrt_info_hdl_t);
   if(status != BF_SUCCESS) {

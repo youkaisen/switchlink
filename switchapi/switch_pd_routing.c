@@ -67,10 +67,9 @@ switch_status_t switch_pd_nexthop_table_entry(
       return switch_pd_status_to_status(status);
   }
 
-  table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
   status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_NEXTHOP_TABLE,
                                      &table_hdl);
-  if(status != BF_SUCCESS) {
+  if(status != BF_SUCCESS || !table_hdl) {
       VLOG_ERR("Unable to get table handle for: %s, error: %d",
                 LNW_NEXTHOP_TABLE, status);
       goto dealloc_handle_session;
@@ -201,8 +200,6 @@ switch_status_t switch_pd_nexthop_table_entry(
   }
 
 dealloc_handle_session:
-  free((bf_rt_table_hdl *)table_hdl);
-  free(bfrt_info_hdl);
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -245,10 +242,9 @@ switch_status_t switch_pd_neighbor_table_entry(
       return switch_pd_status_to_status(status);
   }
 
-  table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
   status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_NEIGHBOR_MOD_TABLE,
                                        &table_hdl);
-  if(status != BF_SUCCESS) {
+  if(status != BF_SUCCESS || !table_hdl) {
       VLOG_ERR("Unable to get table handle for: %s, error: %d",
                LNW_NEIGHBOR_MOD_TABLE, status);
       goto dealloc_handle_session;
@@ -344,8 +340,6 @@ switch_status_t switch_pd_neighbor_table_entry(
   }
 
 dealloc_handle_session:
-  free((bf_rt_table_hdl *)table_hdl);
-  free(bfrt_info_hdl);
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -388,10 +382,9 @@ switch_status_t switch_pd_rif_mod_entry(
       return switch_pd_status_to_status(status);
   }
 
-  table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
   status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_RIF_MOD_TABLE,
                                      &table_hdl);
-  if(status != BF_SUCCESS) {
+  if(status != BF_SUCCESS || !table_hdl) {
       VLOG_ERR("Unable to get table handle for: %s, error: %d",
                 LNW_RIF_MOD_TABLE, status);
       goto dealloc_handle_session;
@@ -485,8 +478,6 @@ switch_status_t switch_pd_rif_mod_entry(
   }
 
 dealloc_handle_session:
-  free((bf_rt_table_hdl *)table_hdl);
-  free(bfrt_info_hdl);
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -529,10 +520,9 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
       return switch_pd_status_to_status(status);
   }
 
-  table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
   status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_IPV4_TABLE,
                                        &table_hdl);
-  if(status != BF_SUCCESS) {
+  if(status != BF_SUCCESS || !table_hdl) {
       VLOG_ERR("Unable to get table handle for: %s, error: %d",
                 LNW_IPV4_TABLE, status);
       goto dealloc_handle_session;
@@ -670,8 +660,6 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
   }
 
 dealloc_handle_session:
-  free((bf_rt_table_hdl *)table_hdl);
-  free(bfrt_info_hdl);
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
@@ -720,10 +708,9 @@ switch_status_t switch_pd_ecmp_hash_table_entry(switch_device_t device,
       return switch_pd_status_to_status(status);
   }
 
-  table_hdl = (bf_rt_table_hdl *)malloc(sizeof(bf_rt_table_hdl));
   status = bf_rt_table_from_name_get(bfrt_info_hdl, LNW_ECMP_HASH_TABLE,
                                        &table_hdl);
-  if(status != BF_SUCCESS) {
+  if(status != BF_SUCCESS || !table_hdl) {
       VLOG_ERR("Unable to get table handle for: %s, error: %d",
                 LNW_ECMP_HASH_TABLE, status);
       goto dealloc_handle_session;
@@ -847,8 +834,6 @@ switch_status_t switch_pd_ecmp_hash_table_entry(switch_device_t device,
   }
 
 dealloc_handle_session:
-  free((bf_rt_table_hdl *)table_hdl);
-  free(bfrt_info_hdl);
   status = switch_pd_deallocate_handle_session(key_hdl, data_hdl, session,
                                                entry_add);
   if(status != BF_SUCCESS) {
