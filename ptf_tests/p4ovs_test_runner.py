@@ -116,8 +116,12 @@ for test in test_to_run['sequence']:
     """
     print(f"\nRunning {test}\n")
     out, err = process.communicate(cmd.encode('utf-8'))
-    out = out.decode('utf-8')
-    print(out)
+    try:
+        out = out.decode('utf-8')
+        print(out)
+    except UnicodeDecodeError:
+        results[test]="Test has FAILED"
+        continue
     # discarding pre_test.sh logs
     results[test] = '\n'.join([x for x in list(dropwhile(lambda x: "Using packet manipulation module" not in x,
                                                          out.split('\n'))) if x])
@@ -135,10 +139,14 @@ if args.log_file:
 
 pattern = r"Test has (PASSED|FAILED)"
 for test in test_to_run['sequence']:
+    pattern_found = False
     for line in results[test].split('\n'):
         m = re.match(pattern, line)
         if m:
+            pattern_found = True
             summary.append((test, m.groups()[0]))
+    if not pattern_found:
+        summary.append((test, "FAILED"))
 
 summary_out = "\n\n"+"="*20+"\nSummary\n"+"="*20+"\n"
 for i in summary:
