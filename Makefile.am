@@ -236,6 +236,10 @@ EXTRA_DIST = \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.py \
 	ptf_tests/p4runtime_test/simple_l3/README \
 	ptf_tests/p4runtime_test/simple_l3/port_info.json \
+	unit_test/CMakeLists.txt\
+        unit_test/gtest_main.cpp\
+        unit_test/test_switchlink_sai.cpp\
+        unit_test/vlog_mock.c\
 	.mailmap
 bin_PROGRAMS =
 sbin_PROGRAMS =
