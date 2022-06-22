@@ -25,9 +25,9 @@
 sai_status_t mock_fdb_remove_entry( const sai_fdb_entry_t *fdb_entry)
 {
     if (fdb_entry->mac_address[0] == 0xff)
-	return -1;
+        return -1;
     else 
-	return 0;
+        return 0;
 }
 
 sai_status_t mock_fdb_create_entry( const sai_fdb_entry_t *fdb_entry)
