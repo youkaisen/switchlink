@@ -75,7 +75,7 @@ class L3_Exact_Match(BaseTest):
         vm_id = 0
         for vm, port in zip(self.config_data['vm'], self.config_data['port']):
            globals()["conn"+str(vm_id+1)] = connectionManager("127.0.0.1", f"655{vm_id}", vm['vm_username'], vm['vm_password'])
-           globals()["vm"+str(vm_id+1)+"_command_list"] = [f"ip addr add {port['ip_address']} dev {port['interface']}", f"ip link set dev {port['interface']} address {port['mac_local']}" , f"ip route add {vm['dst_nw']} via {vm['dst_gw']} dev {port['interface']}", f"ip neigh add dev {port['interface']} {vm['remote_ip']} lladdr {vm['mac_remote']}"]
+           globals()["vm"+str(vm_id+1)+"_command_list"] = [f"ip addr add {port['ip_address']} dev {port['interface']}", f"ip link set dev {port['interface']} up", f"ip link set dev {port['interface']} address {port['mac_local']}" , f"ip route add {vm['dst_nw']} via {vm['dst_gw']} dev {port['interface']}", f"ip neigh add dev {port['interface']} {vm['remote_ip']} lladdr {vm['mac_remote']}"]
            
            vm_id+=1
         
