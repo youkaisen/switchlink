@@ -1,6 +1,6 @@
 {
     "switch": "br0",
-    "p4file": "l3_exact_match",
+    "p4file": "l3_action_selector",
     "port": [
         {
             "id": "1",
@@ -10,9 +10,7 @@
             "pipeline-name": "pipe",
             "mempool-name": "MEMPOOL0",
             "mtu": "2000",
-            "single-cmd": "TRUE",
-            "ip": "1.1.1.1/24",
-            "mac": "00:00:01:00:00:01"
+            "single-cmd": "TRUE"
         },
         {
             "id": "2",
@@ -22,9 +20,7 @@
             "pipeline-name": "pipe",
             "mempool-name": "MEMPOOL0",
             "mtu": "1500",
-            "single-cmd": "TRUE",
-            "ip": "2.2.2.2/24",
-            "mac": "00:00:01:00:00:02"
+            "single-cmd": "TRUE"
         },
         {
             "id": "3",
@@ -49,24 +45,28 @@
     ],
     "table": [ 
         {
-            "description": "table_for_dst_ip",
+            "description": "table_action_selector_test_1",
             "switch": "br0",
-     "name": "ingress.ipv4_host_dst",
-            "type": "entry",
-            "match_action": [
-                    "headers.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)",
-                    "headers.ipv4.dst_addr=1.1.1.2,action=ingress.drop(1)"
-            ]
-   },
+            "name": "ingress.as_sl3",
+     "member_details": [
+      "action=ingress.send(0),member_id=1",
+      "action=ingress.send(1),member_id=2"
+     ],
+     "group_details": [
+      "group_id=1,reference_members=(1),max_size=128",
+      "group_id=2,reference_members=(2),max_size=128"
+     ]
+ },
         {
-            "description": "table_for_src_ip",
+            "description": "ipv4_table",
             "switch": "br0",
-            "name": "ingress.ipv4_host_src",
-            "type": "entry",
+            "name": "ingress.ipv4_host",
             "match_action": [
-                    "headers.ipv4.src_addr=1.1.1.1,action=ingress.send(0)",
-                    "headers.ipv4.src_addr=1.1.1.2,action=ingress.drop(1)"
-            ]
+                    "headers.ipv4.dst_addr=1.1.1.1,group_id=1",
+                    "headers.ipv4.dst_addr=2.2.2.2,group_id=2",
+                    "headers.ipv4.dst_addr=224.0.0.1,group_id=2",
+                    "headers.ipv4.dst_addr=255.255.255.255,group_id=2"
+     ]
  } 
      ],
 
@@ -76,16 +76,9 @@
           "send_port": [1, 0],
           "receive_port": [0, 1],
           "in_pkt_header": {
-    "ip_dst_1": "1.1.1.1",
-    "ip_dst_2": "1.1.1.2",
-    "ip_src_1": "1.1.1.1",
-                  "ip_src_2": "1.1.1.2"
+    "ip_src": ["2.2.2.2"],
+    "ip_dst": ["1.1.1.1", "224.0.0.1", "255.255.255.255"]
    },
-         "out_pkt_header": [],
-         "number_pkts": [500,3],
-         "payload_size": [1000],
-         "pkts_counter": ["in-unicast-pkts","out-unicast-pkts"],
-         "octets_counter": ["in-octets", "out-octets"],
-         "count_buffer": [10]
+         "out_pkt_header": []
          }
  }     

@@ -66,6 +66,25 @@ def gnmi_get_params_elemt_value(params, elemt):
     
     return elemt_value_list
 
+def gnmi_get_params_counter(param):
+    port_config = PortConfig()
+    results=[]
+    port_counter= dict()
+    mandatory_param = ",".join(param.split(',')[:2])
+
+    value = port_config.GNMICLI.gnmi_cli_get_counter(mandatory_param,"counters").strip()
+    for va in value.split("\n"):
+            _, counter =va.split(":")
+            results.append(counter.strip().replace('"', ''))   
+            
+    iter_rslt = iter(results)
+    for each in iter_rslt:
+         port_counter[each] = int(next(iter_rslt))
+
+    if port_counter:
+           return port_counter
+    else:
+        return False
 
 def ip_set_ipv4(interface_ip_list):
     port_config = PortConfig()
@@ -75,46 +94,3 @@ def ip_set_ipv4(interface_ip_list):
             port_config.Ip.ipaddr_ipv4_set(interface, ip)
 
     return
-
-def gnmi_get_element_value(param, element):
-
-    port_config = PortConfig()
-    result = port_config.GNMICLI.gnmi_cli_get(param, element)
-    if [x for x in result if not x]:
-        return False
-    else:
-        return result
-    port_config.GNMICLI.tear_down()
- 
-
-def get_port_mtu_linuxcli(port):
-
-    local = Local()
-    out, returncode, err = local.execute_command(f"cat /sys/class/net/" + port + "/mtu")
-    mtu_value = out
-    if returncode:
-        print(f"Failed to get MTU for " + port + " port")
-        return False 
-    else:     
-        return mtu_value
-
-def get_match_mtu_output(assigned_mtu, gnmicli_mtu, linuxcli_mtu, default_mtu, port):
-
-    if assigned_mtu.strip() == gnmicli_mtu.strip() == linuxcli_mtu.strip():
-        if default_mtu:
-             print("PASS: Port " + port + " MTU Assignment Match Expected MTU | Assigned[Default]: " + assigned_mtu.strip() + " GNMICLI: " \
-                  + gnmicli_mtu.strip()+ " LINUXCLI: " + linuxcli_mtu.strip())
-        else:
-             print("PASS: Port " + port + " MTU Assignment Match Expected MTU | Assigned: " + assigned_mtu.strip() + " GNMICLI: " \
-                  + gnmicli_mtu.strip()+ " LINUXCLI: " + linuxcli_mtu.strip())
-        return True
-    else:
-        if default_mtu:
-             print("FAIL: Port " + port + " MTU Assignment Mismatch Expected MTU |  Assigned[Default]: " + assigned_mtu.strip() + " GNMICLI: " \
-                  + gnmicli_mtu.strip() + " LINUXCLI: " + linuxcli_mtu.strip())
-        else:
-             print("FAIL: Port " + port + " MTU Assignment Mismatch Expected MTU |  Assigned: " + assigned_mtu.strip() + " GNMICLI: " \
-                  + gnmicli_mtu.strip() + " LINUXCLI: " + linuxcli_mtu.strip())
-        return False  
-
-
