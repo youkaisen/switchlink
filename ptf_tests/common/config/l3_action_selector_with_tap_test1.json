@@ -77,6 +77,11 @@
     "ip_src": ["2.2.2.2"],
     "ip_dst": ["1.1.1.1", "224.0.0.1", "255.255.255.255"]
    },
-         "out_pkt_header": []
+         "out_pkt_header": [],
+         "number_pkts": [500],
+         "payload_size": [1000],
+         "pkts_counter": ["in-unicast-pkts","out-unicast-pkts"],
+         "octets_counter": ["in-octets", "out-octets"],
+         "count_buffer": [10]
          }
  }     
