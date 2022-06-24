@@ -2,6 +2,7 @@
 
 from common.lib.local_connection import Local
 from common.lib.exceptions import ExecuteCMDException
+from common.lib.ssh import SSHParamiko
 
 
 class PortConfig(object):
@@ -64,7 +65,7 @@ class PortConfig(object):
                 print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
             return output
-        
+
         def gnmi_cli_get_counter(self, mandatory_params, key="counters"):
             """
             gnmi-cli get command
@@ -87,12 +88,27 @@ class PortConfig(object):
             pass
 
     class _IpCMD(_Common):
-        def __init__(self):
+        """
+        This class intended to have methods related to ip command only
+        """
+        def __init__(self, remote=False, hostname="", username="", passwd=""):
             """
-            Constructor Method
+            Constructor method
+            :param remote: set value to True enables remote host cmd execution
+            :type remote: boolean e.g. remote=True
+            :param hostname: remote host IP address, not required for DUT host
+            :type hostname: string e.g. 10.233.132.110
+            :param username: remote host username, not required for DUT
+            :type username: string e.g. root
+            :param passwd: remote host password, not required for DUT
+            :type passwd: string e.g. cloudsw
             """
             self.cmd_prefix = 'ip'
-            self.local = Local()
+            if remote:
+                self.connection = SSHParamiko(hostname, username, passwd)
+                self.connection.setup_ssh_connection()
+            else:
+                self.connection = Local()
 
         def iplink_enable_disable_link(self, interface, status_to_change='up'):
             """
@@ -104,7 +120,7 @@ class PortConfig(object):
             assert status_to_change == 'up' or status_to_change == 'down'
 
             cmd = self.form_cmd(f" link set {interface} {status_to_change}")
-            output, return_code, _ = self.local.execute_command(cmd)
+            output, return_code, _ = self.connection.execute_command(cmd)
             if return_code:
                 print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
@@ -122,7 +138,7 @@ class PortConfig(object):
             :return: True/False --> boolean
             """
             cmd = self.form_cmd(f" addr add {ip} dev {interface}")
-            output, return_code, _ = self.local.execute_command(cmd)
+            output, return_code, _ = self.connection.execute_command(cmd)
             if return_code:
                 print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
@@ -131,7 +147,9 @@ class PortConfig(object):
             return True
 
         def tear_down(self):
+            """ Close any open connections after use of class
+
+            :return: None
+            :rtype: None
             """
-            TBD
-            """
-            pass
+            self.connection.tear_down()

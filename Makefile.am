@@ -195,11 +195,14 @@ EXTRA_DIST = \
 	ptf_tests/common/lib/exceptions.py \
 	ptf_tests/common/lib/port_config.py \
 	ptf_tests/common/lib/telnet_connection.py \
+	ptf_tests/common/lib/ovs.py \
+	ptf_tests/common/lib/ssh.py \
 	ptf_tests/common/utils/ovsp4ctl_utils.py \
 	ptf_tests/common/utils/__init__.py \
 	ptf_tests/common/utils/test_utils.py \
 	ptf_tests/common/utils/config_file_utils.py \
 	ptf_tests/common/utils/gnmi_cli_utils.py \
+	ptf_tests/common/utils/ovs_utils.py \
 	ptf_tests/tests/l2_exact_match_with_tap_port.py \
 	ptf_tests/tests/__init.py__ \
 	ptf_tests/tests/l3_action_profile_with_tap_ports.py \
