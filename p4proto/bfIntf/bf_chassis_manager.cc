@@ -34,17 +34,17 @@ namespace hal {
 
 using namespace ::stratum::hal::barefoot;
 
-using PortStatusEvent = BfSdeInterface::PortStatusEvent;
+using PortStatusEvent = TdiSdeInterface::PortStatusEvent;
 
 ABSL_CONST_INIT absl::Mutex chassis_lock(absl::kConstInit);
 
 /* static */
-constexpr int BfChassisManager::kMaxPortStatusEventDepth;
+constexpr int TdiChassisManager::kMaxPortStatusEventDepth;
 /* static */
-constexpr int BfChassisManager::kMaxXcvrEventDepth;
+constexpr int TdiChassisManager::kMaxXcvrEventDepth;
 
-BfChassisManager::BfChassisManager(OperationMode mode,
-                                   BfSdeInterface* bf_sde_interface)
+TdiChassisManager::TdiChassisManager(OperationMode mode,
+                                   TdiSdeInterface* tdi_sde_interface)
     : mode_(mode),
       initialized_(false),
       gnmi_event_writer_(nullptr),
@@ -57,9 +57,9 @@ BfChassisManager::BfChassisManager(OperationMode mode,
       node_id_to_port_id_to_sdk_port_id_(),
       node_id_to_sdk_port_id_to_port_id_(),
       node_id_port_id_to_backend_(),
-      bf_sde_interface_(ABSL_DIE_IF_NULL(bf_sde_interface)) {}
+      tdi_sde_interface_(ABSL_DIE_IF_NULL(tdi_sde_interface)) {}
 
-BfChassisManager::BfChassisManager()
+TdiChassisManager::TdiChassisManager()
     : mode_(OPERATION_MODE_STANDALONE),
       initialized_(false),
       gnmi_event_writer_(nullptr),
@@ -72,12 +72,12 @@ BfChassisManager::BfChassisManager()
       node_id_to_port_id_to_sdk_port_id_(),
       node_id_to_sdk_port_id_to_port_id_(),
       node_id_port_id_to_backend_(),
-      bf_sde_interface_(nullptr) {}
+      tdi_sde_interface_(nullptr) {}
 
-BfChassisManager::~BfChassisManager() = default;
+TdiChassisManager::~TdiChassisManager() = default;
 
 bool
-BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
+TdiChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
                                         SetRequest::Request::Port::ValueCase config) {
 
   uint32 validate = node_id_port_id_to_backend_[node_id][port_id];
@@ -150,7 +150,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   return false;
 }
 
-::util::Status BfChassisManager::HotplugValidateAndAdd(uint64 node_id, uint32 port_id,
+::util::Status TdiChassisManager::HotplugValidateAndAdd(uint64 node_id, uint32 port_id,
                                                        const SingletonPort& singleton_port,
                                                        SetRequest::Request::Port::ValueCase change_field,
                                                        SWBackendHotplugParams params) {
@@ -257,7 +257,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   return ::util::OkStatus();
 }
 
-::util::Status BfChassisManager::ValidateAndAdd(uint64 node_id, uint32 port_id,
+::util::Status TdiChassisManager::ValidateAndAdd(uint64 node_id, uint32 port_id,
                                                 const SingletonPort& singleton_port,
                                                 SetRequest::Request::Port::ValueCase change_field) {
   auto unit = node_id_to_unit_[node_id];
@@ -390,7 +390,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   return ::util::OkStatus();
 }
 
-::util::Status BfChassisManager::AddPortHelper(
+::util::Status TdiChassisManager::AddPortHelper(
     uint64 node_id, int unit, uint32 sdk_port_id,
     const SingletonPort& singleton_port /* desired config */,
     /* out */ PortConfig* config /* new config */) {
@@ -417,7 +417,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   config->fec_mode = config_params.fec_mode();
   LOG(INFO) << "Adding port " << port_id << " in node " << node_id
             << " (SDK Port " << sdk_port_id << ").";
-  BfSdeInterface::PortConfigParams bf_sde_wrapper_config = {config->port_type,
+  TdiSdeInterface::PortConfigParams tdi_sde_wrapper_config = {config->port_type,
                                                             config->device_type,
                                                             config->packet_dir,
                                                             config->queues,
@@ -429,11 +429,11 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
                                                             config->mempool_name,
                                                             config->pci_bdf};
 
-  RETURN_IF_ERROR(bf_sde_interface_->AddPort(
+  RETURN_IF_ERROR(tdi_sde_interface_->AddPort(
 #ifdef P4TOFINO
       unit, sdk_port_id, singleton_port.speed_bps(),
 #else
-      unit, sdk_port_id, singleton_port.speed_bps(), bf_sde_wrapper_config,
+      unit, sdk_port_id, singleton_port.speed_bps(), tdi_sde_wrapper_config,
 #endif
       config_params.fec_mode()));
 
@@ -441,7 +441,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   if(config->control_port.length()) {
     LOG(INFO) << "Autocreation of Control TAP port is being triggered";
     // Packet direction for control port will always be host type
-    bf_sde_wrapper_config = {SWBackendPortType::PORT_TYPE_TAP,
+    tdi_sde_wrapper_config = {SWBackendPortType::PORT_TYPE_TAP,
                              config->device_type,
                              DEFAULT_PACKET_DIR,
                              config->queues,
@@ -457,11 +457,11 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
      * and 1:1 maps to parent-port's sdk_port_id.
      */
     uint32 sdk_ctl_port_id = SDK_PORT_CONTROL_BASE + sdk_port_id;
-    RETURN_IF_ERROR(bf_sde_interface_->AddPort(
+    RETURN_IF_ERROR(tdi_sde_interface_->AddPort(
 #ifdef P4TOFINO
         unit, sdk_ctl_port_id, singleton_port.speed_bps(),
 #else
-        unit, sdk_ctl_port_id, singleton_port.speed_bps(), bf_sde_wrapper_config,
+        unit, sdk_ctl_port_id, singleton_port.speed_bps(), tdi_sde_wrapper_config,
 #endif
         config_params.fec_mode()));
 
@@ -470,16 +470,16 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   if(config->mtu) {
     LOG(INFO) << "MTU value - config->mtu= " << *config->mtu;
     RETURN_IF_ERROR(
-        bf_sde_interface_->SetPortMtu(unit, sdk_port_id, *config->mtu));
+        tdi_sde_interface_->SetPortMtu(unit, sdk_port_id, *config->mtu));
   } else if (config_params.mtu() != 0) {
     LOG(INFO) << "MTU value - config_params.mtu= " << config_params.mtu();
     RETURN_IF_ERROR(
-        bf_sde_interface_->SetPortMtu(unit, sdk_port_id, config_params.mtu()));
+        tdi_sde_interface_->SetPortMtu(unit, sdk_port_id, config_params.mtu()));
     config->mtu = config_params.mtu();
   }
 
   if (config_params.autoneg() != TRI_STATE_UNKNOWN) {
-    RETURN_IF_ERROR(bf_sde_interface_->SetPortAutonegPolicy(
+    RETURN_IF_ERROR(tdi_sde_interface_->SetPortAutonegPolicy(
         unit, sdk_port_id, config_params.autoneg()));
   }
   config->autoneg = config_params.autoneg();
@@ -488,7 +488,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
     LOG(INFO) << "Setting port " << port_id << " to loopback mode "
               << config_params.loopback_mode() << " (SDK Port " << sdk_port_id
               << ").";
-    RETURN_IF_ERROR(bf_sde_interface_->SetPortLoopbackMode(
+    RETURN_IF_ERROR(tdi_sde_interface_->SetPortLoopbackMode(
         unit, sdk_port_id, config_params.loopback_mode()));
   }
   config->loopback_mode = config_params.loopback_mode();
@@ -496,14 +496,14 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   if (config_params.admin_state() == ADMIN_STATE_ENABLED) {
     LOG(INFO) << "Enabling port " << port_id << " in node " << node_id
               << " (SDK Port " << sdk_port_id << ").";
-    RETURN_IF_ERROR(bf_sde_interface_->EnablePort(unit, sdk_port_id));
+    RETURN_IF_ERROR(tdi_sde_interface_->EnablePort(unit, sdk_port_id));
     config->admin_state = ADMIN_STATE_ENABLED;
   }
 
   return ::util::OkStatus();
 }
 
-::util::Status BfChassisManager::HotplugPortHelper(
+::util::Status TdiChassisManager::HotplugPortHelper(
     uint64 node_id, int unit, uint32 sdk_port_id,
     const SingletonPort& singleton_port /* desired config */,
     /* out */ PortConfig* config /* new config */) {
@@ -513,7 +513,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
 
   LOG(INFO) << "Hotplugging port " << port_id << " in node " << node_id
             << " (SDK Port " << sdk_port_id << ").";
-  BfSdeInterface::HotplugConfigParams bf_sde_wrapper_config = {
+  TdiSdeInterface::HotplugConfigParams tdi_sde_wrapper_config = {
                                     config->hotplug_config.qemu_socket_port,
                                     config->hotplug_config.qemu_vm_mac_address,
                                     config->hotplug_config.qemu_socket_ip,
@@ -522,13 +522,13 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
                                     config->hotplug_config.qemu_vm_device_id,
                                     config->hotplug_config.native_socket_path,
                                     config->hotplug_config.qemu_hotplug};
-  RETURN_IF_ERROR(bf_sde_interface_->HotplugPort(
-      unit, sdk_port_id, bf_sde_wrapper_config));
+  RETURN_IF_ERROR(tdi_sde_interface_->HotplugPort(
+      unit, sdk_port_id, tdi_sde_wrapper_config));
 
   return ::util::OkStatus();
 }
 
-::util::Status BfChassisManager::UpdatePortHelper(
+::util::Status TdiChassisManager::UpdatePortHelper(
     uint64 node_id, int unit, uint32 sdk_port_id,
     const SingletonPort& singleton_port /* desired config */,
     const PortConfig& config_old /* current config */,
@@ -537,7 +537,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   // SingletonPort ID is the SDN/Stratum port ID
   uint32 port_id = singleton_port.id();
 
-  if (!bf_sde_interface_->IsValidPort(unit, sdk_port_id)) {
+  if (!tdi_sde_interface_->IsValidPort(unit, sdk_port_id)) {
     config->admin_state = ADMIN_STATE_UNKNOWN;
     config->speed_bps.reset();
     config->fec_mode.reset();
@@ -548,8 +548,8 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
 
   const auto& config_params = singleton_port.config_params();
   if (singleton_port.speed_bps() != config_old.speed_bps) {
-    RETURN_IF_ERROR(bf_sde_interface_->DisablePort(unit, sdk_port_id));
-    RETURN_IF_ERROR(bf_sde_interface_->DeletePort(unit, sdk_port_id));
+    RETURN_IF_ERROR(tdi_sde_interface_->DisablePort(unit, sdk_port_id));
+    RETURN_IF_ERROR(tdi_sde_interface_->DeletePort(unit, sdk_port_id));
 
     ::util::Status status =
         AddPortHelper(node_id, unit, sdk_port_id, singleton_port, config);
@@ -603,7 +603,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
             << " (SDK Port " << sdk_port_id << ").";
     config->mtu.reset();
     RETURN_IF_ERROR(
-        bf_sde_interface_->SetPortMtu(unit, sdk_port_id, config_params.mtu()));
+        tdi_sde_interface_->SetPortMtu(unit, sdk_port_id, config_params.mtu()));
     config->mtu = config_params.mtu();
     config_changed = true;
   }
@@ -612,14 +612,14 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
             << " changed"
             << " (SDK Port " << sdk_port_id << ").";
     config->autoneg.reset();
-    RETURN_IF_ERROR(bf_sde_interface_->SetPortAutonegPolicy(
+    RETURN_IF_ERROR(tdi_sde_interface_->SetPortAutonegPolicy(
         unit, sdk_port_id, config_params.autoneg()));
     config->autoneg = config_params.autoneg();
     config_changed = true;
   }
   if (config_params.loopback_mode() != config_old.loopback_mode) {
     config->loopback_mode.reset();
-    RETURN_IF_ERROR(bf_sde_interface_->SetPortLoopbackMode(
+    RETURN_IF_ERROR(tdi_sde_interface_->SetPortLoopbackMode(
         unit, sdk_port_id, config_params.loopback_mode()));
     config->loopback_mode = config_params.loopback_mode();
     config_changed = true;
@@ -645,20 +645,20 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   if (need_disable) {
     LOG(INFO) << "Disabling port " << port_id << " in node " << node_id
               << " (SDK Port " << sdk_port_id << ").";
-    RETURN_IF_ERROR(bf_sde_interface_->DisablePort(unit, sdk_port_id));
+    RETURN_IF_ERROR(tdi_sde_interface_->DisablePort(unit, sdk_port_id));
     config->admin_state = ADMIN_STATE_DISABLED;
   }
   if (need_enable) {
     LOG(INFO) << "Enabling port " << port_id << " in node " << node_id
               << " (SDK Port " << sdk_port_id << ").";
-    RETURN_IF_ERROR(bf_sde_interface_->EnablePort(unit, sdk_port_id));
+    RETURN_IF_ERROR(tdi_sde_interface_->EnablePort(unit, sdk_port_id));
     config->admin_state = ADMIN_STATE_ENABLED;
   }
 
   return ::util::OkStatus();
 }
 
-::util::Status BfChassisManager::PushChassisConfig(
+::util::Status TdiChassisManager::PushChassisConfig(
     const ChassisConfig& config) {
 
   // new maps
@@ -706,7 +706,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
         singleton_port_key;
 
     // Translate the logical SDN port to SDK port (BF device port ID)
-    ASSIGN_OR_RETURN(uint32 sdk_port, bf_sde_interface_->GetPortIdFromPortKey(
+    ASSIGN_OR_RETURN(uint32 sdk_port, tdi_sde_interface_->GetPortIdFromPortKey(
                                           *unit, singleton_port_key));
     node_id_to_port_id_to_sdk_port_id[node_id][port_id] = sdk_port;
     LOG(INFO) << "SDK_PORT = " << sdk_port << "for port_id = " << port_id;
@@ -745,8 +745,8 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
         // something is wrong with the port, we make sure the port is deleted
         // first (and ignore the error status if there is one), then add the
         // port again.
-        if (bf_sde_interface_->IsValidPort(unit, sdk_port_id)) {
-          bf_sde_interface_->DeletePort(unit, sdk_port_id);
+        if (tdi_sde_interface_->IsValidPort(unit, sdk_port_id)) {
+          tdi_sde_interface_->DeletePort(unit, sdk_port_id);
         }
         RETURN_IF_ERROR(
             AddPortHelper(node_id, unit, sdk_port_id, singleton_port, &config));
@@ -759,7 +759,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       // was added and the speed_bps was set.
       if (!config_old->speed_bps) {
         RETURN_ERROR(ERR_INTERNAL)
-            << "Invalid internal state in BfChassisManager, "
+            << "Invalid internal state in TdiChassisManager, "
             << "speed_bps field should contain a value";
       }
 
@@ -785,7 +785,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       // TODO(bocon): Collect these errors and keep trying to remove old ports
       LOG(INFO) << "Deleting port " << port_id << " in node " << node_id
                 << " (SDK port " << sdk_port_id << ").";
-      RETURN_IF_ERROR(bf_sde_interface_->DeletePort(unit, sdk_port_id));
+      RETURN_IF_ERROR(tdi_sde_interface_->DeletePort(unit, sdk_port_id));
     }
   }
 
@@ -805,7 +805,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   return ::util::OkStatus();
 }
 
-::util::Status BfChassisManager::VerifyChassisConfig(
+::util::Status TdiChassisManager::VerifyChassisConfig(
     const ChassisConfig& config) {
   CHECK_RETURN_IF_FALSE(config.trunk_ports_size() == 0)
       << "Trunk ports are not supported on Tofino.";
@@ -912,7 +912,7 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
     CHECK_RETURN_IF_FALSE(unit != nullptr)
         << "Node " << node_id << " not found for port " << port_id << ".";
     RETURN_IF_ERROR(
-        bf_sde_interface_->GetPortIdFromPortKey(*unit, singleton_port_key)
+        tdi_sde_interface_->GetPortIdFromPortKey(*unit, singleton_port_key)
             .status());
   }
 
@@ -938,21 +938,21 @@ BfChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
   return ::util::OkStatus();
 }
 
-::util::Status BfChassisManager::RegisterEventNotifyWriter(
+::util::Status TdiChassisManager::RegisterEventNotifyWriter(
     const std::shared_ptr<WriterInterface<GnmiEventPtr>>& writer) {
   absl::WriterMutexLock l(&gnmi_event_lock_);
   gnmi_event_writer_ = writer;
   return ::util::OkStatus();
 }
 
-::util::Status BfChassisManager::UnregisterEventNotifyWriter() {
+::util::Status TdiChassisManager::UnregisterEventNotifyWriter() {
   absl::WriterMutexLock l(&gnmi_event_lock_);
   gnmi_event_writer_ = nullptr;
   return ::util::OkStatus();
 }
 
-::util::StatusOr<const BfChassisManager::PortConfig*>
-BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
+::util::StatusOr<const TdiChassisManager::PortConfig*>
+TdiChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
   auto* port_id_to_config =
       gtl::FindOrNull(node_id_to_port_id_to_port_config_, node_id);
   CHECK_RETURN_IF_FALSE(port_id_to_config != nullptr)
@@ -964,7 +964,7 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
   return config;
 }
 
-::util::StatusOr<uint32> BfChassisManager::GetSdkPortId(uint64 node_id,
+::util::StatusOr<uint32> TdiChassisManager::GetSdkPortId(uint64 node_id,
                                                         uint32 port_id) const {
   if (!initialized_) {
     return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
@@ -983,7 +983,7 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
   return *sdk_port_id;
 }
 
-::util::Status BfChassisManager::GetTargetDatapathId(uint64 node_id,
+::util::Status TdiChassisManager::GetTargetDatapathId(uint64 node_id,
                                                      uint32 port_id,
                                                      TargetDatapathId* target_dp_id) {
   if (!initialized_) {
@@ -992,10 +992,10 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
 
   ASSIGN_OR_RETURN(auto sdk_port_id, GetSdkPortId( node_id, port_id));
   ASSIGN_OR_RETURN(auto unit, GetUnitFromNodeId(node_id));
-  return bf_sde_interface_->GetPortInfo(unit, sdk_port_id, target_dp_id);
+  return tdi_sde_interface_->GetPortInfo(unit, sdk_port_id, target_dp_id);
 }
 
-::util::StatusOr<DataResponse> BfChassisManager::GetPortData(
+::util::StatusOr<DataResponse> TdiChassisManager::GetPortData(
     const DataRequest::Request& request) {
   if (!initialized_) {
     return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
@@ -1129,7 +1129,7 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
   return resp;
 }
 
-::util::StatusOr<PortState> BfChassisManager::GetPortState(
+::util::StatusOr<PortState> TdiChassisManager::GetPortState(
     uint64 node_id, uint32 port_id) const {
   if (!initialized_) {
     return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
@@ -1153,14 +1153,14 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
             << ".";
   ASSIGN_OR_RETURN(auto sdk_port_id, GetSdkPortId(node_id, port_id));
   ASSIGN_OR_RETURN(auto port_state,
-                   bf_sde_interface_->GetPortState(unit, sdk_port_id));
+                   tdi_sde_interface_->GetPortState(unit, sdk_port_id));
   LOG(INFO) << "State of port " << port_id << " in node " << node_id
             << " (SDK port " << sdk_port_id
             << "): " << PrintPortState(port_state);
   return port_state;
 }
 
-::util::StatusOr<absl::Time> BfChassisManager::GetPortTimeLastChanged(
+::util::StatusOr<absl::Time> TdiChassisManager::GetPortTimeLastChanged(
     uint64 node_id, uint32 port_id) {
   if (!initialized_) {
     return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
@@ -1173,17 +1173,17 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
   return node_id_to_port_id_to_time_last_changed_[node_id][port_id];
 }
 
-::util::Status BfChassisManager::GetPortCounters(uint64 node_id, uint32 port_id,
+::util::Status TdiChassisManager::GetPortCounters(uint64 node_id, uint32 port_id,
                                                  PortCounters* counters) {
   if (!initialized_) {
     return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
   }
   ASSIGN_OR_RETURN(auto unit, GetUnitFromNodeId(node_id));
   ASSIGN_OR_RETURN(auto sdk_port_id, GetSdkPortId(node_id, port_id));
-  return bf_sde_interface_->GetPortCounters(unit, sdk_port_id, counters);
+  return tdi_sde_interface_->GetPortCounters(unit, sdk_port_id, counters);
 }
 
-::util::StatusOr<std::map<uint64, int>> BfChassisManager::GetNodeIdToUnitMap()
+::util::StatusOr<std::map<uint64, int>> TdiChassisManager::GetNodeIdToUnitMap()
     const {
   if (!initialized_) {
     return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
@@ -1191,7 +1191,7 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
   return node_id_to_unit_;
 }
 
-::util::Status BfChassisManager::ReplayPortsConfig(uint64 node_id) {
+::util::Status TdiChassisManager::ReplayPortsConfig(uint64 node_id) {
   if (!initialized_) {
     return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
   }
@@ -1219,17 +1219,17 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
 
     if (!config.speed_bps) {
       RETURN_ERROR(ERR_INTERNAL)
-          << "Invalid internal state in BfChassisManager, "
+          << "Invalid internal state in TdiChassisManager, "
           << "speed_bps field should contain a value";
     }
     if (!config.fec_mode) {
       RETURN_ERROR(ERR_INTERNAL)
-          << "Invalid internal state in BfChassisManager, "
+          << "Invalid internal state in TdiChassisManager, "
           << "fec_mode field should contain a value";
     }
 
     ASSIGN_OR_RETURN(auto sdk_port_id, GetSdkPortId(node_id, port_id));
-    RETURN_IF_ERROR(bf_sde_interface_->AddPort(
+    RETURN_IF_ERROR(tdi_sde_interface_->AddPort(
         unit, sdk_port_id, *config.speed_bps, *config.fec_mode));
     config_new->speed_bps = *config.speed_bps;
     config_new->admin_state = ADMIN_STATE_DISABLED;
@@ -1237,16 +1237,16 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
 
     if (config.mtu) {
       RETURN_IF_ERROR(
-          bf_sde_interface_->SetPortMtu(unit, sdk_port_id, *config.mtu));
+          tdi_sde_interface_->SetPortMtu(unit, sdk_port_id, *config.mtu));
       config_new->mtu = *config.mtu;
     }
     if (config.autoneg) {
-      RETURN_IF_ERROR(bf_sde_interface_->SetPortAutonegPolicy(unit, sdk_port_id,
+      RETURN_IF_ERROR(tdi_sde_interface_->SetPortAutonegPolicy(unit, sdk_port_id,
                                                               *config.autoneg));
       config_new->autoneg = *config.autoneg;
     }
     if (config.loopback_mode) {
-      RETURN_IF_ERROR(bf_sde_interface_->SetPortLoopbackMode(
+      RETURN_IF_ERROR(tdi_sde_interface_->SetPortLoopbackMode(
           unit, sdk_port_id, *config.loopback_mode));
       config_new->loopback_mode = *config.loopback_mode;
     }
@@ -1254,7 +1254,7 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
     if (config.admin_state == ADMIN_STATE_ENABLED) {
       VLOG(1) << "Enabling port " << port_id << " in node " << node_id
               << " (SDK port " << sdk_port_id << ").";
-      RETURN_IF_ERROR(bf_sde_interface_->EnablePort(unit, sdk_port_id));
+      RETURN_IF_ERROR(tdi_sde_interface_->EnablePort(unit, sdk_port_id));
       config_new->admin_state = ADMIN_STATE_ENABLED;
     }
 
@@ -1274,14 +1274,14 @@ BfChassisManager::GetPortConfig(uint64 node_id, uint32 port_id) const {
   return status;
 }
 
-std::unique_ptr<BfChassisManager> BfChassisManager::CreateInstance(
+std::unique_ptr<TdiChassisManager> TdiChassisManager::CreateInstance(
     OperationMode mode,
-    BfSdeInterface* bf_sde_interface) {
+    TdiSdeInterface* tdi_sde_interface) {
   return absl::WrapUnique(
-      new BfChassisManager(mode, bf_sde_interface));
+      new TdiChassisManager(mode, tdi_sde_interface));
 }
 
-::util::StatusOr<int> BfChassisManager::GetUnitFromNodeId(
+::util::StatusOr<int> TdiChassisManager::GetUnitFromNodeId(
     uint64 node_id) const {
   if (!initialized_) {
     return MAKE_ERROR(ERR_NOT_INITIALIZED) << "Not initialized!";
@@ -1293,7 +1293,7 @@ std::unique_ptr<BfChassisManager> BfChassisManager::CreateInstance(
   return *unit;
 }
 
-void BfChassisManager::CleanupInternalState() {
+void TdiChassisManager::CleanupInternalState() {
   unit_to_node_id_.clear();
   node_id_to_unit_.clear();
   node_id_to_port_id_to_port_state_.clear();
@@ -1305,7 +1305,7 @@ void BfChassisManager::CleanupInternalState() {
   node_id_port_id_to_backend_.clear();
 }
 
-::util::Status BfChassisManager::Shutdown() {
+::util::Status TdiChassisManager::Shutdown() {
   ::util::Status status = ::util::OkStatus();
   {
     absl::ReaderMutexLock l(&chassis_lock);

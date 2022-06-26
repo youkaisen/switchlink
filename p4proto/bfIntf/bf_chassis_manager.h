@@ -96,9 +96,9 @@ using namespace ::stratum::hal::barefoot;
 // Lock which protects chassis state across the entire switch.
 extern absl::Mutex chassis_lock;
 
-class BfChassisManager {
+class TdiChassisManager {
  public:
-  virtual ~BfChassisManager();
+  virtual ~TdiChassisManager();
 
   virtual ::util::Status PushChassisConfig(const ChassisConfig& config)
       EXCLUSIVE_LOCKS_REQUIRED(chassis_lock);
@@ -140,9 +140,9 @@ class BfChassisManager {
       SHARED_LOCKS_REQUIRED(chassis_lock);
 
   // Factory function for creating the instance of the class.
-  static std::unique_ptr<BfChassisManager> CreateInstance(
+  static std::unique_ptr<TdiChassisManager> CreateInstance(
       OperationMode mode,
-      BfSdeInterface* bf_sde_interface);
+      TdiSdeInterface* tdi_sde_interface);
 
   bool ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
                              SetRequest::Request::Port::ValueCase config);
@@ -156,22 +156,22 @@ class BfChassisManager {
                                        SetRequest::Request::Port::ValueCase change_field,
                                        SWBackendHotplugParams params);
 
-  // BfChassisManager is neither copyable nor movable.
-  BfChassisManager(const BfChassisManager&) = delete;
-  BfChassisManager& operator=(const BfChassisManager&) = delete;
-  BfChassisManager(BfChassisManager&&) = delete;
-  BfChassisManager& operator=(BfChassisManager&&) = delete;
+  // TdiChassisManager is neither copyable nor movable.
+  TdiChassisManager(const TdiChassisManager&) = delete;
+  TdiChassisManager& operator=(const TdiChassisManager&) = delete;
+  TdiChassisManager(TdiChassisManager&&) = delete;
+  TdiChassisManager& operator=(TdiChassisManager&&) = delete;
 
 
  protected:
   // Default constructor. To be called by the Mock class instance only.
-  BfChassisManager();
+  TdiChassisManager();
 
  private:
   // ReaderArgs encapsulates the arguments for a Channel reader thread.
   template <typename T>
   struct ReaderArgs {
-    BfChassisManager* manager;
+    TdiChassisManager* manager;
     std::unique_ptr<ChannelReader<T>> reader;
   };
 
@@ -226,8 +226,8 @@ class BfChassisManager {
 
   // Private constructor. Use CreateInstance() to create an instance of this
   // class.
-  BfChassisManager(OperationMode mode,
-                   BfSdeInterface* bf_sde_interface);
+  TdiChassisManager(OperationMode mode,
+                   TdiSdeInterface* tdi_sde_interface);
 
   ::util::StatusOr<const PortConfig*> GetPortConfig(uint64 node_id,
                                                     uint32 port_id) const
@@ -251,17 +251,17 @@ class BfChassisManager {
   // deletes the pointers.
   void CleanupInternalState() EXCLUSIVE_LOCKS_REQUIRED(chassis_lock);
 
-  // helper to add / configure / enable a port with BfSdeInterface
+  // helper to add / configure / enable a port with TdiSdeInterface
   ::util::Status AddPortHelper(uint64 node_id, int unit, uint32 port_id,
                                const SingletonPort& singleton_port,
                                PortConfig* config);
 
-  // helper to hotplug add / delete a port with BfSdeInterface
+  // helper to hotplug add / delete a port with TdiSdeInterface
   ::util::Status HotplugPortHelper(uint64 node_id, int unit, uint32 port_id,
                                    const SingletonPort& singleton_port,
                                    PortConfig* config);
 
-  // helper to update port configuration with BfSdeInterface
+  // helper to update port configuration with TdiSdeInterface
   ::util::Status UpdatePortHelper(uint64 node_id, int unit, uint32 port_id,
                                   const SingletonPort& singleton_port,
                                   const PortConfig& config_old,
@@ -301,8 +301,8 @@ class BfChassisManager {
       node_id_to_port_id_to_time_last_changed_ GUARDED_BY(chassis_lock);
 
   // Map from node ID to another map from port ID to port configuration.
-  // We may change this once missing "get" methods get added to BfSdeInterface,
-  // as we would be able to rely on BfSdeInterface to query config parameters,
+  // We may change this once missing "get" methods get added to TdiSdeInterface,
+  // as we would be able to rely on TdiSdeInterface to query config parameters,
   // instead of maintaining a "consistent" view in this map.
   std::map<uint64, std::map<uint32, PortConfig>>
       node_id_to_port_id_to_port_config_ GUARDED_BY(chassis_lock);
@@ -329,10 +329,10 @@ class BfChassisManager {
   std::map<uint64, std::map<uint32, uint32>> node_id_port_id_to_backend_
       GUARDED_BY(chassis_lock);
 
-  // Pointer to a BfSdeInterface implementation that wraps all the SDE calls.
-  BfSdeInterface* bf_sde_interface_;  // not owned by this class.
+  // Pointer to a TdiSdeInterface implementation that wraps all the SDE calls.
+  TdiSdeInterface* tdi_sde_interface_;  // not owned by this class.
 
-  friend class BfChassisManagerTest;
+  friend class TdiChassisManagerTest;
 };
 
 //}  // namespace barefoot
