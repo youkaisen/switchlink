@@ -94,3 +94,35 @@ def ip_set_ipv4(interface_ip_list):
             port_config.Ip.ipaddr_ipv4_set(interface, ip)
 
     return
+
+def gnmi_get_element_value(param, element):
+    """
+    : Get value of an element from output of gnmi cli query and verify 
+    : return: value in integer / string or Boolean False
+
+    """
+    port_config = PortConfig()
+    result = port_config.GNMICLI.gnmi_cli_get(param, element)
+    if [x for x in result if not x]:
+        return False
+    else:
+        return result
+    port_config.GNMICLI.tear_down()
+
+def get_port_mtu_linuxcli(port):
+    """
+    : Get MTU value from linux cli for a port / interface
+    : return: value in integer or Boolean False
+
+    """
+    local = Local()
+    mtu_value, returncode, err = local.execute_command(f"cat /sys/class/net/" + port + "/mtu")
+    if returncode:
+        print(f"Failed to get MTU for " + port + " port")
+        return False
+    else:
+        return mtu_value
+
+
+
+
