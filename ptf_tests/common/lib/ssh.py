@@ -5,7 +5,7 @@ from paramiko.ssh_exception import BadHostKeyException, AuthenticationException,
     SSHException
 
 
-class SSHParamiko:
+class Ssh:
     """
     Implements SSH functionality in python with help of paramiko
     module
