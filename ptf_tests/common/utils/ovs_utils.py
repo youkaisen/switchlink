@@ -5,7 +5,7 @@ This lib makes use of functions from library common/lib/ovs.py.
 """
 
 from common.lib.local_connection import Local
-from common.lib.ssh import SSHParamiko
+from common.lib.ssh import Ssh
 from common.lib.ovs import Ovs
 
 
@@ -25,7 +25,7 @@ def get_connection_object(remote=False, hostname="", username="", passwd=""):
     :rtype: Object e.g. connection
     """
     if remote:
-        connection = SSHParamiko(hostname, username, passwd)
+        connection = Ssh(hostname, username, passwd)
         connection.setup_ssh_connection()
     else:
         connection = Local()
@@ -45,8 +45,97 @@ def get_ovsctl_version(remote=False, hostname="", username="", passwd=""):
     # Close connection
     connection.tear_down()
 
+def add_bridge_to_ovs(bridge_name, remote=False, hostname="", username="",
+                      passwd=""):
+    """ Add bridge to ovs
+
+    :param bridge_name: name of the bridge to add
+    :type bridge_name: string e.g. br-int
+    :param remote: set value to True enables remote host cmd execution
+    :type remote: boolean e.g. remote=True
+    :param hostname: remote host IP address, not required for DUT host
+    :type hostname: string e.g. 10.233.132.110
+    :param username: remote host username, not required for DUT
+    :type username: string e.g. root
+    :param passwd: remote host password, not required for DUT
+    :type passwd: string e.g. cloudsw
+    :return: None
+    :rtype: None
+    """
+    # Establish connection with local/remote host
+    connection = get_connection_object(remote, hostname, username, passwd)
+    ovs = Ovs(connection)
+    # Execute needed ovs command
+    out, rcode, err = ovs.vsctl.add_br(bridge_name)
+    if rcode:
+        print(f'failed to add bridge to ovs, error is:{err}'
+              f'Please try again, exiting script')
+        sys.exit(1)
+    else:
+        print('Successfully added bridge to ovs')
+    # Close connection
+    connection.tear_down()
 
 
+def ovs_bridge_up(bridge_name, remote=False, hostname="", username="",
+                  password=""):
+    """ Make ovs bridge up and running
+
+    :param bridge_name: name of the bridge to make up
+    :type bridge_name: string e.g. br-int
+    :param remote: set value to True enables remote host cmd execution
+    :type remote: boolean e.g. remote=True
+    :param hostname: remote host IP address, not required for DUT host
+    :type hostname: string e.g. 10.233.132.110
+    :param username: remote host username, not required for DUT
+    :type username: string e.g. root
+    :param password: remote host password, not required for DUT
+    :type password: string e.g. cloudsw
+    :return: None
+    :rtype: None
+    """
+    pc = port_config.PortConfig(remote, hostname, username, password)
+    pc.Ip.iplink_enable_disable_link(bridge_name)
+    print(f'bridge {bridge_name} is UP')
 
 
+def add_vxlan_port_to_ovs(bridge, port, local_ip, remote_ip, dst_port,
+                          remote=False, hostname="", username="", password=""):
+    """Add vxlan port to ovs bridge
 
+    :param bridge: Name of the bridge
+    :type bridge: string e.g. br-int
+    :param port:  name of vxlan port to add
+    :type port: string e.g. vxlan1
+    :param local_ip: local tunnel IP
+    :type local_ip: string e.g. 40.1.1.1
+    :param remote_ip: remote tunnel IP
+    :type remote_ip: string e.g. 40.1.1.2
+    :param dst_port: dst vxlan port
+    :type dst_port: integer e.g. 4789
+    :param remote: set value to True enables remote host cmd execution
+    :type remote: boolean e.g. remote=True
+    :param hostname: remote host IP address, not required for DUT host
+    :type hostname: string e.g. 10.233.132.110
+    :param username: remote host username, not required for DUT
+    :type username: string e.g. root
+    :param password: remote host password, not required for DUT
+    :type password: string e.g. cloudsw
+    :return: None
+    :rtype: None
+    """
+
+    # Establish connection with local/remote host
+    connection = get_connection_object(remote, hostname, username, password)
+    ovs = Ovs(connection)
+    # Execute needed ovs command
+    out, rcode, err = ovs.vsctl.add_port_vxlan_type(bridge, port, local_ip,
+                                                    remote_ip, dst_port)
+    if rcode:
+        print(f'failed to add vxlan port to ovs, error is:{err}'
+              f'Please try again, exiting script')
+        sys.exit(1)
+    else:
+        print('Successfully added vxlan port to ovs')
+    # Close connection
+    connection.tear_down()
