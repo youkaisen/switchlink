@@ -147,6 +147,27 @@ class PortConfig(object):
 
             print(f"PASS: {cmd}")
             return True
+        
+        def iplink_add_vlan_port(self, id, name, netdev_port):
+            """ Method to add vlan port to given netdev port
+
+            :param id: vlan id
+            :type id: integer e.g. 1
+            :param name: name of vlan port to add
+            :type name: string e.g. vlan1
+            :param netdev_port: name of netdev where vlan ports to be added
+            :type netdev_port: string e.g. TAP0
+            :return: exit status
+            :rtype: boolean e.g. True on success, script exits on failure
+            """
+            cmd = self.form_cmd(f" link add link {netdev_port} name {name} "
+                                f"type vlan id {id}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
 
         def tear_down(self):
             """ Close any open connections after use of class
