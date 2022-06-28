@@ -2,16 +2,17 @@
 
 from common.lib.local_connection import Local
 from common.lib.exceptions import ExecuteCMDException
-from common.lib.ssh import SSHParamiko
+from common.lib.ssh import Ssh
 
 
 class PortConfig(object):
-    def __init__(self):
+    def __init__(self, remote=False, hostname="", username="", passwd=""):
         """
         Constructor method
         """
         self.GNMICLI = self._GNMICLI()
-        self.Ip = self._IpCMD()
+        self.Ip = self._IpCMD(remote = remote, hostname = hostname , username
+        = username, passwd = passwd)
 
     class _Common(object):
         cmd_prefix = None
@@ -105,7 +106,8 @@ class PortConfig(object):
             """
             self.cmd_prefix = 'ip'
             if remote:
-                self.connection = SSHParamiko(hostname, username, passwd)
+                self.connection = Ssh(hostname=hostname, username=username,
+                                      passwrd=passwd)
                 self.connection.setup_ssh_connection()
             else:
                 self.connection = Local()
