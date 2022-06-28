@@ -168,6 +168,22 @@ class PortConfig(object):
                                           f'an error {err}')
             print(f"PASS: {cmd}")
             return True
+            
+        def iplink_del_port(self, port_to_delete):
+            """ This method is used to delete any port including vlan type
+            
+            :param port_to_delete: name of port to delete
+            :type port_to_delete: string e.g. vlan1
+            :return: exit status
+            :rtype: True on success, script exits on failure
+            """
+            cmd = self.form_cmd(f" link del {port_to_delete}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
 
         def tear_down(self):
             """ Close any open connections after use of class
