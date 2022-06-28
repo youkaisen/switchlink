@@ -85,6 +85,29 @@ class Ovs(object):
             """
             cmd = self.form_cmd(f"add-port {bridge} {port}")
             return self.connection.execute_command(cmd)
+        
+        def add_port_vxlan_type(self, bridge, port, local_ip, remote_ip,
+                                dst_port):
+            """
+            
+            :param bridge: Name of the bridge
+            :type bridge: string e.g. br-int
+            :param port:  name of vxlan port to add
+            :type port: string e.g. vxlan1
+            :param local_ip: local tunnel IP
+            :type local_ip: string e.g. 40.1.1.1
+            :param remote_ip: remote tunnel IP
+            :type remote_ip: string e.g. 40.1.1.2
+            :param dst_port: dst vxlan port
+            :type dst_port: integer e.g. 4789
+            :return: it returns cmd output, error code, and error
+            :rtype: tuple e.g. out, e_code, err
+            """
+            cmd = self.form_cmd(f"add-port {bridge} {port} -- set interface "
+                                f"{port} type=vxlan options:local_ip={local_ip}"
+                                f" options:remote_ip={remote_ip}"
+                                f" options:dst_port={dst_port}")
+            return self.connection.execute_command(cmd)
 
         def del_port(self, bridge, port):
             """Delete given port on bridge
