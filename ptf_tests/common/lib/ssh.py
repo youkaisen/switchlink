@@ -110,35 +110,6 @@ class Ssh:
             print(f"Error log:\n{errors}")
             return self.string_buffer, -1, errors
 
-    def execute_command_get_exit_status(self, cmd):
-        """ To execute remote server cmd and return on status
-
-        :param cmd: Remote cmd to execute
-        :type cmd: string
-        :return: 0 on success, -1 on failure
-        :rtype: integer
-        """
-        try:
-            chan = self.ssh_client.get_transport().open_session()
-            chan.exec_command(cmd)
-            """
-            key = True
-            while key:
-                if chan.exit_status_ready():
-                    status = chan.recv_exit_staus()
-                    print(f'Exit status:{status}')
-                    return status
-            return -1
-            """
-            """If the command hasn’t finished yet, below method will wait 
-               until it does, or until the channel is closed. 
-               If no exit status is provided by the server, -1 is returned"""
-            return chan.recv_exit_status()
-        except SSHException as E:
-            print(f"Request is rejected or session ends prematurely\n"
-                  f"Error logs:{E}")
-            return -1
-
     def tear_down(self):
         """Close current SSH session with remote machine
 
