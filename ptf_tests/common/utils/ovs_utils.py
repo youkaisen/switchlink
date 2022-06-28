@@ -59,22 +59,23 @@ def add_bridge_to_ovs(bridge_name, remote=False, hostname="", username="",
     :type username: string e.g. root
     :param passwd: remote host password, not required for DUT
     :type passwd: string e.g. cloudsw
-    :return: None
-    :rtype: None
+    :return: exit status
+    :rtype: boolean e.g. True on success or False on failure
     """
     # Establish connection with local/remote host
     connection = get_connection_object(remote, hostname, username, passwd)
     ovs = Ovs(connection)
     # Execute needed ovs command
     out, rcode, err = ovs.vsctl.add_br(bridge_name)
-    if rcode:
-        print(f'failed to add bridge to ovs, error is:{err}'
-              f'Please try again, exiting script')
-        sys.exit(1)
-    else:
-        print('Successfully added bridge to ovs')
     # Close connection
     connection.tear_down()
+    # work on output data
+    if rcode:
+        print(f'failed to add bridge to ovs, error is:{err}')
+        return False
+    else:
+        print('Successfully added bridge to ovs')
+        return True
 
 
 def ovs_bridge_up(bridge_name, remote=False, hostname="", username="",
@@ -121,8 +122,8 @@ def add_vxlan_port_to_ovs(bridge, port, local_ip, remote_ip, dst_port,
     :type username: string e.g. root
     :param password: remote host password, not required for DUT
     :type password: string e.g. cloudsw
-    :return: None
-    :rtype: None
+    :return: exit status
+    :rtype: boolean e.g. True on success or False on failure
     """
 
     # Establish connection with local/remote host
@@ -131,14 +132,15 @@ def add_vxlan_port_to_ovs(bridge, port, local_ip, remote_ip, dst_port,
     # Execute needed ovs command
     out, rcode, err = ovs.vsctl.add_port_vxlan_type(bridge, port, local_ip,
                                                     remote_ip, dst_port)
-    if rcode:
-        print(f'failed to add vxlan port to ovs, error is:{err}'
-              f'Please try again, exiting script')
-        sys.exit(1)
-    else:
-        print('Successfully added vxlan port to ovs')
     # Close connection
     connection.tear_down()
+    # work on output data
+    if rcode:
+        print(f'failed to add vxlan port to ovs, error is:{err}')
+        return False
+    else:
+        print('Successfully added vxlan port to ovs')
+        return True
 
 
 def del_port_from_ovs(bridge, port_to_delete, remote=False, hostname="", 
@@ -157,8 +159,8 @@ def del_port_from_ovs(bridge, port_to_delete, remote=False, hostname="",
     :type username: string e.g. root
     :param password: remote host password, not required for DUT
     :type password: string e.g. cloudsw
-    :return: None
-    :rtype: None
+    :return: exit status
+    :rtype: boolean e.g. True on success or False on failure
     """
 
     # Establish connection with local/remote host
@@ -166,11 +168,12 @@ def del_port_from_ovs(bridge, port_to_delete, remote=False, hostname="",
     ovs = Ovs(connection)
     # Execute needed ovs command
     out, rcode, err = ovs.vsctl.del_port(bridge, port_to_delete)
-    if rcode:
-        print(f'failed to delete port from ovs, error is:{err}'
-              f'Please try again, exiting script')
-        sys.exit(1)
-    else:
-        print(f'Successfully delete {port_to_delete} port from ovs')
     # Close connection
     connection.tear_down()
+    # work on output data
+    if rcode:
+        print(f'failed to delete port from ovs, error is:{err}')
+        return False
+    else:
+        print(f'Successfully delete {port_to_delete} port from ovs')
+        return True
