@@ -5,9 +5,11 @@ import json
 import os
 
 
-def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
-    """
-    util function to convert json config file to dictionary
+def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred="",
+                    client_cred=""):
+    """util function to convert json config file to dictionary and to add
+       extra needed config parameters to dictionary
+
     expected directory structure:
     P4OVS
     |
@@ -16,16 +18,34 @@ def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
         |
         ---- common
         |   |
-            | ---- config (JSON files)
-            | ----- lib (gnmi, p4-ovsctl)
-            | ----- utils ( parse jason, send/verify traffic, port config, vm support etc)
-        | -----exact-match.py
-        | -----action-selector.py
-        | -----port-types.py
-        | -----hot-plug.py
-    :param config_json: config json file name
+        |    | ---- config (JSON files)
+        |    | ----- lib (gnmi, p4-ovsctl)
+        |    | ----- utils ( parse jason, send/verify traffic, port config,
+        |             vm support etc)
+        |---- tests
+              | -----exact-match.py
+              | -----action-selector.py
+             | -----port-types.py
+             | -----hot-plug.py
+
+    :param config_json:
+    :param pci_bdf:
     :return: dictionary --> 'data'
+
+    :param config_json: config json file name
+    :type config_json: string e.g. "l2_exact_match_with_tap.json"
+    :param pci_bdf: phy links bdf list
+    :type pci_bdf: string e.g. '0000:5e:00.0,0000:00:5e.1'
+    :param vm_location_list: complete path of vms needed
+    :type vm_location_list: string e.g. '/home/VM/vm1.img,/home/VM/vm2.img'
+    :param vm_cred: VM login credentials
+    :type vm_cred: string
+    :param client_cred: Remote host login credentials
+    :type client_cred: string e.g. 'hostname,username,password'
+    :return: all configuration data needed
+    :rtype: dictionary
     """
+
     config_json = os.sep.join([os.getcwd(), 'common', 'config', config_json])
 
     with open(config_json) as config_json:
@@ -41,23 +61,28 @@ def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
         if pci_bdf:
             pci_bdf = [x.strip() for x in pci_bdf.split(',')]
             if len(pci_bdf)>len(data['port_list']):
-                print(f"No of pci bdf must be equal to or less than the no of ports defined in the config json file: {len(data['port_list'])}")
+                print(f"No of pci bdf must be equal to or less than the no of "
+                      f"ports defined in the config json file: "
+                      f"{len(data['port_list'])}")
                 return None
 
             for port in data['port']:
                 for pci in pci_bdf:
-                    if pci and \
-                            str(pci_bdf.index(pci)+1) == port['id']:
-                                if port['device']=='physical-device':
-                                    port['pci-bdf'] = pci
-                                else:
-                                    print(f"Port no {port['id']} expected device type as physical-device found {port['device']} instead")
-                                    return None
+                    if pci and str(pci_bdf.index(pci)+1) == port['id']:
+                        if port['device']=='physical-device':
+                            port['pci-bdf'] = pci
+                        else:
+                            print(f"Port no {port['id']} expected device type "
+                                  f"as physical-device found {port['device']} "
+                                  f"instead")
+                            return None
         if vm_location_list:
             vm_location_list = [x.strip() for x in vm_location_list.split(',')]
-            # Check if no of vms mentioned in json matched with the no mentioned in cli
+            # Check if no of vms added in json file matches with the no of vms
+            # passed in cli
             if len(vm_location_list) != len(data['vm']):
-                print("Mismatch in number of vms mentioned in json to the number of vm images mentioned in cli args")
+                print("Mismatch in number of vms mentioned in json to the "
+                      "number of vm images mentioned in cli args")
                 return None
             data['vm_location_list'] = vm_location_list
             for vm,location in zip(data['vm'],vm_location_list):
@@ -65,7 +90,13 @@ def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
                 if not vm_cred:
                     vm_cred = "root,password"
                 vm['vm_username'], vm['vm_password'] = [x.strip() for x in vm_cred.split(',')]
-        
+
+        if client_cred:
+            client_cred = [x.strip() for x in client_cred.split(',')]
+            data['client_hostname'] = client_cred[0]
+            data['client_username'] = client_cred[1]
+            data['client_password'] = client_cred[2]
+
         if 'table' in data.keys():
             for table in data['table']:
                 if 'match_action' in table.keys():
@@ -86,7 +117,7 @@ def get_config_dict(config_json, pci_bdf="", vm_location_list="", vm_cred=""):
                         table['del_group'].append(group_detail.split(',')[0])
 
         #######################################################
-        ##### Any future data structure can be added here #####
+        # Any future data structure can be added here #########
         #######################################################
 
         return data
@@ -140,7 +171,7 @@ def get_gnmi_params_simple(data):
                  'vhost': ['host', 'device-type', 'queues', 'socket-path'],
                  'link': ['pci-bdf']
                  }
-    optional = ['pipeline-name', 'mempool-name', 'control-port', 'mtu']
+    optional = ['pipeline-name', 'mempool-name', 'control-port', 'mtu', 'packet-dir']
 
     params = []
 
