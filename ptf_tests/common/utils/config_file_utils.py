@@ -136,6 +136,8 @@ def get_interface_ipv4_dict(data):
         dev_type = get_device_type(port)
         if dev_type == "tap":
             interface_ip_list.append({port['name']: port.setdefault('ip', '0.0.0.0')})
+        if 'control-port' in port:
+            interface_ip_list.append({port['control-port']: port.setdefault('ip', '0.0.0.0')})
 
     return interface_ip_list
 
