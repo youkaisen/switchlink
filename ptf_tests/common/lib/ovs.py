@@ -18,7 +18,6 @@ class Ovs(object):
         self.vsctl = self._Vsctl(connection)
         self.dpctl = self._Dpctl(connection)
         self.ofctl = self._Ofctl(connection)
-        print(f"OvS Ver: {self.vsctl.get_ver()}")
 
     class _Cli(object):
         cmd_prefix = None
@@ -107,6 +106,28 @@ class Ovs(object):
                                 f"{port} type=vxlan options:local_ip={local_ip}"
                                 f" options:remote_ip={remote_ip}"
                                 f" options:dst_port={dst_port}")
+            return self.connection.execute_command(cmd)
+        
+        def add_p4_device(self, id):
+            """Add bridge with given name
+
+            :param name: name of bridge
+            :type name: str
+            :return: output, error code and error
+            :rtype: tuple e.g. out,e_code,error
+            """
+            cmd = self.form_cmd(f"add-p4-device {id}")
+            return self.connection.execute_command(cmd)
+        
+        def add_br_p4(self, bridge, id):
+            """Add bridge with given name
+
+            :param name: name of bridge
+            :type name: str
+            :return: output, error code and error
+            :rtype: tuple e.g. out,e_code,error
+            """
+            cmd = self.form_cmd(f"add-br-p4 {bridge} {id}")
             return self.connection.execute_command(cmd)
 
         def del_port(self, bridge, port):
@@ -225,3 +246,15 @@ class Ovs(object):
             cmd = self.form_cmd(f"dump-flows {bridge}")
             return self.connection.execute_command(cmd)
 
+        def dump_port(self,bridge):
+            """
+            Dump the port on the bridge
+
+            :param bridge: bridge name
+            :type bridge: str
+            :return: output, error code and error
+            :rtype: tuple e.g. out,e_code,error
+
+            """
+            cmd = self.form_cmd(f"dump-ports {bridge}")
+            return self.connection.execute_command(cmd)
