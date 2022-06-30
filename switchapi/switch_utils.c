@@ -656,7 +656,8 @@ char *switch_handle_type_to_string(switch_handle_type_t handle_type) {
   }
 }
 
-
+// TODO: Remove this function. Only place called is from
+// switch_pd_port.c, which might be dead code and needs cleanup.
 switch_status_t switch_pd_status_to_status(bf_status_t pd_status) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 

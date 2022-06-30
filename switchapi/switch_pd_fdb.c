@@ -59,6 +59,8 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
 
     VLOG_DBG("%s", __func__);
 
+    // TODO: if session creation fails, need to clean up flags_create
+    // and target_create
     status = tdi_flags_create(0, &flags_hdl);
     if (status != TDI_SUCCESS) {
         VLOG_ERR("Failed to create flags handle, error: %d", status);

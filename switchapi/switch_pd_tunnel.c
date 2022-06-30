@@ -283,7 +283,6 @@ switch_status_t switch_pd_tunnel_term_entry(
     const tdi_table_hdl *table_hdl = NULL;
     const tdi_table_info_hdl *table_info_hdl = NULL;
     uint32_t network_byte_order;
-//    uint32_t tunnel_type;
 
     VLOG_DBG("%s", __func__);
 
