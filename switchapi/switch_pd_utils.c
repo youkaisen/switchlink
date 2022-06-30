@@ -98,21 +98,18 @@ tdi_status_t tdi_switch_pd_deallocate_handle_session(tdi_table_key_hdl *key_hdl_
         // Data handle is created only when entry is added to backend
         status = tdi_table_data_deallocate(data_hdl_t);
         if(status != TDI_SUCCESS) {
-            VLOG_ERR("Failed to deallocate data handler");
-            return status;
+            VLOG_ERR("Failed to deallocate data handle, error: %d", status);
         }
     }
 
     status = tdi_table_key_deallocate(key_hdl_t);
     if(status != TDI_SUCCESS) {
-        VLOG_ERR("Failed to deallocate key handler");
-        return status;
+        VLOG_ERR("Failed to deallocate key handle, error: %d", status);
     }
 
     status = tdi_session_destroy(session_t);
     if(status != TDI_SUCCESS) {
-        VLOG_ERR("Failed to destroy session");
-        return status;
+        VLOG_ERR("Failed to destroy session, error: %d", status);
     }
 
     return status;
