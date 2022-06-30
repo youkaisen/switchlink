@@ -104,7 +104,7 @@ class L3_Action_Selector(BaseTest):
             
             send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt)
             try:
-                verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][1]])
+                verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][0]][1])
                 print(f"PASS: Verification of packets passed, packets received as per group 1: member 1")
             except Exception as err:
                 self.result.addFailure(self, sys.exc_info())
@@ -119,14 +119,14 @@ class L3_Action_Selector(BaseTest):
             send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
             if iteration == 1:
                 try:
-                    verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][1]][1]])
+                    verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][1]][1])
                     print(f"PASS: Verification of packets passed, packets received as per group 2 : member 2")
                 except Exception as err:
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"FAIL: Verification of packets sent failed with exception {err}")
             elif iteration  == 2 :
                 try:
-                    verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][2]][1]])
+                    verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][2]][1])
                     print(f"PASS: Verification of packets passed, packets received as per group 2 : member 3")
                 except Exception as err:
                     self.result.addFailure(self, sys.exc_info())
@@ -146,7 +146,7 @@ class L3_Action_Selector(BaseTest):
                 send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
                 if iteration == 1:
                     try:
-                        verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][3]][1]])
+                        verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][3]][1])
                         print(f"PASS: Verification of packets passed, packets received as per group 3 : member 4")
                     except Exception as err:
                         self.result.addFailure(self, sys.exc_info())
@@ -154,7 +154,7 @@ class L3_Action_Selector(BaseTest):
 
                 elif iteration  == 2 :
                     try:
-                        verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][4]][1]])
+                        verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][4]][1])
                         print(f"PASS: Verification of packets passed, packets received as per group 3 : member 5")
                     except Exception as err:
                         self.result.addFailure(self, sys.exc_info())
