@@ -33,70 +33,6 @@
 
 VLOG_DEFINE_THIS_MODULE(switch_pd_utils);
 
-/* TODO: check if session can be created only once and reuse it */
-bf_status_t switch_pd_allocate_handle_session(const bf_dev_id_t device_id,
-                                              const char *pipeline_name,
-                                              bf_rt_info_hdl **bfrt_info_hdl_t,
-                                              bf_rt_session_hdl **session_t) {
-  bf_status_t status;
-
-  status = bf_rt_session_create(session_t);
-  if(status != BF_SUCCESS) {
-      VLOG_ERR("Failed to create bfrt session, error: %d", status);
-      return status;
-  }
-
-  status = bf_rt_info_get(device_id, pipeline_name,
-                          (const bf_rt_info_hdl **)bfrt_info_hdl_t);
-  if(status != BF_SUCCESS) {
-      VLOG_ERR("Failed to get bfrt handle for pipeline: %s, "
-               "error: %d", pipeline_name, status);
-      return status;
-  }
-
-  return status;
-}
-
-bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
-                                                bf_rt_table_data_hdl *data_hdl_t,
-                                                bf_rt_session_hdl *session_t,
-                                                bool entry_type) {
-
-  bf_status_t status = BF_SUCCESS;
-  bf_status_t return_status = BF_SUCCESS;
-
-  if (entry_type && data_hdl_t) {
-      // Data handle is created only when entry is added to backend
-      status = bf_rt_table_data_deallocate(data_hdl_t);
-      if(status != BF_SUCCESS) {
-          // Log an error and continue to de-alloc remaining handles
-          VLOG_ERR("Failed to deallocate data handle, error: %d", status);
-          return_status = status;
-      }
-  }
-
-  if (key_hdl_t) {
-      status = bf_rt_table_key_deallocate(key_hdl_t);
-      if(status != BF_SUCCESS) {
-          // Log an error and continue to de-alloc remaining handles
-          VLOG_ERR("Failed to deallocate key handle, error: %d", status);
-          return_status = status;
-      }
-  }
-
-  if (session_t) {
-      status = bf_rt_session_destroy(session_t);
-      if(status != BF_SUCCESS) {
-          VLOG_ERR("Failed to destroy session, error: %d", status);
-          return_status = status;
-      }
-  }
-
-  // Return consolidated return status. If any API returns error, proceed
-  // with de-alloc of remaining handle but return consolidated return_status.
-  return return_status;
-}
-
 void
 switch_pd_to_get_port_id(switch_api_rif_info_t *port_rif_info)
 {
@@ -150,4 +86,34 @@ switch_pd_to_get_port_id(switch_api_rif_info_t *port_rif_info)
     VLOG_ERR("Failed to find the target dp index for ifname : %s", if_name);
 
     return;
+}
+
+tdi_status_t tdi_switch_pd_deallocate_handle_session(tdi_table_key_hdl *key_hdl_t,
+                                                    tdi_table_data_hdl *data_hdl_t,
+                                                    tdi_session_hdl *session_t,
+                                                    bool entry_type) {
+    tdi_status_t status;
+
+    if (entry_type) {
+        // Data handle is created only when entry is added to backend
+        status = tdi_table_data_deallocate(data_hdl_t);
+        if(status != TDI_SUCCESS) {
+            VLOG_ERR("Failed to deallocate data handler");
+            return status;
+        }
+    }
+
+    status = tdi_table_key_deallocate(key_hdl_t);
+    if(status != TDI_SUCCESS) {
+        VLOG_ERR("Failed to deallocate key handler");
+        return status;
+    }
+
+    status = tdi_session_destroy(session_t);
+    if(status != TDI_SUCCESS) {
+        VLOG_ERR("Failed to destroy session");
+        return status;
+    }
+
+    return status;
 }

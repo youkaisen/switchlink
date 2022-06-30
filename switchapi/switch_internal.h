@@ -24,6 +24,8 @@
 #include <config.h>
 #include <bf_types/bf_types.h>
 
+#include "tdi/common/tdi_defs.h"
+
 #include "openvswitch/vlog.h"
 
 #ifdef __cplusplus
@@ -96,6 +98,8 @@ switch_status_t SWITCH_HASHTABLE_DONE(switch_hashtable_t *hashtable);
 char *switch_error_to_string(switch_status_t status);
 
 switch_status_t switch_pd_status_to_status(bf_status_t pd_status);
+
+switch_status_t switch_pd_tdi_status_to_status(tdi_status_t pd_status);
 
 //char *switch_table_id_to_string(switch_table_id_t table_id);
 
