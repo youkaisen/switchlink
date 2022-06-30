@@ -25,7 +25,6 @@
 #include <bf_types/bf_types.h>
 
 #include "tdi/common/tdi_defs.h"
-
 #include "openvswitch/vlog.h"
 
 #ifdef __cplusplus
