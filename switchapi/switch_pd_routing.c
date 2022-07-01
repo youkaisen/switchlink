@@ -810,10 +810,10 @@ switch_status_t switch_pd_ipv4_table_entry (switch_device_t device,
                 goto dealloc_handle_session;
             }
 
-            status = tdi_data_field_set_value_ptr(data_hdl, data_field_id,
-                                                  (api_route_entry->nhop_handle &
-                                                  ~(SWITCH_HANDLE_TYPE_ECMP_GROUP <<
-                                                  SWITCH_HANDLE_TYPE_SHIFT)));
+            status = tdi_data_field_set_value(data_hdl, data_field_id,
+                                              (api_route_entry->nhop_handle &
+                                              ~(SWITCH_HANDLE_TYPE_ECMP_GROUP <<
+                                               SWITCH_HANDLE_TYPE_SHIFT)));
             if (status != TDI_SUCCESS) {
                 VLOG_ERR("Unable to set action value for ID: %d, error: %d",
                          data_field_id, status);
