@@ -30,6 +30,8 @@
 #include "bf_rt/bf_rt_table_data.h"
 #include "bf_pal/bf_pal_port_intf.h"
 
+#include "tdi/common/tdi_defs.h"
+
 #ifndef __SWITCH_PD_UTILS_H__
 #define __SWITCH_PD_UTILS_H__
 
@@ -54,6 +56,11 @@ bf_status_t switch_pd_deallocate_handle_session(bf_rt_table_key_hdl *key_hdl_t,
                                                 bool entry_type);
 
 void switch_pd_to_get_port_id(switch_api_rif_info_t *port_rif_info);
+
+tdi_status_t tdi_switch_pd_deallocate_handle_session(tdi_table_key_hdl *key_hdl_t,
+                                                    tdi_table_data_hdl *data_hdl_t,
+                                                    tdi_session_hdl *session_t,
+                                                    bool entry_type);
 
 #ifdef  __cplusplus
 }

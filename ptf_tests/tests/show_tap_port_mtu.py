@@ -14,7 +14,7 @@ from ptf import config
 # framework related imports
 import common.utils.test_utils as test_utils
 from common.utils.config_file_utils import get_gnmi_params_simple, get_config_dict
-from common.utils.gnmi_cli_utils import gnmi_set_params, gnmi_get_element_value, get_port_mtu_linuxcli, get_match_mtu_output
+from common.utils.gnmi_cli_utils import gnmi_set_params, gnmi_get_element_value, get_port_mtu_linuxcli
 from common.lib.port_config import PortConfig
 
 
@@ -54,8 +54,23 @@ class ShowTapPortMtu(BaseTest):
                        if not linuxcli_mtu:
                            self.result.addFailure(self, sys.exc_info())
                            self.fail(f"Failed to get MTU from LINUX-CLI for " + port + " port")
-                       if not get_match_mtu_output(assigned_mtu, gnmicli_mtu, linuxcli_mtu, default_mtu, port):
-                           self.result.addFailure(self, sys.exc_info())
+                       if assigned_mtu.strip() == gnmicli_mtu.strip() == linuxcli_mtu.strip():
+                           if default_mtu:
+                                print("PASS: Port " + port + " MTU Assignment Match Expected MTU | Assigned[Default]: " + assigned_mtu.strip() + " GNMICLI: " \
+                                + gnmicli_mtu.strip()+ " LINUXCLI: " + linuxcli_mtu.strip())
+                           else:
+                                print("PASS: Port " + port + " MTU Assignment Match Expected MTU | Assigned: " + assigned_mtu.strip() + " GNMICLI: " \
+                                + gnmicli_mtu.strip()+ " LINUXCLI: " + linuxcli_mtu.strip())
+                           return True
+                       else:
+                           if default_mtu:
+                                print("FAIL: Port " + port + " MTU Assignment Mismatch Expected MTU |  Assigned[Default]: " + assigned_mtu.strip() + " GNMICLI: " \
+                                + gnmicli_mtu.strip() + " LINUXCLI: " + linuxcli_mtu.strip())
+                                self.result.addFailure(self, sys.exc_info())
+                           else:
+                                print("FAIL: Port " + port + " MTU Assignment Mismatch Expected MTU |  Assigned: " + assigned_mtu.strip() + " GNMICLI: " \
+                                + gnmicli_mtu.strip() + " LINUXCLI: " + linuxcli_mtu.strip())
+                                self.result.addFailure(self, sys.exc_info())
                        
 
     def tearDown(self):

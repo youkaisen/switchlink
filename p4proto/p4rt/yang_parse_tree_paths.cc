@@ -155,7 +155,7 @@ bool HasConfigBeenPushed(const GnmiEvent& event) {
       case DataRequest::Request::kFrontPanelPortInfo:
       case DataRequest::Request::kLoopbackStatus:
       case DataRequest::Request::kSdnPortId: {
-        auto port_data = tree->GetBfChassisManager()->GetPortData(req);
+        auto port_data = tree->GetTdiChassisManager()->GetPortData(req);
         if (!port_data.ok()) {
           status.Update(port_data.status());
         } else {
@@ -164,7 +164,7 @@ bool HasConfigBeenPushed(const GnmiEvent& event) {
         break;
       }
       case DataRequest::Request::kTargetDpId: {
-        auto target_dp_data = tree->GetBfChassisManager()->GetPortData(req);
+        auto target_dp_data = tree->GetTdiChassisManager()->GetPortData(req);
         if (!target_dp_data.ok()) {
           status.Update(target_dp_data.status());
         } else {
@@ -176,14 +176,14 @@ bool HasConfigBeenPushed(const GnmiEvent& event) {
 #if 0
       case DataRequest::Request::kNodeInfo: {
         auto device_id =
-            tree->GetBfChassisManager()->GetUnitFromNodeId(req.node_info().node_id());
+            tree->GetTdiChassisManager()->GetUnitFromNodeId(req.node_info().node_id());
         if (!device_id.ok()) {
           status.Update(device_id.status());
         } else {
           auto* node_info = resp.mutable_node_info();
           node_info->set_vendor_name("Barefoot");
           node_info->set_chip_name(
-              bf_sde_interface_->GetBfChipType(device_id.ValueOrDie()));
+              tdi_sde_interface_->GetBfChipType(device_id.ValueOrDie()));
         }
         break;
       }
@@ -1233,7 +1233,7 @@ void SetUpInterfacesInterfaceConfigHost(const char *host_val,
 
     auto host_name_str = typed_val->string_val();
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id,
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id,
                                                            SetRequest::Request::Port::ValueCase::kHostConfig)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "Host is either already set (or) the PORT is already configured";
     }
@@ -1251,7 +1251,7 @@ void SetUpInterfacesInterfaceConfigHost(const char *host_val,
         singleton_port.mutable_config_params()->set_host_name((const char*)host_name_str.c_str());
 
           // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kHostConfig));
         break;
@@ -1300,7 +1300,7 @@ void SetUpInterfacesInterfaceConfigPorttype(uint64 type,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPortType)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPortType)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "port-type is either already set (or) the PORT is already configured";
     }
 
@@ -1335,7 +1335,7 @@ void SetUpInterfacesInterfaceConfigPorttype(uint64 type,
         singleton_port.mutable_config_params()->set_type(port_type);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kPortType));
         break;
@@ -1384,7 +1384,7 @@ void SetUpInterfacesInterfaceConfigDevicetype(uint64 type,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kDeviceType)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kDeviceType)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "device-type is either already set (or) the PORT is already configured";
     }
 
@@ -1414,7 +1414,7 @@ void SetUpInterfacesInterfaceConfigDevicetype(uint64 type,
         singleton_port.mutable_config_params()->set_device_type(device_type);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kDeviceType));
           break;
@@ -1463,7 +1463,7 @@ void SetUpInterfacesInterfaceConfigPipelinename(const char *pipeline_name,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPipelineName)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPipelineName)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "pipeline-name is either already set (or) the PORT is already configured";
     }
 
@@ -1484,7 +1484,7 @@ void SetUpInterfacesInterfaceConfigPipelinename(const char *pipeline_name,
         singleton_port.mutable_config_params()->set_pipeline((const char*)pipeline_name.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kPipelineName));
         break;
@@ -1533,7 +1533,7 @@ void SetUpInterfacesInterfaceConfigMempoolname(const char *mempool_name,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kMempoolName)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kMempoolName)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "mempool-name is either already set (or) the PORT is already configured";
     }
 
@@ -1554,7 +1554,7 @@ void SetUpInterfacesInterfaceConfigMempoolname(const char *mempool_name,
         singleton_port.mutable_config_params()->set_mempool((const char*)mempool_name.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kMempoolName));
         break;
@@ -1603,7 +1603,7 @@ void SetUpInterfacesInterfaceConfigPacketDir(uint64 packet_dir,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPacketDir)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPacketDir)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "packet-dir is either already set (or) the PORT is already configured";
     }
 
@@ -1632,7 +1632,7 @@ void SetUpInterfacesInterfaceConfigPacketDir(uint64 packet_dir,
         singleton_port.mutable_config_params()->set_packet_dir(direction);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kPacketDir));
           break;
@@ -1681,7 +1681,7 @@ void SetUpInterfacesInterfaceConfigControlport(const char *control_port,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kControlPort)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kControlPort)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "control-port is either already set (or) the PORT is already configured";
     }
 
@@ -1702,7 +1702,7 @@ void SetUpInterfacesInterfaceConfigControlport(const char *control_port,
         singleton_port.mutable_config_params()->set_control((const char*)ctl_port.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kControlPort));
         break;
@@ -1751,7 +1751,7 @@ void SetUpInterfacesInterfaceConfigPcibdf(const char *pci_bdf,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPciBdf)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kPciBdf)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "pci-bdf is either already set (or) the PORT is already configured";
     }
 
@@ -1771,7 +1771,7 @@ void SetUpInterfacesInterfaceConfigPcibdf(const char *pci_bdf,
         singleton_port.mutable_config_params()->set_pci((const char*)bdf_val.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kPciBdf));
         break;
@@ -1820,7 +1820,7 @@ void SetUpInterfacesInterfaceConfigMtuValue(uint64 mtu,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kMtuValue)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kMtuValue)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "MTU is either already set (or) the PORT is already configured";
     }
 
@@ -1841,7 +1841,7 @@ void SetUpInterfacesInterfaceConfigMtuValue(uint64 mtu,
         singleton_port.mutable_config_params()->set_mtu(mtu_val);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kMtuValue));
         break;
@@ -1890,7 +1890,7 @@ void SetUpInterfacesInterfaceConfigQueues(uint64 queues_count,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kQueueCount)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kQueueCount)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "Queues is either already set (or) the PORT is already configured";
     }
 
@@ -1911,7 +1911,7 @@ void SetUpInterfacesInterfaceConfigQueues(uint64 queues_count,
         singleton_port.mutable_config_params()->set_queues(queues_configured);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kQueueCount));
         break;
@@ -1961,7 +1961,7 @@ void SetUpInterfacesInterfaceConfigSocket(const char *default_path,
       return MAKE_ERROR(ERR_INVALID_PARAM) << "not a TypedValue message!";
     }
 
-    if (tree->GetBfChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kSockPath)) {
+    if (tree->GetTdiChassisManager()->ValidateOnetimeConfig(node_id, port_id, SetRequest::Request::Port::ValueCase::kSockPath)) {
         return MAKE_ERROR(ERR_INVALID_PARAM) << "Socket is either already set (or) the PORT is already configured";
     }
 
@@ -1981,7 +1981,7 @@ void SetUpInterfacesInterfaceConfigSocket(const char *default_path,
         singleton_port.mutable_config_params()->set_socket((const char*)socket_path.c_str());
 
           // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->ValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->ValidateAndAdd(node_id, port_id,
                                                     singleton_port,
                                                     SetRequest::Request::Port::ValueCase::kSockPath));
         break;
@@ -2047,7 +2047,7 @@ void SetUpInterfacesInterfaceConfigQemuSocketIp(const char *default_socket_ip,
       if (singleton_port.node() == node_id && singleton_port.id() == port_id) {
         singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_socket_ip((const char*)socket_ip.c_str());
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->HotplugValidateAndAdd(node_id, port_id,
                                                                            singleton_port,
                                                                            SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_SOCK_IP));
         break;
@@ -2114,7 +2114,7 @@ void SetUpInterfacesInterfaceConfigQemuSocketPort(uint64 default_socket_port,
         singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_socket_port(socket_port);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->HotplugValidateAndAdd(node_id, port_id,
                                                                            singleton_port,
                                                                            SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_SOCK_PORT));
 
@@ -2189,7 +2189,7 @@ void SetUpInterfacesInterfaceConfigHotplug(uint64 status,
         singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_hotplug(hotplug_status);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->HotplugValidateAndAdd(node_id, port_id,
                                                                            singleton_port,
                                                                            SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_HOTPLUG));
 
@@ -2261,7 +2261,7 @@ void SetUpInterfacesInterfaceConfigQemuVmMacAddress(uint64 node_id,
         singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_vm_mac_address(mac_address);
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->HotplugValidateAndAdd(node_id, port_id,
                                                                            singleton_port,
                                                                            SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_VM_MAC));
         break;
@@ -2328,7 +2328,7 @@ void SetUpInterfacesInterfaceConfigQemuVMNetdevId(const char *default_netdev_id,
         singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_vm_netdev_id((const char*)vm_netdev_id.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->HotplugValidateAndAdd(node_id, port_id,
                                                                            singleton_port,
                                                                            SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_NETDEV_ID));
         break;
@@ -2394,7 +2394,7 @@ void SetUpInterfacesInterfaceConfigQemuVMChardevId(const char *default_chardev_i
         singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_vm_chardev_id((const char*)vm_chardev_id.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->HotplugValidateAndAdd(node_id, port_id,
                                                                            singleton_port,
                                                                            SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_CHARDEV_ID));
         break;
@@ -2459,7 +2459,7 @@ void SetUpInterfacesInterfaceConfigQemuVMDeviceId(const char *default_device_id,
         singleton_port.mutable_config_params()->mutable_hotplug_config()->set_qemu_vm_device_id((const char*)vm_device_id.c_str());
 
         // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->HotplugValidateAndAdd(node_id, port_id,
                                                                            singleton_port,
                                                                            SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_DEVICE_ID));
         break;
@@ -2525,7 +2525,7 @@ void SetUpInterfacesInterfaceConfigNativeSocket(const char *default_native_path,
         singleton_port.mutable_config_params()->mutable_hotplug_config()->set_native_socket_path((const char*)native_socket_path.c_str());
 
           // Validate if all mandatory params are set and call SDE API
-        RETURN_IF_ERROR(tree->GetBfChassisManager()->HotplugValidateAndAdd(node_id, port_id,
+        RETURN_IF_ERROR(tree->GetTdiChassisManager()->HotplugValidateAndAdd(node_id, port_id,
                                                                            singleton_port,
                                                                            SetRequest::Request::Port::ValueCase::kHotplugConfig, PARAM_NATIVE_SOCK_PATH));
         break;

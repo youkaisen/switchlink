@@ -2,15 +2,17 @@
 
 from common.lib.local_connection import Local
 from common.lib.exceptions import ExecuteCMDException
+from common.lib.ssh import Ssh
 
 
 class PortConfig(object):
-    def __init__(self):
+    def __init__(self, remote=False, hostname="", username="", passwd=""):
         """
         Constructor method
         """
         self.GNMICLI = self._GNMICLI()
-        self.Ip = self._IpCMD()
+        self.Ip = self._IpCMD(remote = remote, hostname = hostname , username
+        = username, passwd = passwd)
 
     class _Common(object):
         cmd_prefix = None
@@ -65,6 +67,21 @@ class PortConfig(object):
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
             return output
 
+        def gnmi_cli_get_counter(self, mandatory_params, key="counters"):
+            """
+            gnmi-cli get command
+            :param mandatory_params: "device:virtual-device,name:TAP2,counters"
+            :param key: "counter".
+            :return: stdout of the gnmi-cli get command
+            :rtype: str
+            """
+            cmd = self.form_cmd(f"get \"{mandatory_params},{key}\" |grep \"name\\|uint_val\"|grep -v \"interface\\|key\\|config\\|counters\"")
+            output, return_code, _ = self.local.execute_command(cmd)
+            if return_code:
+                print(f"FAIL: {cmd}")
+                raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
+            return output
+
         def tear_down(self):
             """
             TBD
@@ -72,12 +89,28 @@ class PortConfig(object):
             pass
 
     class _IpCMD(_Common):
-        def __init__(self):
+        """
+        This class intended to have methods related to ip command only
+        """
+        def __init__(self, remote=False, hostname="", username="", passwd=""):
             """
-            Constructor Method
+            Constructor method
+            :param remote: set value to True enables remote host cmd execution
+            :type remote: boolean e.g. remote=True
+            :param hostname: remote host IP address, not required for DUT host
+            :type hostname: string e.g. 10.233.132.110
+            :param username: remote host username, not required for DUT
+            :type username: string e.g. root
+            :param passwd: remote host password, not required for DUT
+            :type passwd: string e.g. cloudsw
             """
             self.cmd_prefix = 'ip'
-            self.local = Local()
+            if remote:
+                self.connection = Ssh(hostname=hostname, username=username,
+                                      passwrd=passwd)
+                self.connection.setup_ssh_connection()
+            else:
+                self.connection = Local()
 
         def iplink_enable_disable_link(self, interface, status_to_change='up'):
             """
@@ -89,7 +122,7 @@ class PortConfig(object):
             assert status_to_change == 'up' or status_to_change == 'down'
 
             cmd = self.form_cmd(f" link set {interface} {status_to_change}")
-            output, return_code, _ = self.local.execute_command(cmd)
+            output, return_code, _ = self.connection.execute_command(cmd)
             if return_code:
                 print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
@@ -107,16 +140,55 @@ class PortConfig(object):
             :return: True/False --> boolean
             """
             cmd = self.form_cmd(f" addr add {ip} dev {interface}")
-            output, return_code, _ = self.local.execute_command(cmd)
+            output, return_code, _ = self.connection.execute_command(cmd)
             if return_code:
                 print(f"FAIL: {cmd}")
                 raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
 
             print(f"PASS: {cmd}")
             return True
+        
+        def iplink_add_vlan_port(self, id, name, netdev_port):
+            """ Method to add vlan port to given netdev port
+
+            :param id: vlan id
+            :type id: integer e.g. 1
+            :param name: name of vlan port to add
+            :type name: string e.g. vlan1
+            :param netdev_port: name of netdev where vlan ports to be added
+            :type netdev_port: string e.g. TAP0
+            :return: exit status
+            :rtype: boolean e.g. True on success, script exits on failure
+            """
+            cmd = self.form_cmd(f" link add link {netdev_port} name {name} "
+                                f"type vlan id {id}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
+            
+        def iplink_del_port(self, port_to_delete):
+            """ This method is used to delete any port including vlan type
+            
+            :param port_to_delete: name of port to delete
+            :type port_to_delete: string e.g. vlan1
+            :return: exit status
+            :rtype: True on success, script exits on failure
+            """
+            cmd = self.form_cmd(f" link del {port_to_delete}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
 
         def tear_down(self):
+            """ Close any open connections after use of class
+
+            :return: None
+            :rtype: None
             """
-            TBD
-            """
-            pass
+            self.connection.tear_down()

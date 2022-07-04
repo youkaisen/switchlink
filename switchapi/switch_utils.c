@@ -656,7 +656,8 @@ char *switch_handle_type_to_string(switch_handle_type_t handle_type) {
   }
 }
 
-
+// TODO: Remove this function. Only place called is from
+// switch_pd_port.c, which might be dead code and needs cleanup.
 switch_status_t switch_pd_status_to_status(bf_status_t pd_status) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
@@ -694,6 +695,53 @@ switch_status_t switch_pd_status_to_status(bf_status_t pd_status) {
       break;
 
     case BF_NO_SPACE:
+      status = SWITCH_STATUS_TABLE_FULL;
+      break;
+
+    default:
+      status = SWITCH_STATUS_PD_FAILURE;
+      break;
+  }
+  return status;
+}
+
+switch_status_t switch_pd_tdi_status_to_status(tdi_status_t pd_status) {
+  switch_status_t status = SWITCH_STATUS_SUCCESS;
+
+  switch (pd_status) {
+    case TDI_SUCCESS:
+      status = SWITCH_STATUS_SUCCESS;
+      break;
+
+    case TDI_NO_SYS_RESOURCES:
+      status = SWITCH_STATUS_INSUFFICIENT_RESOURCES;
+      break;
+
+    case TDI_ALREADY_EXISTS:
+      status = SWITCH_STATUS_ITEM_ALREADY_EXISTS;
+      break;
+
+    case TDI_IN_USE:
+      status = SWITCH_STATUS_RESOURCE_IN_USE;
+      break;
+
+    case TDI_HW_COMM_FAIL:
+      status = SWITCH_STATUS_HW_FAILURE;
+      break;
+
+    case TDI_OBJECT_NOT_FOUND:
+      status = SWITCH_STATUS_ITEM_NOT_FOUND;
+      break;
+
+    case TDI_NOT_IMPLEMENTED:
+      status = SWITCH_STATUS_NOT_IMPLEMENTED;
+      break;
+
+    case TDI_INVALID_ARG:
+      status = SWITCH_STATUS_INVALID_PARAMETER;
+      break;
+
+    case TDI_NO_SPACE:
       status = SWITCH_STATUS_TABLE_FULL;
       break;
 
