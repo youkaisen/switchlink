@@ -36,7 +36,7 @@ def get_ovsctl_version(remote=False, hostname="", username="", passwd=""):
     """ Get current Ovs version
     """
     # Establish connection with local/remote host
-    connection = get_connection_object(remote, hostname, username, passwd)
+    connection = get_connection_object(remote, hostname=hostname,username=username,passwd=passwd)
     ovs = Ovs(connection)
     # Execute needed ovs command
     version = ovs.vsctl.get_ver()
@@ -63,7 +63,7 @@ def add_bridge_to_ovs(bridge_name, remote=False, hostname="", username="",
     :rtype: boolean e.g. True on success or False on failure
     """
     # Establish connection with local/remote host
-    connection = get_connection_object(remote, hostname, username, passwd)
+    connection = get_connection_object(remote, hostname=hostname,username=username,passwd=passwd)
     ovs = Ovs(connection)
     # Execute needed ovs command
     out, rcode, err = ovs.vsctl.add_br(bridge_name)
@@ -77,6 +77,37 @@ def add_bridge_to_ovs(bridge_name, remote=False, hostname="", username="",
         print('Successfully added bridge to ovs')
         return True
 
+def del_bridge_from_ovs(bridge_name, remote=False, hostname="", username="",
+                      passwd=""):
+    """ Delete bridge from ovs
+
+    :param bridge_name: name of the bridge to add
+    :type bridge_name: string e.g. br-int
+    :param remote: set value to True enables remote host cmd execution
+    :type remote: boolean e.g. remote=True
+    :param hostname: remote host IP address, not required for DUT host
+    :type hostname: string e.g. 10.233.132.110
+    :param username: remote host username, not required for DUT
+    :type username: string e.g. root
+    :param passwd: remote host password, not required for DUT
+    :type passwd: string e.g. cloudsw
+    :return: exit status
+    :rtype: boolean e.g. True on success or False on failure
+    """
+    # Establish connection with local/remote host
+    connection = get_connection_object(remote, hostname=hostname, username=username, passwd=passwd)
+    ovs = Ovs(connection)
+    # Execute needed ovs command
+    out, rcode, err = ovs.vsctl.del_br(bridge_name)
+    # Close connection
+    connection.tear_down()
+    # work on output data
+    if rcode:
+        print(f'failed to add bridge to ovs, error is:{err}')
+        return False
+    else:
+        print('Successfully added bridge to ovs')
+        return True
 
 def ovs_bridge_up(bridge_name, remote=False, hostname="", username="",
                   password=""):
@@ -127,11 +158,45 @@ def add_vxlan_port_to_ovs(bridge, port, local_ip, remote_ip, dst_port,
     """
 
     # Establish connection with local/remote host
-    connection = get_connection_object(remote, hostname, username, password)
+    connection = get_connection_object(remote, hostname=hostname,username=username,passwd=password)
     ovs = Ovs(connection)
     # Execute needed ovs command
     out, rcode, err = ovs.vsctl.add_port_vxlan_type(bridge, port, local_ip,
                                                     remote_ip, dst_port)
+    # Close connection
+    connection.tear_down()
+    # work on output data
+    if rcode:
+        print(f'failed to add vxlan port to ovs, error is:{err}')
+        return False
+    else:
+        print('Successfully added vxlan port to ovs')
+        return True
+    
+def add_vlan_to_bridge(bridge, vlan,
+                          remote=False, hostname="", username="", password=""):
+    """Add vlan port to ovs bridge
+
+    :param bridge: Name of the bridge
+    :type bridge: string e.g. br-int
+    :param vlan:  name of vlan port to add
+    :type vlan: string e.g. vlan1
+    :param local_ip: local tunnel IP
+    :param hostname: remote host IP address, not required for DUT host
+    :type hostname: string e.g. 10.233.132.110
+    :param username: remote host username, not required for DUT
+    :type username: string e.g. root
+    :param password: remote host password, not required for DUT
+    :type password: string e.g. cloudsw
+    :return: exit status
+    :rtype: boolean e.g. True on success or False on failure
+    """
+   
+    # Establish connection with local/remote host
+    connection = get_connection_object(remote, hostname=hostname, username=username, passwd=password)
+    ovs = Ovs(connection)
+    # Execute needed ovs command
+    out, rcode, err = ovs.vsctl.add_vlan_to_bridge(bridge, vlan)
     # Close connection
     connection.tear_down()
     # work on output data
@@ -164,7 +229,7 @@ def del_port_from_ovs(bridge, port_to_delete, remote=False, hostname="",
     """
 
     # Establish connection with local/remote host
-    connection = get_connection_object(remote, hostname, username, password)
+    connection = get_connection_object(remote, hostname=hostname,username=username,passwd=password)
     ovs = Ovs(connection)
     # Execute needed ovs command
     out, rcode, err = ovs.vsctl.del_port(bridge, port_to_delete)

@@ -147,7 +147,7 @@ class PortConfig(object):
 
             print(f"PASS: {cmd}")
             return True
-        
+           
         def iplink_add_vlan_port(self, id, name, netdev_port):
             """ Method to add vlan port to given netdev port
 
