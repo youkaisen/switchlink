@@ -122,7 +122,7 @@ class L3_Action_Selector_Create_Delete(BaseTest):
 
             send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt)
             try:
-                verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][1]])
+                verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][0]][1])
                 print(f"FAIL: Verification of packets passed, packets received as per group 1: member 1")
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"FAIL: Verification of packets sent failed after deletin group/member as expected {err}")

@@ -98,7 +98,7 @@ class L3_Wcm_Del_Add(BaseTest):
         pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][1])
         send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][1]][1]])
+            verify_packet(self, pkt,  port_ids[self.config_data['traffic']['receive_port'][1]][1])
             print(f"PASS: Verification of packets passed, packet received as per rule 2")
             self.result.addFailure(self, sys.exc_info())
         except Exception as err:
@@ -118,7 +118,7 @@ class L3_Wcm_Del_Add(BaseTest):
         pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][2])
         send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][2]][1]])
+            verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][2]][1])
             print(f"PASS: Verification of packets passed, packet received as per rule 1")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
