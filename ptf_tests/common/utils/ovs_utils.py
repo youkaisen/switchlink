@@ -7,6 +7,7 @@ This lib makes use of functions from library common/lib/ovs.py.
 from common.lib.local_connection import Local
 from common.lib.ssh import Ssh
 from common.lib.ovs import Ovs
+import common.lib.port_config as port_config
 
 
 def get_connection_object(remote=False, hostname="", username="", passwd=""):
@@ -143,10 +144,45 @@ def add_vxlan_port_to_ovs(bridge, port, local_ip, remote_ip, dst_port,
         return True
 
 
-def del_port_from_ovs(bridge, port_to_delete, remote=False, hostname="", 
+def add_port_to_ovs(bridge, port_to_add, remote=False, hostname="",
+                    username="", password=""):
+    """ Add given port to ovs bridge
+
+    :param bridge: name of bridge
+    :type bridge: string e.g. br-int
+    :param port_to_add: name of port
+    :type port_to_add: string e.g. port1
+    :param remote: set value to True enables remote host cmd execution
+    :type remote: boolean e.g. remote=True
+    :param hostname: remote host IP address, not required for DUT host
+    :type hostname: string e.g. 10.233.132.110
+    :param username: remote host username, not required for DUT
+    :type username: string e.g. root
+    :param password: remote host password, not required for DUT
+    :type password: string e.g. cloudsw
+    :return: exit status
+    :rtype: boolean e.g. True on success or False on failure
+    """
+    # Establish connection with local/remote host
+    connection = get_connection_object(remote, hostname, username, password)
+    ovs = Ovs(connection)
+    # Execute needed ovs command
+    out, rcode, err = ovs.vsctl.add_port(bridge, port_to_add)
+    # Close connection
+    connection.tear_down()
+    # work on output data
+    if rcode:
+        print(f'failed to add port to ovs, error is:{err}')
+        return False
+    else:
+        print(f'Successfully added {port_to_add} port to ovs')
+        return True
+
+
+def del_port_from_ovs(bridge, port_to_delete, remote=False, hostname="",
                       username="", password=""):
     """ Delete given port from ovs including vxlan type too
-    
+
     :param bridge: Name of the bridge
     :type bridge: string e.g. br-int
     :param port_to_delete: name of port to delete
@@ -176,4 +212,36 @@ def del_port_from_ovs(bridge, port_to_delete, remote=False, hostname="",
         return False
     else:
         print(f'Successfully delete {port_to_delete} port from ovs')
+        return True
+
+
+def del_ovs_bridge(bridge, remote=False, hostname="", username="", password=""):
+    """ delete ovs bridge
+
+    :param bridge: name of bridge to delete
+    :type bridge: string e.g. br-int
+    :type remote: boolean e.g. remote=True
+    :param hostname: remote host IP address, not required for DUT host
+    :type hostname: string e.g. 10.233.132.110
+    :param username: remote host username, not required for DUT
+    :type username: string e.g. root
+    :param password: remote host password, not required for DUT
+    :type password: string e.g. cloudsw
+    :return: exit status
+    :rtype: boolean e.g. True on success or False on failure
+    """
+
+    # Establish connection with local/remote host
+    connection = get_connection_object(remote, hostname, username, password)
+    ovs = Ovs(connection)
+    # Execute needed ovs command
+    out, rcode, err = ovs.vsctl.del_br(bridge)
+    # Close connection
+    connection.tear_down()
+    # work on output data
+    if rcode:
+        print(f'failed to delete ovs bridge, error is:{err}')
+        return False
+    else:
+        print(f'Successfully deleted ovs bridge')
         return True
