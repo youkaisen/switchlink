@@ -361,3 +361,35 @@ def compare_counter(counter2, counter1):
     for key in counter2.keys():
         delta[key] = counter2[key] -counter1[key]
     return delta
+
+def check_and_clear_vhost(directory="/tmp/"):
+    """
+    :Function to check and clear vhost socket file from /tmp (default) directory
+    :returns False if socket file is found and could not be deleted, else True
+    """
+    _, vhost_list = check_vhost_socket_count(directory)
+    if vhost_list:
+        for file in vhost_list:
+                file_path = directory + file
+                print(f"Deleting vhost-user socket file " + file_path)
+                local = Local()
+                _, returncode, _ = local.execute_command(f"rm -f "  + file_path)
+                if returncode:
+                    print(f"Cannot delete file " + file_path)
+                    return False
+                else:
+                    return True
+    else:            
+        print(f"No vhost-user socket file found in " + directory)
+        return True
+
+def check_vhost_socket_count(directory="/tmp/"):
+    """
+    :Function to check vhost socket files count from /tmp (default) directory
+    :returns length of vhost_list in integer and vhost_list 
+    """
+    vhost_list = []
+    for file in os.listdir(directory):
+        if file.startswith("vhost-user"):
+            vhost_list.append(file)
+    return len(vhost_list), vhost_list  
