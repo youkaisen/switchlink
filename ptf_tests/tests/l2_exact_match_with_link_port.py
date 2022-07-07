@@ -55,7 +55,6 @@ class L2_Exact_Match(BaseTest):
             self.fail("Failed to configure gnmi cli ports")
 
         ip_set_ipv4(self.interface_ip_list)
-
         # get port list and add to dataplane
         port_list = self.config_data['port_list']
         port_list[0] = test_utils.get_port_name_from_pci_bdf(self.capture_port)
@@ -81,7 +80,7 @@ class L2_Exact_Match(BaseTest):
             
             # forming 1st packet and sending to validate if rule-1 hits or not
             print("sending packet to check if rule 1  hits")
-            if table['description'] == "table_for_dst_ip":
+            if table['description'] == "table_for_dst_mac":
                 pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_mac_1'])
             else:
                 pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_mac_1'])
@@ -89,7 +88,7 @@ class L2_Exact_Match(BaseTest):
             # Verify whether packet is received as per rule 1 
             send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt)
             try:
-                verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][1]])
+                verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][0]][1])
                 print(f"PASS: Verification of packets passed, packet received as per rule 1")
             except Exception as err:
                 self.result.addFailure(self, sys.exc_info())
@@ -98,7 +97,7 @@ class L2_Exact_Match(BaseTest):
            
             # forming 2nd packet and sending to validate if rule-2 hits or not
             print("sending packet to check if rule 2  hits")
-            if table['description'] == "table_for_dst_ip":
+            if table['description'] == "table_for_dst_mac":
                 pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_mac_2'])
             else:
                 pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_mac_2'])
@@ -106,7 +105,7 @@ class L2_Exact_Match(BaseTest):
             # Verify whether packet is received as per rule 2 
             send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
             try:
-                verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][0]])
+                verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][1]][1])
                 print(f"PASS: Verification of packets passed, packet received as per rule 2")
             except Exception as err:
                 self.result.addFailure(self, sys.exc_info())
@@ -115,7 +114,7 @@ class L2_Exact_Match(BaseTest):
 
             # forming 2th packet and sending to validate if rule-3 hits or not
             print("sending packet to check if rule 3 hits")
-            if table['description'] == "table_for_dst_ip":
+            if table['description'] == "table_for_dst_mac":
                 pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_mac_3'])
             else:
                 pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_mac_3'])
@@ -130,7 +129,7 @@ class L2_Exact_Match(BaseTest):
 
             # forming 2th packet and sending to validate if rule-4 hits or not
             print("sending packet to check if rule 4 hits")
-            if table['description'] == "table_for_dst_ip":
+            if table['description'] == "table_for_dst_mac":
                 pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_mac_4'])
             else:
                 pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_mac_4'])

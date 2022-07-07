@@ -1,5 +1,5 @@
 """
-DPDK L2 Exact Match (match fields, actions) with TAP Port
+DPDK L3 match WCM with TAP Port
 """
 
 # in-built module imports
@@ -27,14 +27,13 @@ import common.utils.test_utils as test_utils
 from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict
 from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params, ip_set_ipv4
 
-
-class L2_Exact_Match(BaseTest):
+class L3_Wcm_Del_Add(BaseTest):
 
     def setUp(self):
         BaseTest.setUp(self)
         self.result = unittest.TestResult()
         config["relax"] = True # for verify_packets to ignore other packets received at the interface
-        
+
         test_params = test_params_get()
         config_json = test_params['config_json']
         self.dataplane = ptf.dataplane_instance
@@ -44,7 +43,6 @@ class L2_Exact_Match(BaseTest):
 
         self.gnmicli_params = get_gnmi_params_simple(self.config_data)
         self.interface_ip_list = get_interface_ipv4_dict(self.config_data)
-
 
     def runTest(self):
         if not test_utils.gen_dep_files_p4c_ovs_pipeline_builder(self.config_data):
@@ -68,51 +66,68 @@ class L2_Exact_Match(BaseTest):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to set pipe")
 
-
+        print("***STEP1: Adding the wcm rules***")
         for table in self.config_data['table']:
 
-            print(f"Scenario : l2 exact match : {table['description']}")
+            print(f"Scenario : l3 exact match : {table['description']}")
             print(f"Adding {table['description']} rules")
             for match_action in table['match_action']:
                 if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"Failed to add table entry {match_action}")
 
-            # forming 1st packet and sending to validate if scenario-1:rule-1 hits or not
-            print("sending packet to check if rule 1  hits")
-            if table['description'] == "table_for_dst_ip":
-                pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_dst_1'])
-            else:
-                pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_src_1'])
+        print("sending packet to check if rule 1 drop")
+        pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][0])
+        send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
+        try:
+            verify_no_packet_any(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][1]])
+            print(f"PASS: Verification of packets passed, packet dropped as per rule 1")
+        except Exception as err:
+            self.result.addFailure(self, sys.exc_info())
+            print(f"FAIL: Verification of packets sent failed with exception {err}")
 
-            # Verify whether packet is received as per rule 1 
-            send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt)
-            try:
-                verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][0]][1])
-                print(f"PASS: Verification of packets passed, packet received as per rule 1")
-            except Exception as err:
-                self.result.addFailure(self, sys.exc_info())
-                print(f"FAIL: Verification of packets sent failed with exception {err}")
-        
-            # forming 2th packet and sending to validate if scenario-1:rule-2 hits or not
-            print("sending packet to check if rule2 hits")
-            if table['description'] == "table_for_dst_ip":
-                pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_dst_2'])
-            else:
-                pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_src_2'])
-            # Verify whether packet is dropped as per rule 2
-            send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
-            try:
-                verify_no_packet_any(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][1]][1]])
-                print(f"PASS: Verification of packets passed, packet dropped as per rule 2")
-            except Exception as err:
-                self.result.addFailure(self, sys.exc_info())
-                print(f"FAIL: Verification of packets sent failed with exception {err}")
+        # Deleting the rules
+        for table in self.config_data['table']:
+            print(f"Deleting {table['description']} rules")
+            for del_action in table['del_action']:
+                ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
+
+
+        print("***STEP2: Deleting the wcm rules***")
+        print("sending packet to check if rule 2 hit")
+        pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][1])
+        send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
+        try:
+            verify_packet(self, pkt,  port_ids[self.config_data['traffic']['receive_port'][1]][1])
+            print(f"PASS: Verification of packets passed, packet received as per rule 2")
+            self.result.addFailure(self, sys.exc_info())
+        except Exception as err:
+            print(f"PASS: succesfully deleted WCM rules")
+
+        print("***STEP3: Readding the wcm rules***")
+        for table in self.config_data['table']:
+            print(f"Scenario : WCM rules : {table['description']}")
+            print(f"Adding {table['description']} rules")
+            for match_action in table['match_action']:
+                if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
+                    self.result.addFailure(self, sys.exc_info())
+                    self.fail(f"Failed to add table entry {match_action}")
+
+
+        print("sending packet to check if rule 1 hit")
+        pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][2])
+        send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
+        try:
+            verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][2]][1])
+            print(f"PASS: Verification of packets passed, packet received as per rule 1")
+        except Exception as err:
+            self.result.addFailure(self, sys.exc_info())
+            print(f"FAIL: Verification of packets sent failed with exception {err}")
 
         self.dataplane.kill()
 
-
     def tearDown(self):
+        
         for table in self.config_data['table']:
             print(f"Deleting {table['description']} rules")
             for del_action in table['del_action']:
@@ -122,7 +137,3 @@ class L2_Exact_Match(BaseTest):
             print("Test has PASSED")
         else:
             print("Test has FAILED")
-        
-
- 
-

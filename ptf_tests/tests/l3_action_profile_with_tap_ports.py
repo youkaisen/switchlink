@@ -114,7 +114,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         # Verify pkt recvd
         print(f"Verifying UDP packet received on {port_ids[1]}")
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[1][1]])
+            verify_packet(self, pkt, port_ids[1][1])
             print(f"PASS: Verification of UDP packets passed, packet received as per rule 1")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -179,7 +179,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         # Verify pkt recvd
         print(f"Verifying TCP packet received on {port_ids[1]}")
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[1][1]])
+            verify_packet(self, pkt, port_ids[1][1])
             print(f"PASS: Verification of TCP packets passed, packet received as per rule 1")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -244,7 +244,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         # Verify pkt recvd
         print(f"Verifying UDP Multicast packet received on {port_ids[2]}")
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[2][1]])
+            verify_packet(self, pkt, port_ids[2][1])
             print(f"PASS: Verification of UDP Multicast packets passed, packet received as per rule 2")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -294,7 +294,7 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
         # Verify pkt recvd
         print(f"Verifying UDP Broadcast packet received on {port_ids[3]}")
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[3][1]])
+            verify_packet(self, pkt, port_ids[3][1])
             print(f"PASS: Verification of UDP Broadcast packets passed, packet received as per rule 3")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())

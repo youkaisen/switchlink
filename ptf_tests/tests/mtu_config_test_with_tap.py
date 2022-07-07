@@ -89,7 +89,7 @@ class TapPort_MTU_Config(BaseTest):
         send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt)
         time.sleep(1)
         try:
-            verify_packet(self, pkt, port_id=port_ids[self.config_data['traffic']['receive_port'][1]], timeout=None)
+            verify_packet(self, pkt, port_id=port_ids[1][1], timeout=None)
         except Exception as err:
             outpcap = tcpdump_get_pcap(port_list[1])
             mtudiffstr = "truncated-ip " + str(mtudiff) + " bytes missing!"
@@ -108,7 +108,7 @@ class TapPort_MTU_Config(BaseTest):
         print("sending packet from " + port_list[1] + " of size " + pktsize1  )
         send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
         try:
-            verify_packet(self, pkt, port_id=port_ids[self.config_data['traffic']['receive_port'][0]], timeout=None)
+            verify_packet(self, pkt, port_id=port_ids[0][1], timeout=None)
             print(f"PASS: Verification of packets passed, packet received as expected")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -119,7 +119,7 @@ class TapPort_MTU_Config(BaseTest):
         send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt)
         print("sending packet from " + port_list[0] + " of size " + pktsize2  )
         try:
-            verify_packet(self, pkt, port_id=port_ids[self.config_data['traffic']['receive_port'][1]], timeout=None)
+            verify_packet(self, pkt, port_id=port_ids[1][1], timeout=None)
             print(f"PASS: Verification of packets passed, packet received as expected")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -130,7 +130,7 @@ class TapPort_MTU_Config(BaseTest):
         send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
         print("sending packet from " + port_list[1] + " of size " + pktsize2  )
         try:
-            verify_packet(self, pkt, port_id=port_ids[self.config_data['traffic']['receive_port'][0]], timeout=None)
+            verify_packet(self, pkt, port_ids[0][1], timeout=None)
             print(f"PASS: Verification of packets passed, packet received as expected")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())

@@ -104,7 +104,7 @@ class Tap_Link_PortCounter(BaseTest):
         pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][0], pktlen=pktlen)
         send_packet(self, port_ids[send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
+            verify_packet(self, pkt, port_ids[receive_port_id][1])
             print(f"PASS: Verification of {num} packets passed per rule 2")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -180,7 +180,7 @@ class Tap_Link_PortCounter(BaseTest):
         pkt = simple_tcp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][1], pktlen=pktlen)
         send_packet(self, port_ids[send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
+            verify_packet(self, pkt, port_ids[receive_port_id][1])
             print(f"PASS: Verification of {num} packets passed per rule 4")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -249,7 +249,7 @@ class Tap_Link_PortCounter(BaseTest):
         pkt = simple_udp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][2],ip_src=self.config_data['traffic']['in_pkt_header']["ip_src"][0])
         send_packet(self, port_ids[ send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
+            verify_packet(self, pkt, port_ids[receive_port_id][1])
             print(f"PASS: Verification of packets passed per rule 1")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -301,7 +301,7 @@ class Tap_Link_PortCounter(BaseTest):
         pkt = simple_udp_packet(ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][4],ip_src=self.config_data['traffic']['in_pkt_header']["ip_src"][0])
         send_packet(self, port_ids[send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
+            verify_packet(self, pkt, port_ids[receive_port_id][1])
             print(f"PASS: Verification of packets passed per rule 5")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -356,7 +356,7 @@ class Tap_Link_PortCounter(BaseTest):
         pkt = simple_udp_packet( eth_dst="FF:FF:FF:FF:FF:FF",ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][3],ip_src=self.config_data['traffic']['in_pkt_header']["ip_src"][0])
         send_packet(self, port_ids[send_port_id], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
+            verify_packet(self, pkt, ports=[port_ids[receive_port_id][1]])
             print(f"PASS: Verification of packets passed per rule 3")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
@@ -416,7 +416,7 @@ class Tap_Link_PortCounter(BaseTest):
         pkt = simple_udp_packet( eth_dst="FF:FF:FF:FF:FF:FF",ip_dst=self.config_data['traffic']['in_pkt_header']['ip_dst'][3])
         send_packet(self, port_ids[self.config_data['traffic']['send_port'][3]], pkt, count=num)
         try:
-            verify_packets(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][0]][1]])
+            verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][0]][1])
             print(f"PASS: Verification of packets passed per rule 6")
         except Exception as err:
             self.result.addFailure(self, sys.exc_info())
