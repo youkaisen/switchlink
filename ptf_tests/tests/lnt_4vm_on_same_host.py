@@ -1,5 +1,5 @@
 """
-DPDK L3 Exact Match (match fields, actions) with vHost
+LNT 4VM Mesh ping on same Host
 
 """
 
@@ -27,7 +27,7 @@ import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
 import common.utils.ovs_utils as ovs_utils
 from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict
-from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params,iplink_add_vlan_port,ip_set_dev_up, get_tap_port_list
+from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params,iplink_add_vlan_port,ip_set_dev_up, get_tap_port_list,iplink_del_port
 from common.lib.telnet_connection import connectionManager
 
 class LNT_4VM_Same_Host(BaseTest):
@@ -65,23 +65,28 @@ class LNT_4VM_Same_Host(BaseTest):
         if not ovs_p4ctl.ovs_p4ctl_set_pipe(self.config_data['switch'], self.config_data['pb_bin'], self.config_data['p4_info']):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to set pipe")
-
+        
         # create VMs
         result, vm_name = test_utils.vm_create(self.config_data['vm_location_list'])
         if not result:
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"VM creation failed for {vm_name}")
-      
+       
         # create telnet instance for VMs created
-        conn_obj_list = []
+        self.conn_obj_list = []
         vm_cmd_list = []
         vm_id = 0
         for vm, port in zip(self.config_data['vm'], self.config_data['port']):
            globals()["conn"+str(vm_id+1)] = connectionManager("127.0.0.1", f"655{vm_id}", vm['vm_username'], vm['vm_password'])
-           conn_obj_list.append(globals()["conn"+str(vm_id+1)])
+           self.conn_obj_list.append(globals()["conn"+str(vm_id+1)])
            globals()["vm"+str(vm_id+1)+"_command_list"] = [f"ip addr add {port['ip_address']} dev {port['interface']}", f"ip link set dev {port['interface']} up", f"ip link set dev {port['interface']} address {port['mac_local']}", f"ip neigh add dev {port['interface']} {vm['remote_ip']} lladdr {vm['mac_remote']}"]
            vm_cmd_list.append(globals()["vm"+str(vm_id+1)+"_command_list"])
            vm_id+=1
+        
+        # configuring VMs
+        for i in range(len(self.conn_obj_list)):
+            print ("Configuring VM{i}....")
+            test_utils.configure_vm(self.conn_obj_list[i], vm_cmd_list[i])
         
         # add linux networking match action rules
         for table in self.config_data['table']:
@@ -91,12 +96,7 @@ class LNT_4VM_Same_Host(BaseTest):
                 if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"Failed to add table entry {match_action}")
-        
-        # configuring VMs
-        for i in range(len(conn_obj_list)):
-            print ("Configuring VM{i}....")
-            test_utils.configure_vm(conn_obj_list[i], vm_cmd_list[i])
-        
+    
         #add a bridge to ovs
         if not ovs_utils.add_bridge_to_ovs(self.config_data['bridge']):
             self.result.addFailure(self, sys.exc_info())
@@ -106,8 +106,7 @@ class LNT_4VM_Same_Host(BaseTest):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to bring up {self.config_data['bridge']}")
 
-        conn_obj_list=[1,2,3,4]
-        for i in range(len(conn_obj_list)):
+        for i in range(len(self.conn_obj_list)):
             id = self.config_data['port'][i]['vlan']
             vlanname = "vlan"+id
             #add vlan to TAP0
@@ -124,18 +123,18 @@ class LNT_4VM_Same_Host(BaseTest):
             if not ip_set_dev_up(vlanname):
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"Failed to bring up {vlanname}")
-
+        
         # ping test between VMs
-        for i in range(len(conn_obj_list)):
+        for i in range(len(self.conn_obj_list)):
             print(f"Ping test from VM{i} to other VMs")
             for ip in self.config_data['vm'][i]['remote_ip']:
-                result = test_utils.vm_to_vm_ping_test(conn_obj_list[i], ip)
+                result = test_utils.vm_to_vm_ping_test(self.conn_obj_list[i], ip)
                 if not result:
                     self.result.addFailure(self, sys.exc_info())
                     print("FAIL: Ping test failed for VM0")
-        
+    
         # close telnet connections
-        for conn in conn_obj_list:
+        for conn in self.conn_obj_list:
             conn.close()
         
     def tearDown(self):
@@ -144,11 +143,20 @@ class LNT_4VM_Same_Host(BaseTest):
             print(f"Deleting {table['description']} rules")
             for del_action in table['del_action']:
                 ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
-
+        
+        # delete bridge
         if not ovs_utils.del_bridge_from_ovs(self.config_data['bridge']):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to delete bridge {self.config_data['bridge']} from ovs")
         
+        # delete vlan
+        for i in range(len(self.conn_obj_list)):
+            id = self.config_data['port'][i]['vlan']
+            vlanname = "vlan"+id
+            if not iplink_del_port(vlanname):
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"Failed to delete {vlanname}")
+
         if self.result.wasSuccessful():
             print("Test has PASSED")
         else:

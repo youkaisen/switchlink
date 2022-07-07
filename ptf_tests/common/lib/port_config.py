@@ -148,6 +148,7 @@ class PortConfig(object):
             print(f"PASS: {cmd}")
             return True
            
+
         def iplink_add_vlan_port(self, id, name, netdev_port):
             """ Method to add vlan port to given netdev port
 
@@ -168,16 +169,104 @@ class PortConfig(object):
                                           f'an error {err}')
             print(f"PASS: {cmd}")
             return True
-            
+
+        def iplink_create_veth_interface(self, veth_iface, veth_peer_iface):
+            """ This method creates virtual network interface
+
+            :param veth_iface: netns virtual VM interface name
+            :type veth_iface: string e.g. veth_vm0
+            :param veth_peer_iface: peer name for veth interface
+            :type veth_peer_iface: string e.g. veth_host_vm0
+            :return: exit status
+            :rtype: boolean e.g. True on success, script exits on failure
+            """
+            cmd = self.form_cmd(f" link add {veth_iface} type veth peer name "
+                                f"{veth_peer_iface}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
+
+        def iplink_add_veth_to_netns(self, namespace_name, veth_iface):
+            """ This method adds virtual network interface to created namespace
+
+            :param namespace_name: name of VM namespace
+            :type namespace_name: string e.g. VM0
+            :param veth_iface: netns virtual VM interface name
+            :type veth_iface: string e.g. veth_vm0
+            :return: exit status
+            :rtype: boolean e.g. True on success, script exits on failure
+            """
+            cmd = self.form_cmd(f" link set {veth_iface} netns "
+                                f"{namespace_name}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
+
         def iplink_del_port(self, port_to_delete):
             """ This method is used to delete any port including vlan type
-            
+
             :param port_to_delete: name of port to delete
             :type port_to_delete: string e.g. vlan1
             :return: exit status
             :rtype: True on success, script exits on failure
             """
             cmd = self.form_cmd(f" link del {port_to_delete}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
+
+        def ipnetns_create_namespace(self, vm_name):
+            """ This method is used to create netns type VM
+
+            :param vm_name: name of vm to add
+            :type vm_name: string e.g. VM0
+            :return: exit status
+            :rtype: True on success, script exits on failure
+            """
+            cmd = self.form_cmd(f" netns add {vm_name}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
+
+        def ipnetns_execute_command(self, namespace, command):
+            """ This method executes command with network namespace created
+
+            :param namespace: VM namespace name
+            :type namespace: string e.g. VM0
+            :param command: command to execute
+            :type command: string e.g. command = "ip addr"
+            :return: exit status
+            :rtype: boolean e.g. True of success, script exits on failure
+            """
+            cmd = self.form_cmd(f" netns exec {namespace} {command}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
+
+        def ipnetns_delete_namespace(self, namespace_name):
+            """ This method is used to delete VM namespace
+
+            :param namespace_name: namespace name to delete
+            :type namespace_name: string e.g. VM0
+            :return: exit status
+            :rtype: True on success, script exits on failure
+            """
+            cmd = self.form_cmd(f" netns delete {namespace_name}")
             output, return_code, err = self.connection.execute_command(cmd)
             if return_code:
                 raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '

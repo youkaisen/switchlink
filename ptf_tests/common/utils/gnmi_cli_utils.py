@@ -161,7 +161,24 @@ def ip_set_dev_up(devname):
     else:
         print(f"FAIL: fail to enale {devname} up")
         return False
-   
+
+def iplink_del_port(port_to_delete):
+    """ This method is used to delete any port including vlan
+    :param port_to_delete: name of port to delete
+    :type port_to_delete: string e.g. vlan1
+    :return: exit status
+    :rtype: True on success. False on failure
+    """
+    port_config = PortConfig()
+    result = port_config.Ip.iplink_del_port(port_to_delete)
+    port_config.GNMICLI.tear_down()
+    if result:
+        print(f"PASS: succeed to delee {port_to_delete}")
+        return True
+    else:
+        print(f"FAIL: fail to delete {port_to_delete}")
+        return False
+
 def get_tap_port_list(config_data):
     tap_port = []
     for data in config_data['port']:

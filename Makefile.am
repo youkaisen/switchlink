@@ -170,9 +170,9 @@ EXTRA_DIST = \
 	ptf_tests/common/config/show_tap_port_mtu.json \
 	ptf_tests/common/config/l3_wcm_with_link_port.json \
 	ptf_tests/common/config/max_tap_port.json \
+	ptf_tests/common/config/max_vhost_port.json \
         ptf_tests/common/config/l3_action_profile_with_vhost_test1.json \
         ptf_tests/common/config/l3_action_selector_with_vhost_test1.json \
-        ptf_tests/common/config/l3_action_selector_create_delete.json \
         ptf_tests/common/config/l3_action_profile_with_link_test1.json \
         ptf_tests/common/config/l3_action_selector_with_link_test1.json \
 	ptf_tests/common/config/mtu_config_test_with_tap.json \
@@ -237,6 +237,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/l2_dpdk_port_flapping_with_tap_ports.py \
 	ptf_tests/tests/l3_dpdk_port_flapping_with_vhost_ports.py \
 	ptf_tests/tests/max_tap_port.py \
+	ptf_tests/tests/max_vhost_port.py \
 	ptf_tests/tests/l3_wcm_del_add.py \
         ptf_tests/tests/lnt_4vm_on_same_host.py \
 	ptf_tests/common/lib/tcpdump.py \
@@ -247,7 +248,6 @@ EXTRA_DIST = \
         ptf_tests/tests/l3_action_selector_with_vhost_ports.py \
 	ptf_tests/tests/l3_action_profile_with_link_ports.py \
         ptf_tests/tests/l3_action_selector_with_link_ports.py \
-        ptf_tests/tests/l3_action_selector_create_delete.py \
 	ptf_tests/p4runtime_test/run_p4_tests.sh \
 	ptf_tests/p4runtime_test/run_ptf_tests.py \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.p4 \

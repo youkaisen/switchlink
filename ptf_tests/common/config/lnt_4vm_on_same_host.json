@@ -36,8 +36,8 @@
     {
       "id": "3",
       "device": "virtual-device",
-      "name": "net_vhost3",
-      "host": "host0",
+      "name": "net_vhost2",
+      "host": "host2",
       "device-type": "VIRTIO_NET",
       "queues": "1",
       "socket-path": "/tmp/vhost-user-2",
@@ -51,8 +51,8 @@
     {
       "id": "4",
       "device": "virtual-device",
-      "name": "net_vhost4",
-      "host": "host1",
+      "name": "net_vhost3",
+      "host": "host3",
       "device-type": "VIRTIO_NET",
       "queues": "1",
       "socket-path": "/tmp/vhost-user-3",

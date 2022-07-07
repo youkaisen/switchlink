@@ -112,7 +112,7 @@ class L3_Exact_Match(BaseTest):
             # Verify whether packet is received as per rule 1 
             send_packet(self, port_ids[send_port_id], pkt, count=num)
             try:
-                verify_packets(self, pkt, device_number=0, ports=[port_ids[receive_port_id][1]])
+                verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][0]][1])
                 print(f"PASS: Verification of packets passed, packet received as per rule 1")
             except Exception as err:
                 self.result.addFailure(self, sys.exc_info())
