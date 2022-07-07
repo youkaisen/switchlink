@@ -15,7 +15,7 @@
  */
 
 #include <config.h>
-#include "switchapi/switch_base_types.h"
+#include "p4proto/kctrl/switchapi/switch_base_types.h"
 #include "saiinternal.h"
 
 sai_status_t

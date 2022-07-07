@@ -19,9 +19,9 @@
 #include <saitunnel.h>
 
 #include "saiinternal.h"
-#include "switch_tunnel.h"
-#include "switch_base_types.h"
-#include "switch_status.h"
+#include "p4proto/kctrl/switchapi/switch_tunnel.h"
+#include "p4proto/kctrl/switchapi/switch_base_types.h"
+#include "p4proto/kctrl/switchapi/switch_status.h"
 
 //static sai_api_t api_id = SAI_API_TUNNEL;
 

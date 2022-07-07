@@ -35,9 +35,9 @@
 #include <saifdb.h>
 #include <saitypes.h>
 #include <saistatus.h>
-#include "switchlink/switchlink_db.h"
-#include "switchlink/switchlink.h"
-#include "switchsai/saiinternal.h"
+#include "p4proto/kctrl/switchlink/switchlink_db.h"
+#include "p4proto/kctrl/switchlink/switchlink.h"
+#include "p4proto/kctrl/switchsai/saiinternal.h"
 #endif
 
 COVERAGE_DEFINE(mac_learning_learned);

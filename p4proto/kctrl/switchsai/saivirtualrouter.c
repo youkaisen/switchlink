@@ -16,11 +16,11 @@
 
 #include <config.h>
 #include <saivirtualrouter.h>
-#include <switchapi/switch_vrf.h>
+#include <p4proto/kctrl/switchapi/switch_vrf.h>
 #include <openvswitch/vlog.h>
 
 #include "saiinternal.h"
-#include "switch_base_types.h"
+#include "p4proto/kctrl/switchapi/switch_base_types.h"
 
 VLOG_DEFINE_THIS_MODULE(saivirtualrouter);
 

@@ -16,9 +16,9 @@
 
 #include <sainexthop.h>
 #include <config.h>
-#include <switchapi/switch_nhop.h>
-#include <switchapi/switch_rif.h>
-#include <switchapi/switch_tunnel.h>
+#include <p4proto/kctrl/switchapi/switch_nhop.h>
+#include <p4proto/kctrl/switchapi/switch_rif.h>
+#include <p4proto/kctrl/switchapi/switch_tunnel.h>
 #include <openvswitch/vlog.h>
 
 #include "saiinternal.h"

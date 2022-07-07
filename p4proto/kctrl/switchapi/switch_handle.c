@@ -18,8 +18,8 @@
 #include <config.h>
 
 /* Local header includes */
-#include "switchapi/switch_handle.h"
-#include "switchapi/switch_status.h"
+#include "p4proto/kctrl/switchapi/switch_handle.h"
+#include "p4proto/kctrl/switchapi/switch_status.h"
 #include "switch_nhop_int.h"
 #include "switch_internal.h"
 

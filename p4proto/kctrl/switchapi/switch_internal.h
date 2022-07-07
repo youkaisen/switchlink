@@ -18,9 +18,9 @@
 #define _switch_internal_h_
 
 #include <stdio.h>
-#include <switchapi/switch_status.h>
-#include <switchapi/switch_device_int.h>
-#include <switchapi/switch_handle_int.h>
+#include <p4proto/kctrl/switchapi/switch_status.h>
+#include <p4proto/kctrl/switchapi/switch_device_int.h>
+#include <p4proto/kctrl/switchapi/switch_handle_int.h>
 #include <config.h>
 #include <bf_types/bf_types.h>
 

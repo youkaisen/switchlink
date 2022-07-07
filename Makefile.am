@@ -464,7 +464,7 @@ check-endian:
 	@if test -e $(srcdir)/.git && (git --version) >/dev/null 2>&1 && \
 	  (cd $(srcdir) && git --no-pager grep -l -E \
 	   -e 'BIG_ENDIAN|LITTLE_ENDIAN' --and --not -e 'BYTE_ORDER' | \
-	  $(EGREP) -v '^switchlink/|^datapath/|^include/sparse/rte_'); \
+	  $(EGREP) -v '^p4proto/kctrl/switchlink/|^datapath/|^include/sparse/rte_'); \
 	then \
 	  echo "See above for list of files that misuse LITTLE""_ENDIAN"; \
 	  echo "or BIG""_ENDIAN.  Please use WORDS_BIGENDIAN instead."; \
@@ -654,9 +654,9 @@ include p4proto/automake.mk
 endif
 
 if P4SAI
-include switchapi/automake.mk
-include switchsai/automake.mk
-include switchlink/automake.mk
+include p4proto/kctrl/switchapi/automake.mk
+include p4proto/kctrl/switchsai/automake.mk
+include p4proto/kctrl/switchlink/automake.mk
 endif
 
 include utilities/automake.mk

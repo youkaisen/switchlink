@@ -16,9 +16,9 @@
 
 #include <saifdb.h>
 #include <config.h>
-#include <switchapi/switch_fdb.h>
-#include <switchapi/switch_interface.h>
-#include <switchapi/switch_device.h>
+#include <p4proto/kctrl/switchapi/switch_fdb.h>
+#include <p4proto/kctrl/switchapi/switch_interface.h>
+#include <p4proto/kctrl/switchapi/switch_device.h>
 #include <linux/if_ether.h>
 #include <openvswitch/vlog.h>
 

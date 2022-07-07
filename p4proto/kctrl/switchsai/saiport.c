@@ -18,9 +18,9 @@
 #include <openvswitch/vlog.h>
 #include <saiport.h>
 
-#include "saiinternal.h"
-#include "switch_port.h"
-#include "switch_base_types.h"
+#include "p4proto/kctrl/switchsai/saiinternal.h"
+#include "p4proto/kctrl/switchapi/switch_port.h"
+#include "p4proto/kctrl/switchapi/switch_base_types.h"
 
 VLOG_DEFINE_THIS_MODULE(saiport);
 

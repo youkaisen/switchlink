@@ -16,14 +16,14 @@
 
 #include <sairouterinterface.h>
 #include <config.h>
-#include <switchapi/switch_rif.h>
-#include <switchapi/switch_rmac.h>
-#include <switchapi/switch_interface.h>
-#include <switchapi/switch_l3.h>
+#include <p4proto/kctrl/switchapi/switch_rif.h>
+#include <p4proto/kctrl/switchapi/switch_rmac.h>
+#include <p4proto/kctrl/switchapi/switch_interface.h>
+#include <p4proto/kctrl/switchapi/switch_l3.h>
 #include <openvswitch/vlog.h>
 
 #include "saiinternal.h"
-#include "switch_device.h"
+#include "p4proto/kctrl/switchapi/switch_device.h"
 
 VLOG_DEFINE_THIS_MODULE(sairouterinterface);
 

@@ -18,9 +18,9 @@
 #include <openvswitch/vlog.h>
 
 #include "saiinternal.h"
-#include "switchapi/switch_handle.h"
-#include "switchapi/switch_nhop.h"
-#include "switch_base_types.h"
+#include "p4proto/kctrl/switchapi/switch_handle.h"
+#include "p4proto/kctrl/switchapi/switch_nhop.h"
+#include "p4proto/kctrl/switchapi/switch_base_types.h"
 
 VLOG_DEFINE_THIS_MODULE(sai);
 static sai_api_service_t sai_api_service;

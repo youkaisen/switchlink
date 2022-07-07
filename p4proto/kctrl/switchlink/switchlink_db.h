@@ -18,8 +18,8 @@
 #define __SWITCHLINK_DB_H__
 
 #include <stdbool.h>
-#include "switchlink/switchlink.h"
-#include "switchlink/switchlink_link.h"
+#include "p4proto/kctrl/switchlink/switchlink.h"
+#include "p4proto/kctrl/switchlink/switchlink_link.h"
 
 #define SWITCHLINK_INTERFACE_NAME_LEN_MAX 32
 #define SWITCHLINK_ECMP_NUM_MEMBERS_MAX 16

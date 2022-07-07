@@ -1454,13 +1454,13 @@ def parse_rcflow(flow):
     if counter_id.isdigit() is False:
         print("Counter ID: \"{}\" should be numeric value".format(counter_id))
         sys.exit(1)
-    
+
     if index == "UNSET": #special case for "UNSET"
         index = 0
     elif index.isdigit() is False:
         print("Index: \"{}\" should be numeric value".format(index))
         sys.exit(1)
-    
+
     return counter_id, index
 
 def _format_ce(ce):

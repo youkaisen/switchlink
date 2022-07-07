@@ -15,10 +15,10 @@
  */
 
 #include <saineighbor.h>
-#include <switchapi/switch_neighbor.h>
-#include <switchapi/switch_nhop.h>
-#include <switchapi/switch_rif.h>
-#include <switchapi/switch_l3.h>
+#include <p4proto/kctrl/switchapi/switch_neighbor.h>
+#include <p4proto/kctrl/switchapi/switch_nhop.h>
+#include <p4proto/kctrl/switchapi/switch_rif.h>
+#include <p4proto/kctrl/switchapi/switch_l3.h>
 #include <arpa/inet.h>
 #include <config.h>
 #include <openvswitch/vlog.h>

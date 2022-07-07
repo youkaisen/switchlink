@@ -16,10 +16,10 @@
 
 #include <sairoute.h>
 #include <config.h>
-#include <switchapi/switch_device.h>
-#include <switchapi/switch_rif.h>
-#include <switchapi/switch_interface.h>
-#include <switchapi/switch_l3.h>
+#include <p4proto/kctrl/switchapi/switch_device.h>
+#include <p4proto/kctrl/switchapi/switch_rif.h>
+#include <p4proto/kctrl/switchapi/switch_interface.h>
+#include <p4proto/kctrl/switchapi/switch_l3.h>
 #include <openvswitch/vlog.h>
 
 #include "saiinternal.h"

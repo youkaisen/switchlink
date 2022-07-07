@@ -17,7 +17,7 @@
 #include <config.h>
 #include <sainexthopgroup.h>
 #include "saiinternal.h"
-#include <switchapi/switch_nhop.h>
+#include <p4proto/kctrl/switchapi/switch_nhop.h>
 #include <openvswitch/vlog.h>
 
 VLOG_DEFINE_THIS_MODULE(sainexthopgroup);
