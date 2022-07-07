@@ -115,6 +115,7 @@ class Control_Port_Counter(BaseTest):
         if result:
             print("PASS: expected ping failure BUT at lease it trigger counter")
         counter2 = test_utils.get_ovs_port_dump(self.config_data["dump_bridge"], self.control_port)
+      
         pkt_count = counter2[self.control_port[0]]['tx']['pkts'] - counter1[self.control_port[0]]['tx']['pkts']
         if pkt_count not in range(vm_ping_num, num_buffer):
             self.result.addFailure(self, sys.exc_info())
@@ -134,6 +135,7 @@ class Control_Port_Counter(BaseTest):
         pktlen = self.config_data['traffic']['packet_size'][1]
         num_buffer =  num + self.config_data['traffic']['count_buffer'][0] + 1
         bytes, bytes_buffer = pktlen * num, pktlen * num_buffer
+        
         #Record counter before sending traffic
         counter1= test_utils.get_ovs_port_dump(self.config_data["dump_bridge"], self.control_port)
         #Ping from control TAP to vhost
@@ -141,6 +143,7 @@ class Control_Port_Counter(BaseTest):
         result = test_utils.local_ping(pingcmd)
         if not result:
             print("PASS: expected ping failure BUT at lease it trigger counter") 
+          
         #Record counter afteer sending traffic
         counter2 = test_utils.get_ovs_port_dump(self.config_data["dump_bridge"], self.control_port)
     

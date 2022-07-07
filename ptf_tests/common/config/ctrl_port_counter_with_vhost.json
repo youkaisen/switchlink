@@ -42,7 +42,7 @@
     ],
     "traffic":
     {
-        "ip_dst":["2.2.2.2","1.1.1.10"],
+        "ip_dst":["1.1.1.2","1.1.1.10"],
         "number_pkts":[5],
         "count_buffer": [3],
         "packet_size":[84,42],

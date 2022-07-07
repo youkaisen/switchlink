@@ -160,7 +160,7 @@ def vm_to_vm_ping_test(conn, dst_ip, count="4"):
     pkt_loss = 100
     if result:
         match = re.search('(\d*)% packet loss', result)
-        if match !=None:
+        if match:
             pkt_loss = int(match.group(1))
 
     if f"{count} received, 0% packet loss" in result:
@@ -190,7 +190,7 @@ def vm_to_vm_ping_drop_test(conn, dst_ip, count="4"):
     pkt_loss = 100
     if result:
         match = re.search('(\d*)% packet loss', result)
-        if match !=None:
+        if match:
             pkt_loss = int(match.group(1))
 
     if pkt_loss == 100:
@@ -468,7 +468,7 @@ def local_ping(*args):
     pkt_loss = 100
     if result:
         match = re.search('(\d*)% packet loss', result)
-        if match !=None:
+        if match:
             pkt_loss = int(match.group(1))
 
     if pkt_loss == 100:
