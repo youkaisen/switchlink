@@ -292,14 +292,14 @@ TdiChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       break;
 
     case SetRequest::Request::Port::ValueCase::kPipelineName:
-      validate |= GNMI_CONFIG_PIPELINE_NAME;
       config.pipeline_name = config_params.pipeline();
+      validate |= GNMI_CONFIG_PIPELINE_NAME;
       LOG(INFO) << "ValidateAndAdd::kPipelineName= " << config_params.pipeline();
       break;
 
     case SetRequest::Request::Port::ValueCase::kMempoolName:
-      validate |= GNMI_CONFIG_MEMPOOL_NAME;
       config.mempool_name = config_params.mempool();
+      validate |= GNMI_CONFIG_MEMPOOL_NAME;
       LOG(INFO) << "ValidateAndAdd::kMempoolName= " << config_params.mempool();
       break;
 
@@ -315,8 +315,15 @@ TdiChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
       break;
 
     case SetRequest::Request::Port::ValueCase::kMtuValue:
-      validate |= GNMI_CONFIG_MTU_VALUE;
+      if(config_params.mtu() > MAX_MTU) {
+        validate = 0;
+        node_id_port_id_to_backend_[node_id][port_id] = validate;
+        return MAKE_ERROR(ERR_INVALID_PARAM)
+             << "Unsupported MTU = " << config_params.mtu()
+             << ". MTU should be less than " << MAX_MTU;
+      }
       config.mtu = config_params.mtu();
+      validate |= GNMI_CONFIG_MTU_VALUE;
       LOG(INFO) << "ValidateAndAdd::kMtuValue= " << config_params.mtu();
       break;
 
@@ -380,9 +387,17 @@ TdiChassisManager::ValidateOnetimeConfig(uint64 node_id, uint32 port_id,
         return MAKE_ERROR(ERR_INVALID_PARAM)
              << "Unsupported parameter list for given Port Type \n";
       }
-      RETURN_IF_ERROR(AddPortHelper(node_id, unit, sdk_port_id, singleton_port, &config));
-      validate |= GNMI_CONFIG_PORT_DONE;
-      node_id_port_id_to_backend_[node_id][port_id] = validate;
+
+      ::util::Status status =
+                 AddPortHelper(node_id, unit, sdk_port_id, singleton_port, &config);
+      if (status == ::util::OkStatus()) {
+          validate |= GNMI_CONFIG_PORT_DONE;
+          node_id_port_id_to_backend_[node_id][port_id] = validate;
+      } else {
+          validate = 0;
+          node_id_port_id_to_backend_[node_id][port_id] = validate;
+          RETURN_IF_ERROR(status);
+      }
     }
   }
 

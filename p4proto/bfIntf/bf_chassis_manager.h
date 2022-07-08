@@ -75,6 +75,7 @@
 #define DEFAULT_PIPELINE "pipe"
 #define DEFAULT_MEMPOOL  "MEMPOOL0"
 #define DEFAULT_MTU      1500
+#define MAX_MTU          65535 
 #define DEFAULT_PACKET_DIR DIRECTION_HOST
 
 typedef enum qemu_cmd_type {
