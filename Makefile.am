@@ -180,6 +180,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/l2_dpdk_port_flapping_with_tap.json \
 	ptf_tests/common/config/l3_dpdk_port_flapping_with_vhost.json \
 	ptf_tests/common/config/l3_wcm_del_add_test.json \
+	ptf_tests/common/config/lnt_4vm_on_same_host.json \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
@@ -190,6 +191,15 @@ EXTRA_DIST = \
 	ptf_tests/common/p4c_artifacts/l2_exact_match/l2_exact_match.p4 \
 	ptf_tests/common/p4c_artifacts/simple_l2l3_wcm/simple_l2l3_wcm.conf \
 	ptf_tests/common/p4c_artifacts/simple_l2l3_wcm/simple_l2l3_wcm.p4 \
+    ptf_tests/common/p4c_artifacts/linux_networking/headers.p4 \
+    ptf_tests/common/p4c_artifacts/linux_networking/linux_networking.conf \
+    ptf_tests/common/p4c_artifacts/linux_networking/linux_networking.p4 \
+    ptf_tests/common/p4c_artifacts/linux_networking/lnw_ct.p4 \
+    ptf_tests/common/p4c_artifacts/linux_networking/metadata.p4 \
+    ptf_tests/common/p4c_artifacts/linux_networking/parser.p4 \
+    ptf_tests/common/p4c_artifacts/linux_networking/pipe/.gitkeep \
+    ptf_tests/common/p4c_artifacts/linux_networking/routing.p4 \
+    ptf_tests/common/p4c_artifacts/linux_networking/tunnel.p4 \
 	ptf_tests/common/lib/__init__.py \
 	ptf_tests/common/lib/local_connection.py \
 	ptf_tests/common/lib/ovs_p4ctl.py \
@@ -229,6 +239,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/max_tap_port.py \
 	ptf_tests/tests/max_vhost_port.py \
 	ptf_tests/tests/l3_wcm_del_add.py \
+        ptf_tests/tests/lnt_4vm_on_same_host.py \
 	ptf_tests/common/lib/tcpdump.py \
         ptf_tests/common/utils/tcpdump_utils.py \
 	ptf_tests/tests/mtu_config_test_with_tap.py \

@@ -29,3 +29,4 @@ l2_dpdk_port_flapping_with_tap_ports:config_json='l2_dpdk_port_flapping_with_tap
 l3_action_profile_with_link_ports:config_json='l3_action_profile_with_link_test1.json';pci_bdf='BDF1'
 l3_action_selector_with_link_ports:config_json='l3_action_selector_with_link_test1.json';pci_bdf='BDF1'
 max_vhost_port:config_json='max_vhost_port.json'
+#lnt_4vm_on_same_host:config_json='lnt_4vm_on_same_host.json';vm_location_list='VM1,VM2,VM3,VM4';vm_cred='root,password'

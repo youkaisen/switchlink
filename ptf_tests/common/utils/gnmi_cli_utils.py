@@ -93,6 +93,7 @@ def ip_set_ipv4(interface_ip_list):
             port_config.Ip.iplink_enable_disable_link(interface, status_to_change='up')
             port_config.Ip.ipaddr_ipv4_set(interface, ip)
 
+    port_config.GNMICLI.tear_down()
     return
 
 def gnmi_get_element_value(param, element):
@@ -103,12 +104,13 @@ def gnmi_get_element_value(param, element):
     """
     port_config = PortConfig()
     result = port_config.GNMICLI.gnmi_cli_get(param, element)
+    port_config.GNMICLI.tear_down()
+
     if [x for x in result if not x]:
         return False
     else:
         return result
-    port_config.GNMICLI.tear_down()
-
+    
 def get_port_mtu_linuxcli(port):
     """
     : Get MTU value from linux cli for a port / interface
@@ -122,7 +124,67 @@ def get_port_mtu_linuxcli(port):
         return False
     else:
         return mtu_value
+    
+def iplink_add_vlan_port(id, name, netdev_port):
+    """
+    A utility to add vlan port to given netdev port
+    :param name: vlan name
+    :type name: string, e.g. vlan1
+    :type netdev_port: string e.g. TAP0
+    :return: exit status
+    :rtype: boolean e.g. True on success, False on failure
+    """
+    port_config = PortConfig()
+    result = port_config.Ip.iplink_add_vlan_port(id, name, netdev_port)
+    port_config.GNMICLI.tear_down()
+    if result:
+        print(f"PASS: succeed to add {name} to port {netdev_port}")
+        return True
+    else:
+        print(f"FAIL: fail to add {name} to port {netdev_port}")
+        return False
 
+def ip_set_dev_up(devname):
+    """
+     Enable <devname> up
+    :param: devname: device, e.g. "TAP1", "VLAN1"
+    :type: devname: string
+    :return: True/False --> boolean
+    """
+    port_config = PortConfig()
+    result = port_config.Ip.iplink_enable_disable_link(devname, status_to_change='up')
+    port_config.GNMICLI.tear_down()
 
+    if result:
+        print(f"PASS: succeed to enable {devname} up")
+        return True
+    else:
+        print(f"FAIL: fail to enale {devname} up")
+        return False
 
+def iplink_del_port(port_to_delete):
+    """ This method is used to delete any port including vlan
+    :param port_to_delete: name of port to delete
+    :type port_to_delete: string e.g. vlan1
+    :return: exit status
+    :rtype: True on success. False on failure
+    """
+    port_config = PortConfig()
+    result = port_config.Ip.iplink_del_port(port_to_delete)
+    port_config.GNMICLI.tear_down()
+    if result:
+        print(f"PASS: succeed to delee {port_to_delete}")
+        return True
+    else:
+        print(f"FAIL: fail to delete {port_to_delete}")
+        return False
 
+def get_tap_port_list(config_data):
+    tap_port = []
+    for data in config_data['port']:
+        if data['port-type'] =="TAP":
+            tap_port.append(data["name"])
+    if tap_port:
+        return tap_port
+    else:
+        return False
