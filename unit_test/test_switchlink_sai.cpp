@@ -18,7 +18,7 @@
 
 #include "gmock/gmock.h"
 #include "gmock-global.h"
-#include "switchlink/switchlink_sai.c"
+#include "p4proto/kctrl/switchlink/switchlink_sai.c"
 
 #define MAC_LENGTH 6
 
