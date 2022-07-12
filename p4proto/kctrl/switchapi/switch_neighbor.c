@@ -106,8 +106,8 @@ switch_status_t switch_api_neighbor_create(
   switch_status_t status = SWITCH_STATUS_SUCCESS;
   switch_pd_routing_info_t pd_neighbor_info;
   switch_rif_info_t *rif_info = NULL;
-  switch_handle_t rmac_handle;
-  switch_rmac_info_t *rmac_info;
+  switch_handle_t rmac_handle = SWITCH_API_INVALID_HANDLE;
+  switch_rmac_info_t *rmac_info = NULL;
   switch_rmac_entry_t *rmac_entry = NULL;
   switch_node_t *node = NULL;
 
@@ -270,19 +270,6 @@ switch_status_t switch_api_neighbor_delete(
                                         false);
     if(status != SWITCH_STATUS_SUCCESS)
       VLOG_ERR("routing tables update failed \n");
-  }
-
-  if (api_neighbor_info->neighbor_type == SWITCH_NEIGHBOR_TYPE_IP) {
-    status = switch_api_nhop_delete(device, nhop_handle);
-    if (status != SWITCH_STATUS_SUCCESS) {
-      VLOG_ERR(
-          "neighbor delete failed on device %d neighbor handle 0x%lx: "
-          "nhop delete failed:(%s)\n",
-          device,
-          neighbor_handle,
-          switch_error_to_string(status));
-      return status;
-    }
   }
 
   status = switch_neighbor_handle_delete(device, neighbor_handle);

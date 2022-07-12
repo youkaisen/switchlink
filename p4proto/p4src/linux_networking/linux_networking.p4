@@ -3,7 +3,7 @@
 
 #include <core.p4>
 #include "pna.p4"
-#include "lnw_ct.p4"
+//#include "lnw_ct.p4"
 
 extern void recirculate();
 
@@ -601,7 +601,7 @@ control linux_networking_control(inout headers_t hdr,
             }
         }
 
-        ct_tcp.apply(hdr, local_metadata, istd);
+        //ct_tcp.apply(hdr, local_metadata, istd);
 
         if ((vendormeta_mod_action_ref & (16w1 << VXLAN_DECAP_OUTER_IPV4)) != 0) {
             vxlan_decap_outer_ipv4();

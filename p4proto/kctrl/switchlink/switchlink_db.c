@@ -79,6 +79,7 @@ switchlink_db_status_t switchlink_db_interface_add(
     uint32_t ifindex, switchlink_db_interface_info_t *intf_info) {
   switchlink_db_intf_obj_t *obj =
       switchlink_malloc(sizeof(switchlink_db_intf_obj_t), 1);
+  ovs_assert(obj);
   obj->ifindex = ifindex;
   memcpy(&(obj->intf_info), intf_info, sizeof(switchlink_db_interface_info_t));
   tommy_trie_inplace_insert(
@@ -106,6 +107,7 @@ switchlink_db_status_t switchlink_db_tuntap_add(
     uint32_t ifindex, switchlink_db_tuntap_info_t *tunp_info) {
   switchlink_db_tuntap_obj_t *obj =
       switchlink_malloc(sizeof(switchlink_db_tuntap_obj_t), 1);
+  ovs_assert(obj);
   obj->ifindex = ifindex;
   memcpy(&(obj->tunp_info), tunp_info, sizeof(switchlink_db_tuntap_info_t));
   tommy_trie_inplace_insert(
@@ -262,6 +264,7 @@ switchlink_db_status_t switchlink_db_tunnel_interface_add(
     uint32_t ifindex, switchlink_db_tunnel_interface_info_t *tnl_intf_info) {
   switchlink_db_tunnel_intf_obj_t *obj =
       switchlink_malloc(sizeof(switchlink_db_tunnel_intf_obj_t), 1);
+  ovs_assert(obj);
   obj->ifindex = ifindex;
   memcpy(&(obj->tnl_intf_info), tnl_intf_info,
          sizeof(switchlink_db_tunnel_interface_info_t));
@@ -569,6 +572,7 @@ switchlink_db_status_t switchlink_db_nexthop_add(
     switchlink_db_nexthop_info_t *nexthop_info) {
   switchlink_db_nexthop_obj_t *obj =
       switchlink_malloc(sizeof(switchlink_db_nexthop_obj_t), 1);
+  ovs_assert(obj);
   memcpy(&(obj->nexthop_info), nexthop_info,
          sizeof(switchlink_db_nexthop_info_t));
   tommy_list_insert_tail(&switchlink_db_nexthop_obj_list, &obj->list_node, obj);
@@ -589,6 +593,7 @@ switchlink_db_status_t switchlink_db_nexthop_add(
 
 switchlink_db_status_t switchlink_db_nexthop_get_info(
     switchlink_db_nexthop_info_t *nexthop_info) {
+  ovs_assert(nexthop_info);
   tommy_node *node = tommy_list_head(&switchlink_db_nexthop_obj_list);
   while (node) {
     switchlink_db_nexthop_obj_t *obj = node->data;
@@ -598,10 +603,8 @@ switchlink_db_status_t switchlink_db_nexthop_get_info(
                 sizeof(switchlink_ip_addr_t)) == 0) &&
         (nexthop_info->vrf_h == obj->nexthop_info.vrf_h) &&
         (nexthop_info->intf_h == obj->nexthop_info.intf_h)) {
-      if (nexthop_info) {
         memcpy(nexthop_info, &(obj->nexthop_info),
                sizeof(switchlink_db_nexthop_info_t));
-      }
       return SWITCHLINK_DB_STATUS_SUCCESS;
     }
   }
@@ -621,6 +624,7 @@ switchlink_db_status_t switchlink_db_nexthop_get_info(
  */
 switchlink_db_status_t switchlink_db_nexthop_update_using_by(
     switchlink_db_nexthop_info_t *nexthop_info) {
+  ovs_assert(nexthop_info);
   tommy_node *node = tommy_list_head(&switchlink_db_nexthop_obj_list);
   while (node) {
     switchlink_db_nexthop_obj_t *obj = node->data;
@@ -630,9 +634,7 @@ switchlink_db_status_t switchlink_db_nexthop_update_using_by(
                 sizeof(switchlink_ip_addr_t)) == 0) &&
         (nexthop_info->vrf_h == obj->nexthop_info.vrf_h) &&
         (nexthop_info->intf_h == obj->nexthop_info.intf_h)) {
-      if (nexthop_info) {
         obj->nexthop_info.using_by = nexthop_info->using_by;
-      }
       return SWITCHLINK_DB_STATUS_SUCCESS;
     }
   }

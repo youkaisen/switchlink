@@ -288,7 +288,7 @@ switch_status_t switch_api_router_mac_delete(
     return status;
   }
 
-  if (rmac_entry->is_rmac_pd_programmed) {
+  if (rmac_entry && rmac_entry->is_rmac_pd_programmed) {
     status = switch_pd_rmac_table_entry(device, rmac_entry, rif_handle, false);
     if (status != SWITCH_STATUS_SUCCESS) {
       VLOG_ERR(
