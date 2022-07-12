@@ -625,9 +625,24 @@ previously configured CONFIG params.
     tdi-portin-id: Port ID for Pipeline in Input Direction
     tdi-portin-id: Port ID for Pipeline in Output Direction
 
-gnmi-cli limitations::
+Limitations/Note
+----------------
 
     a) All the optional parameters(like mempool name , pipeline name, etc)
     should be provided before the mandatory parameters (eg. port-type). The CLI
     considers the parameters only till the last mandatory parameter; After the
     last Mandatory parameter, rest all the optional parameters are ignored.
+    b) DPDK target doesn't support packet categorization for the purpose of
+    statistics. Hence all packets are reported under the same category as 
+    'unicast packets/bytes', and the rest of the other fields are displayed as zero.
+
+Logs and Analysis
+------------------
+
+    a) If the user sees any ERROR logs while running 'ovs-p4ctl' or 'gnmi-cli' commands,
+    more details can be found in either 'ovs-vswitchd.log' or 'p4_driver.log' files.
+    b) ovs-vswitchd.log maintains the running logs and errors from the OVS submodules.
+    This file path is given as a '--log-file' parameter, while the 'ovs-vswitchd' process is run.
+    Ex:- ovs-vswitchd unix:$RUN_OVS/var/run/openvswitch/db.sock --log-file=/tmp/ovs-vswitchd.log
+    c) p4_driver.log maintains the running logs and errors from the P4-SDE and target submodule.
+    This file is usually created in the working directory, from where run_ovs.sh script is run.
