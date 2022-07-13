@@ -217,7 +217,8 @@ class TdiChassisManager {
     PortConfig() : admin_state(ADMIN_STATE_UNKNOWN),
                    port_type(PORT_TYPE_NONE),
                    device_type(DEVICE_TYPE_NONE),
-                   queues(0) {}
+                   queues(0),
+                   packet_dir (DIRECTION_HOST) {}
   };
 
   // Maximum depth of port status change event channel.

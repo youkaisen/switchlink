@@ -128,6 +128,19 @@ class Ovs(object):
             :rtype: tuple e.g. out,e_code,error
             """
             cmd = self.form_cmd(f"add-br-p4 {bridge} {id}")
+
+        def add_vlan_to_bridge(self, bridge, vlan):
+            """Add given vlan to bridge or create one if not exist
+
+            :param bridge: an existing bridge
+            :type bridge: str
+            :param vlan: vlan name to add
+            :type vlan: str
+            :return: output, error code and error
+            :rtype: tuple e.g. out,e_code,error
+            """
+            cmd = self.form_cmd(f"add-port {bridge} {vlan}")
+
             return self.connection.execute_command(cmd)
 
         def del_port(self, bridge, port):

@@ -26,7 +26,7 @@
 #include "p4proto.h"
 
 #ifdef P4SAI
-#include "switchlink/switchlink.h"
+#include "p4proto/kctrl/switchlink/switchlink.h"
 #endif
 
 #include "p4proto-provider.h"

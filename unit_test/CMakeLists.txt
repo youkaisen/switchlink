@@ -22,7 +22,7 @@ project("p4ovs-unit-test")
 set(P4_DRIVER "$ENV{SDE}")
 set(IPDK_OVS "$ENV{OVS}")
 set(GTEST_FRAMEWORK "$ENV{SRC_FOLDER}/P4OVS_DEPS_SRC_CODE")
-set(THIRD_PARTY "${P4_DRIVER}/third-party")
+set(THIRD_PARTY "${P4_DRIVER}/third-party/tdi/third-party")
 set(GOOGLETEST "${GTEST_FRAMEWORK}/googletest")
 set(GMOCK_GLOBAL "${GTEST_FRAMEWORK}/gmock-global")
 set(LIBNL3 "/usr/include/libnl3")
@@ -57,9 +57,9 @@ add_executable(test_switchlink
 target_link_libraries(test_switchlink ${CMAKE_EXE_LINKER_FLAGS})
 
 target_include_directories(test_switchlink PRIVATE
-  ${IPDK_OVS}/switchlink/submodules/SAI/inc
-  ${IPDK_OVS}/switchapi
-  ${IPDK_OVS}/switchlink
-  ${IPDK_OVS}/switchlink/xxhash/include
-  ${IPDK_OVS}/switchsai
+  ${IPDK_OVS}/p4proto/kctrl/switchlink/submodules/SAI/inc
+  ${IPDK_OVS}/p4proto/kctrl/switchapi
+  ${IPDK_OVS}/p4proto/kctrl/switchlink
+  ${IPDK_OVS}/p4proto/kctrl/switchlink/xxhash/include
+  ${IPDK_OVS}/p4proto/kctrl/switchsai
 )
