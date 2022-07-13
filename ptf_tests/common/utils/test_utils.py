@@ -14,6 +14,8 @@ import asyncio
 
 from common.lib.local_connection import Local
 from common.lib.telnet_connection import connectionManager
+from common.lib.ovs import Ovs
+from common.utils.ovs_utils import get_connection_object
 
 def add_port_to_dataplane(port_list):
     """
@@ -198,10 +200,10 @@ def vm_to_vm_ping_test(conn, dst_ip, count="4"):
     conn.sendCmd(cmd)
     result = conn.readResult()
     pkt_loss = 100
-    if result != None:
+    if result:
         match = re.search('(\d*)% packet loss', result)
-        if match !=None:
-            pkt_loss = match.group(1)
+        if match:
+            pkt_loss = int(match.group(1))
 
     if f"{count} received, 0% packet loss" in result:
         print(f"PASS: Ping successful to destination {dst_ip}")
@@ -228,10 +230,10 @@ def vm_to_vm_ping_drop_test(conn, dst_ip, count="4"):
     conn.sendCmd(cmd)
     result = conn.readResult()
     pkt_loss = 100
-    if result != None:
+    if result:
         match = re.search('(\d*)% packet loss', result)
-        if match !=None:
-            pkt_loss = match.group(1)
+        if match:
+            pkt_loss = int(match.group(1))
 
     if pkt_loss == 100:
         print(f"PASS: 100% packet loss to destination {dst_ip}")
@@ -403,6 +405,118 @@ def compare_counter(counter2, counter1):
     for key in counter2.keys():
         delta[key] = counter2[key] -counter1[key]
     return delta
+
+def ovs_add_ctrl_port_to_bridge(bridge, port_list, p4_device_id):
+    """
+    ovs-vsctl add-port BRIDGE CONTROL_PORT
+    Example:
+        ovs-vsctl add-p4-device 1
+        ovs-vsctl add-br br1
+        ovs-vsctl add-br-p4 br1 1
+        ovs-vsctl add-port br1 TAP0
+    """
+    ovs = Ovs(get_connection_object())
+    
+    out, returncode, err = ovs.vsctl.add_p4_device(p4_device_id)
+    if returncode:
+        print(f"Failed to add p4_device {p4_device_id} in bridge {bridge} due to {out} {err}")
+        return False
+    out, returncode, err = ovs.vsctl.add_br(bridge)
+    if returncode:
+        print(f"Failed to add bridge {bridge} due to {out} {err}")
+        return False
+    out, returncode, err = ovs.vsctl.add_br_p4(bridge, 1)
+    if returncode:
+        print(f"Failed to add bridge {bridge} in p4 device due to {out} {err}")
+        return False
+    # adding port into ovs bridge
+    for port in port_list:
+        out, returncode, err = ovs.vsctl.add_port(bridge,port)
+        if returncode:
+            print(f"Failed to port {port} in bridge {bridge} {out} {err}")
+            return False
+
+    return True
+
+def get_ovs_port_dump(bridge, ctrl_port_list):
+    """
+    ovs-ofctl dump-ports BRIDGE
+    Example:
+        ovs-ofctl dump-ports br1
+    output example
+        port LOCAL: rx pkts=22, bytes=1860, drop=0, errs=0, frame=0, over=0, crc=0
+                tx pkts=8, bytes=656, drop=0, errs=0, coll=0
+        port  1: rx pkts=0, bytes=0, drop=0, errs=0, frame=0, over=0, crc=0
+                tx pkts=14, bytes=1204, drop=0, errs=0, coll=0
+    """
+    counter_dict = dict()
+    out, returncode, err = Ovs(get_connection_object()).ofctl.dump_port(bridge)
+ 
+    if not returncode and ("port" in out):
+        out = out.split("\n")
+        #skip headline, local port rx and local port tx
+        out.pop(0); out.pop(0);out.pop(0)
+    else:
+        print (f"FAIL: unable to ovs-ofctl dump-ports {bridge} due to {err}")
+        return False
+   
+    # Build control port counter dict
+    for each in out:
+        each = each.strip()
+        if each.isspace() or len(each)==0:
+            continue
+        if "port" in each:
+            port_id = int(each.split()[1].replace(":",""))
+            rx = each.split()[2]
+            ctrl_port_name = ctrl_port_list[port_id-1]
+            counter_dict[ctrl_port_name] = dict()
+            counter_dict[ctrl_port_name][rx]=dict()
+            items=  each.split()[3:]
+            #Build remaining counter
+            for item in items:
+                count_name = item.split("=")[0].strip()
+                counter_dict[ctrl_port_name][rx][count_name] = dict()
+                counter_dict[ctrl_port_name][rx][count_name] = int(item.split("=")[1].replace(",",""))
+        else:
+            tx = each.split(", ")[0].split()[0]
+            counter_dict[ctrl_port_name][tx] = dict()
+            # remmove prefix tx
+            items = each.replace("tx", "").split()
+            for item in items:
+                count_name = item.split("=")[0].strip()
+                counter_dict[ctrl_port_name][tx][count_name] = dict()
+                counter_dict[ctrl_port_name][tx][count_name] = int(item.split("=")[1].replace(",",""))
+
+    if counter_dict:
+        return counter_dict
+    else:
+        return False
+
+def get_control_port(config_data):
+    ctrl_port = []
+    for data in config_data['port']:
+        if data["control-port"]:
+            ctrl_port.append(data["control-port"])
+    if ctrl_port:
+        return ctrl_port
+    else:
+        return False
+
+def local_ping(*args):
+    local = Local()
+    cmd = " ".join(args)
+    result,_,_  = local.execute_command(cmd)
+
+    pkt_loss = 100
+    if result:
+        match = re.search('(\d*)% packet loss', result)
+        if match:
+            pkt_loss = int(match.group(1))
+
+    if pkt_loss == 100:
+        return False
+    else:
+        return True
 
 def check_and_clear_vhost(directory="/tmp/"):
     """
