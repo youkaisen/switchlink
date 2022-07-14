@@ -1445,6 +1445,14 @@ def parse_rcflow(flow):
     cnt_id_str = tmp[0].split("=")
     index_str = tmp[1].split("=")
 
+    if cnt_id_str[0] != "counter_id":
+        print("Input error: parameter should be \'counter_id\'")
+        sys.exit(1)
+    
+    if index_str[0] != "index":
+        print("Input error: parameter should be \'index\'")
+        sys.exit(1)
+
     counter_id=cnt_id_str[1]
     index=index_str[1]
 
@@ -1459,6 +1467,17 @@ def parse_rcflow(flow):
         sys.exit(1)
 
     return counter_id, index
+
+def validate_counter_name(p4info, cnt_tbl_name):
+    if cnt_tbl_name.startswith('pipe.') is False:
+        return False
+    
+    var = cnt_tbl_name[5:]
+    for iter in p4info.counters:
+        if iter.preamble.name == var:
+            return True
+    
+    return False
 
 def _format_ce(ce):
     output_buffer = 'counter_id={}, index={}'.format(ce.counter_id, ce.index.index)
@@ -1481,11 +1500,15 @@ def p4ctl_get_counter_entry(client, bridge, cnt_tbl_name, flow):
         ovs-p4ctl get-counter br0 pipe.port_bytes_in
                     "counter_id=1,index=2"
     """
-    ctr_id, idx = parse_rcflow(flow)
-
     p4info = client.get_p4info()
     if not p4info:
         raise Exception("cannot retrieve P4Info from device {}".format(bridge))
+
+    if validate_counter_name(p4info, cnt_tbl_name) is False:
+        print("Error: Could not find counter table \'{}\'in P4Info".format(cnt_tbl_name))
+        sys.exit(1)
+
+    ctr_id, idx = parse_rcflow(flow)
 
     helper = P4InfoHelper(p4info)
     entity = p4runtime_pb2.Entity()
@@ -1511,11 +1534,15 @@ def p4ctl_reset_counter_entry(client, bridge, cnt_tbl_name, flow):
         ovs-p4ctl reset-counter br0 pipe.port_bytes_in
                     "counter_id=1,index=2"
     """
-    ctr_id, idx = parse_rcflow(flow)
-
     p4info = client.get_p4info()
     if not p4info:
         raise Exception("cannot retrieve P4Info from device {}".format(bridge))
+
+    if validate_counter_name(p4info, cnt_tbl_name) is False:
+        print("Error: Could not find counter table \'{}\'in P4Info".format(cnt_tbl_name))
+        sys.exit(1)
+
+    ctr_id, idx = parse_rcflow(flow)
 
     helper = P4InfoHelper(p4info)
     entity = p4runtime_pb2.Entity()
