@@ -1469,12 +1469,8 @@ def parse_rcflow(flow):
     return counter_id, index
 
 def validate_counter_name(p4info, cnt_tbl_name):
-    if cnt_tbl_name.startswith('pipe.') is False:
-        return False
-    
-    var = cnt_tbl_name[5:]
     for iter in p4info.counters:
-        if iter.preamble.name == var:
+        if iter.preamble.name == cnt_tbl_name:
             return True
     
     return False
@@ -1489,15 +1485,15 @@ def p4ctl_get_counter_entry(client, bridge, cnt_tbl_name, flow):
     """
     get-counter-entry SWITCH COUNTER_TABLE READ_COUNTER_FLOW
     Example 1: // COUNTER_ID=0, return full counter table
-        ovs-p4ctl get-counter br0 pipe.port_bytes_in
+        ovs-p4ctl get-counter br0 ipv4_host_counter
                     "counter_id=0,index=UNSET"
-        ovs-p4ctl get-counter br0 pipe.port_bytes_in
+        ovs-p4ctl get-counter br0 ipv4_host_counter
                     "counter_id=0,index=2"
     Example 2: // INDEX=UNSET, return all entries matching with counter_id
-        ovs-p4ctl get-counter br0 pipe.port_bytes_in
+        ovs-p4ctl get-counter br0 ipv4_host_pkt_counter
                     "counter_id=1,index=UNSET"
     Example 3: // return single matching counter entry
-        ovs-p4ctl get-counter br0 pipe.port_bytes_in
+        ovs-p4ctl get-counter br0 ipv4_host_pkt_counter
                     "counter_id=1,index=2"
     """
     p4info = client.get_p4info()
