@@ -42,6 +42,28 @@ Dependent generated files for a sample.p4 file::
     $ sample.conf, p4info.txt, bf-rt.json, pipe/context.json, pipe/sample.spec
 
 
+P4 DPDK backend supports both PSA and PNA architectures.
+Based on the architecture used in the P4 program, P4 compiler emits the pipeline name differently.
+If P4 program is defined for
+     - PNA architecture, P4 compiler emits the PIPELINE name as "pipe" irrespective of the
+       name defined in the P4 program.
+     - PSA architecture, P4 compiler uses and emits the PIPELINE name defined by the user in the program.
+       Currently it supports only ingress pipelines.
+
+This pipeline name is referred in below three places and consumed by P4-OVS to program the target.
+    a) 'p4_pipeline_name' in /usr/share/stratum/target_skip_p4_no_bsp.conf file.
+    b) 'p4_pipeline_name' in sample.conf file.
+    c) 'pipeline-name' parameter in gnmi-cli, while configuring the PORT
+        Ex: gnmi-cli set "device:virtual-device,name:TAP1,pipeline-name:pipe,mtu:1500,port-type:TAP"
+
+P4-OVS assumes pipeline name is defaulted to "pipe".
+If the P4 program is defined for PSA architecture and uses a pipeline name other than "pipe", we need
+to manually change the 'pipeline name'
+at all the above three places to the ingress pipeline name mentioned in the p4 file.
+
+Hence to avoid this handcrafting, we recommend using the ingress pipeline name as "pipe" for all the
+PSA programs.
+
 ovs_pipeline_builder executable
 -------------------------------
 
