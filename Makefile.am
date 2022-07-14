@@ -123,11 +123,10 @@ EXTRA_DIST = \
 	CONTRIBUTING_P4OVS.rst \
 	OVS-WITH-P4-BUILD-README \
 	external/PATCH-01-TOFINO \
-	external/PATCH-01-GRPC-BORINGSSL \
-	ptf_tests/p4runtime_test/run_p4_tests.sh \
-	ptf_tests/p4runtime_test/run_ptf_tests.py \
-	ptf_tests/p4runtime_test/simple_l3/README \
-	ptf_tests/p4runtime_test/simple_l3/simple_l3.py \
+        ptf_tests/p4runtime_test/run_p4_tests.sh \
+        ptf_tests/p4runtime_test/run_ptf_tests.py \
+        ptf_tests/p4runtime_test/simple_l3/README \
+        ptf_tests/p4runtime_test/simple_l3/simple_l3.py \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.p4 \
 	ptf_tests/p4runtime_test/simple_l3/port_info.json \
 	ptf_tests/ovs_p4ctl/README \

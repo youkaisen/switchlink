@@ -53,7 +53,7 @@ enum {
 } switchlink_msg_t;
 
 // Currently we dont want to dump any existing kernel data when target is DPDK
-#if 0
+#ifdef NL_SYNC_STATE
 static void nl_sync_state(void) {
   static uint8_t msg_idx = SWITCHLINK_MSG_LINK;
   if (msg_idx == SWITCHLINK_MSG_MAX) {
@@ -299,71 +299,15 @@ struct nl_sock *switchlink_get_nl_sock(void) {
 
 void *switchlink_main(void *args) {
   pthread_mutex_init(&cookie_mutex, NULL);
-  pthread_cond_init(&cookie_cv, NULL);
-    /* P4 OVS: Switchlink Database maintain (Cache Optimized Trie like struct)
-     * 1. Obj map stores handle for other objects (intf, bridge, ecmp, etc)
-     * 2. Seperate Interface and Bridge Object maps (Trie inplace)
-     * 3. Mac object struct is hashable as well as maintain a linked list
-     * 4. All other objects (mac, neigh, route, etc) maintains as linked list
-     * 5. Every object need to have a handle so to get reference anywhere
-    */
+  int status = pthread_cond_init(&cookie_cv, NULL);
+   if (status) {
+      perror("pthread_cond_init failed");
+      return;
+   }
 
   switchlink_db_init();
-
-    /* TODO - P4OVS:
-    1. SAI initialization happens here
-        - API callbacks registration for each use case (port, bridge, etc)
-        - API can deal with creation, removal, get and set attrs, etc
-    2. SAI API are maintained in API ID and Method Table pairs (sai_api_query)
-    3. SAI switch gets created (with switch id) - Receive FDB & Packet events
-        Q: Do we need the (4) below ??
-    4. Interfaces need to be configured by SAI to deal with traps it receives.
-        - For each use case (STP, OSPF, etc), Traps needs to be handled
-        - Each Trap has Type, Action and Priority (SAI Attrs)
-        - A Host Interface Trap object is created
-            : Host intf id maps with swith id
-            : For each attr, SAI to API mapping (SAI code to API reason code)
-    5. Port list need to be prepared using SAI switch attributes
-        - Three attrs for Ports (CPU Port, Port number and Port List)
-        - Covert SAI attrs to real switch attrs (API backend map - dpdk,bm,etc)
-            : Need to implement "get_switch_attribute" API in backend
-            : SAI Adapter speciic metadata will be received here.
-    6. Bypassing function totally for netlink compilation
-    */
-   switchlink_api_init();
-
-    /* TODO - P4OVS:
-    1. Function need to fill/create VRF and Bridge structures
-        - create_vrf, create_bridge (Further calls into SAI layer)
-    2. P4 OVS: Filled with dummy values to bypass for netlink compilation
-    */
+  switchlink_api_init();
   switchlink_link_init();
-
-  /* TODO: P4 OVS: Switchlink Packet Driver
-    1. Register a seperate thread to deal with packet received on tuntap ports
-        - switchlink_port_map maintaints the list of "swp*" interfaces
-        - Num of total ports can be obtained from here
-    2. packet_driver_init prepares the switchlink_packet_intf structure
-        - switchlink_packet_intf have name, port, file desc and mac addr
-        - Initialize switch ports (CPU_INTF_NAME) and assign port_id
-        - Monitor the file descriprots to become "ready" (Select call)
-        - tunnel_alloc is called
-            :Open tap intf for "swp" port
-            :Set connection to non-blocking
-            :Update mac addr for received pkt in switchlink_packet_int struct
-    3. Packet recieved from userspace on tuntap interfaces are processed
-        - Read packet for all of these switch ports
-        - Ignore if it's not in port map (*Not on "swp" interface")
-        - switchlink_send_packet:
-            :Trasnmsit the packet to SAI layer
-            :SAI Attrs (HOSTIF_TX_TYPE & HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG)
-            :Get port object from port_id
-            :Callback into relevant Host intf callback from SAI to API layer.
-    */
-
-  //switchlink_packet_driver_init();
-
-  /* P4OVS: Switchlink receive Netlink Kernel Notifications */
   switchlink_nl_sock_intf_init();
 
   if (g_nlsk) {
