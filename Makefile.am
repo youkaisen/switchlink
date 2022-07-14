@@ -182,6 +182,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/ctrl_port_counter_with_vhost.json \
 	ptf_tests/common/config/l3_wcm_del_add_test.json \
 	ptf_tests/common/config/lnt_4vm_on_same_host.json \
+	ptf_tests/common/config/LNT_Hot_Plug_Add_Remove.json \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
@@ -256,6 +257,8 @@ EXTRA_DIST = \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.py \
 	ptf_tests/p4runtime_test/simple_l3/README \
 	ptf_tests/p4runtime_test/simple_l3/port_info.json \
+	ptf_tests/tests/LNT_Hot_Plug_Add_Remove_multi_port.py \
+	ptf_tests/tests/LNT_Hot_Plug_Add_Remove_multiple_times.py \
 	unit_test/CMakeLists.txt\
         unit_test/gtest_main.cpp\
         unit_test/test_switchlink_sai.cpp\
