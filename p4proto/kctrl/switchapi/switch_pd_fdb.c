@@ -23,6 +23,8 @@
 #include "tdi/common/c_frontend/tdi_init.h"
 #include "tdi/common/c_frontend/tdi_session.h"
 #include "tdi/common/c_frontend/tdi_info.h"
+#include "tdi/common/c_frontend/tdi_table.h"
+#include "tdi/common/c_frontend/tdi_table_info.h"
 #include "switch_pd_utils.h"
 #include "switch_internal.h"
 #include "switch_fdb.h"
@@ -46,11 +48,11 @@ switch_status_t switch_pd_l2_tx_forward_table_entry(
 
     tdi_dev_id_t dev_id = device;
 
-    const tdi_flags_hdl *flags_hdl = NULL;
+    tdi_flags_hdl *flags_hdl = NULL;
     tdi_target_hdl *target_hdl = NULL;
-    tdi_device_hdl *dev_hdl = NULL;
+    const tdi_device_hdl *dev_hdl = NULL;
     tdi_session_hdl *session = NULL;
-    tdi_info_hdl *info_hdl = NULL;
+    const tdi_info_hdl *info_hdl = NULL;
     tdi_table_key_hdl *key_hdl = NULL;
     tdi_table_data_hdl *data_hdl = NULL;
     const tdi_table_hdl *table_hdl = NULL;
@@ -354,11 +356,11 @@ switch_status_t switch_pd_l2_rx_forward_table_entry(
 
     tdi_dev_id_t dev_id = device;
 
-    const tdi_flags_hdl *flags_hdl = NULL;
+    tdi_flags_hdl *flags_hdl = NULL;
     tdi_target_hdl *target_hdl = NULL;
-    tdi_device_hdl *dev_hdl = NULL;
+    const tdi_device_hdl *dev_hdl = NULL;
     tdi_session_hdl *session = NULL;
-    tdi_info_hdl *info_hdl = NULL;
+    const tdi_info_hdl *info_hdl = NULL;
     tdi_table_key_hdl *key_hdl = NULL;
     tdi_table_data_hdl *data_hdl = NULL;
     const tdi_table_hdl *table_hdl = NULL;
@@ -551,11 +553,11 @@ switch_status_t switch_pd_l2_rx_forward_with_tunnel_table_entry(
 
     tdi_dev_id_t dev_id = device;
 
-    const tdi_flags_hdl *flags_hdl = NULL;
+    tdi_flags_hdl *flags_hdl = NULL;
     tdi_target_hdl *target_hdl = NULL;
-    tdi_device_hdl *dev_hdl = NULL;
+    const tdi_device_hdl *dev_hdl = NULL;
     tdi_session_hdl *session = NULL;
-    tdi_info_hdl *info_hdl = NULL;
+    const tdi_info_hdl *info_hdl = NULL;
     tdi_table_key_hdl *key_hdl = NULL;
     tdi_table_data_hdl *data_hdl = NULL;
     const tdi_table_hdl *table_hdl = NULL;
