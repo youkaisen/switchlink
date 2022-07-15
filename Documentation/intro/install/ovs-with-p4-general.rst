@@ -131,7 +131,6 @@ variables, create dependent configuration files and build P4-OvS manually.
         $ make
         $ make install
 
-=======
 Pre-requisite for DPDK target before running ovs-vswitchd
 ---------------------------------------------------------
 Enable hugepages for DPDK::

@@ -127,8 +127,7 @@ services that are available for a p4runtime client.
 3. Add a rule for a table into the forwarding pipeline::
 
     $ ovs-p4ctl add-entry SWITCH TABLE FLOW
-    $ Example:
-    ovs-p4ctl add-entry br0 ipv4_host "dst_ip=1.1.1.1,action=send(10)"
+    $ Example:: ovs-p4ctl add-entry br0 ipv4_host "dst_ip=1.1.1.1,action=send(10)"
 
   .. note::
 
@@ -573,6 +572,7 @@ previously configured CONFIG params.
     gnmi-cli set "device:virtual-device,name:TAP1,mtu:1500,port-type:TAP"
     gnmi-cli set "device:virtual-device,name:TAP0,pipeline-name:pipe,
                   packet-dir:host,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+
   .. note::
 
     ``PARAMS``: These params are key:value pairs. Here virtual-device is a
