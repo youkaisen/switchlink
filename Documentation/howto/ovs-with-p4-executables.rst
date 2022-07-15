@@ -45,6 +45,7 @@ Dependent generated files for a sample.p4 file::
 P4 DPDK backend supports both PSA and PNA architectures.
 Based on the architecture used in the P4 program, P4 compiler emits the pipeline name differently.
 If P4 program is defined for
+
      - PNA architecture, P4 compiler emits the PIPELINE name as "pipe" irrespective of the
        name defined in the P4 program.
      - PSA architecture, P4 compiler uses and emits the PIPELINE name defined by the user in the program.
