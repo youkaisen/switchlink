@@ -302,7 +302,7 @@ void *switchlink_main(void *args) {
   int status = pthread_cond_init(&cookie_cv, NULL);
    if (status) {
       perror("pthread_cond_init failed");
-      return;
+      return NULL;
    }
 
   switchlink_db_init();
