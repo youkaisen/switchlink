@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 set -e
 
 if [ -z "$1" ]
@@ -42,9 +41,9 @@ fi
 ./boot.sh
 if [ ! -z "$DEPS_INSTALL_PATH" ]
 then
-    ./configure --prefix=$DEPS_INSTALL_PATH --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g'
+    ./configure --prefix=$DEPS_INSTALL_PATH --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g' --disable-ssl --with-sai
 else
-    ./configure --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g'
+    ./configure --with-p4tdi=$SDE_INSTALL_PATH CFLAGS='-O0 -g' --with-sai
 fi
 
 #Read the number of CPUs in a system and derive the NUM threads

@@ -30,6 +30,7 @@ FROM THE CUSTOMIZED INSTALL PATH ONLY \
 #First argument is taken as the directory path \
 #for the source code and installables scratch area.
 SRC_DIR=$1/P4OVS_DEPS_SRC_CODE
+WS_DIR=$PWD
 
 if [ -z "$2" ];
 then
@@ -49,72 +50,87 @@ echo ""
 #Read the number of CPUs in a system and derive the NUM threads
 get_num_cores
 echo ""
-echo "Number of Parallel threads used: $NUM_THREADS ..."
+echo "Number of Parallel threads used: "$NUM_THREADS" ..."
 echo ""
-
-
-# Dependencies of netlink library
-if [[ $OS =~ "Fedora" ]]; then
-    sudo dnf remove -y pkgconfig
-    sudo dnf remove -y libnl3-devel
-elif [[ $OS =~ "Ubuntu" ]]; then
-    sudo apt-get remove -y pkg-config
-    sudo apt-get remove -y libnl-route-3-dev
-else
-    sudo yum remove -y pkgconfig
-    sudo yum remove -y libnl3-devel
-fi
 
 #gflags uninstall
 MODULE="gflags"
 echo "####  Uninstalling the '$MODULE' module ####"
-cd $SRC_DIR/$MODULE/build
+cd "$SRC_DIR"/"$MODULE"/build
 sudo make uninstall
+sudo ldconfig
+
+#gtest uninstall
+MODULE="googletest"
+echo "####  Uninstalling the '$MODULE' module ####"
+cd "$SRC_DIR"
+sudo rm -rf $MODULE
+sudo ldconfig
+
+#gmock-global uninstall
+MODULE="gmock-global"
+echo "####  Removing the '$MODULE' module ####"
+cd "$SRC_DIR"
+sudo rm -rf "$MODULE"
 sudo ldconfig
 
 #glog uninstall
 MODULE="glog"
 echo "####  Uninstalling the '$MODULE' module ####"
-cd $SRC_DIR/$MODULE/build
+cd "$SRC_DIR"/"$MODULE"/build
 cat install_manifest.txt | xargs rm -rf
 sudo ldconfig
 
 #abseil-cpp uninstall
 MODULE="abseil-cpp"
 echo "####  Uninstalling the '$MODULE' module ####"
-cd $SRC_DIR/$MODULE/build
+cd "$SRC_DIR"/"$MODULE"/build
 cat install_manifest.txt | xargs rm -rf
 sudo ldconfig
 
 #cctz uninstall
 MODULE="cctz"
 echo "####  Uninstalling the '$MODULE' module ####"
-cd $SRC_DIR/$MODULE/build
+cd "$SRC_DIR"/"$MODULE"/build
 cat install_manifest.txt | xargs rm -rf
 sudo ldconfig
 
 #Protobuf uninstall
 MODULE="protobuf"
 echo "####  Uninstalling the '$MODULE' module ####"
-cd ${SRC_DIR}/$MODULE
-sudo make uninstall
+cd "${SRC_DIR}"/"$MODULE"/build
+cat install_manifest.txt | xargs rm -rf
 sudo ldconfig
 
 #grpc uninstall
 MODULE="grpc"
 echo "####  Uninstalling the '$MODULE' module ####"
-mkdir -p $SRC_DIR/$MODULE/build
-cd ${SRC_DIR}/$MODULE/build
+cd "${SRC_DIR}"/"$MODULE"/build
 cat install_manifest.txt | xargs rm -rf
 sudo ldconfig
 
 #nlohmann uninstall
 MODULE="json"
 echo "####  Uninstalling the '$MODULE' module ####"
-cd $SRC_DIR/$MODULE/build
+cd "$SRC_DIR"/"$MODULE"/build
 cat install_manifest.txt | xargs rm -rf
 sudo ldconfig
 
 echo "Removing SOURCE and INSTALL scratch directories, $SRC_DIR and $INSTALL_DIR"
-#rm -rf $SRC_DIR
-#rm -rf $INSTALL_DIR
+rm -rf "$SRC_DIR"
+if [ "$2" ]
+then
+    rm -rf "$INSTALL_DIR"
+fi
+
+#Uninstall dependencies of netlink library
+if [ "$OS" = "Fedora" ]; then
+    sudo dnf remove -y pkgconfig
+    sudo dnf remove -y libnl3-devel
+elif [ $OS = "Ubuntu" ]; then
+    sudo apt-get remove -y pkg-config
+    sudo apt-get remove -y libnl-route-3-dev
+else
+    sudo yum remove -y pkgconfig
+    sudo yum remove -y libnl3-devel
+fi
