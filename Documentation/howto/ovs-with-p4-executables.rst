@@ -201,6 +201,14 @@ services that are available for a p4runtime client.
     ACTION_PROFILE is referring to.
     Format "action=action_name(value),member_id=<number>"
 
+  .. important::
+
+    Update of members list in a group not supported once it is configured.
+    Update of members requires DELETE and ADD group once again.
+    Cannot Modify existing base table entry with a new group id or
+    member entry. Update of base table entry with new group or member requires
+    DELETE and ADD table entry once again
+
 9. Delete action profile member entry from an action selector table ::
 
     $ ovs-p4ctl delete-action-profile-member SWITCH ACTION_PROFILE FLOW
@@ -214,6 +222,17 @@ services that are available for a p4runtime client.
     ``ACTION_PROFILE``: Refers to action profile name from the p4 file.
     ``FLOW``: Refers to the member ID which was earlier configured via add
     action profile member. Format "member_id=<number>"
+
+  .. important::
+
+    Delete complete rule chain beginning with base table, group table and
+    member table in the same order.
+    Deletion of member or group table entries are not supported when
+    there is active reference to this rule.
+    $ Example 1: Deleting a member rule when there is a group table entry which
+    is referencing the same rule already.
+    $ Example 2: Deleting a group table entry when there is a main table entry
+    which is referencing the same rule already.
 
 10. Get action profile member details for an action selector table ::
 
@@ -645,26 +664,54 @@ previously configured CONFIG params.
 Limitations/Note
 ----------------
 
-    a) All the optional parameters(like mempool name , pipeline name, etc)
+    1) All the optional parameters(like mempool name , pipeline name, etc)
     should be provided before the mandatory parameters (eg. port-type). The CLI
     considers the parameters only till the last mandatory parameter; After the
     last Mandatory parameter, rest all the optional parameters are ignored.
 
-    b) DPDK target doesn't support packet categorization for the purpose of
+    2) DPDK target doesn't support packet categorization for the purpose of
     statistics. Hence all packets are reported under the same category as 
-    'unicast packets/bytes', and the rest of the other fields are displayed as zero.
+    ``unicast packets/bytes``, and the rest of the other fields are displayed
+    as zero.
 
-    c) When tunnel is enabled, it is expected to have total size of the tunnel
+    3) When tunnel is enabled, it is expected to have total size of the tunnel
     packet less than or equal to 1514 Bytes. To match this size, user need to
     adjust overlay network interface MTU size not more than 1450 Bytes.
+    Underlay fragmentation is not support, so we need to make sure packet is
+    with in the MTU size of the underlay port.
 
-    d) For any udp/tcp packets from overlay network, if checksum issues are
+    4) For any udp/tcp packets from overlay network, if checksum issues are
     noticed on interfaces which are of type VIRTIO-NET, it is recommended to
     disable checksum using below command.
     $ ethtool --offload <netdev-name> rx off tx off
 
-    d) pna_tcp_connection_tracking demonstrates the PNA add_on_miss feature and
-    flow aging for auto learn flows. It supports basic TCP CT state machine.
+    5) pna_tcp_connection_tracking demonstrates the PNA add_on_miss feature and
+    flow aging for auto learn flows. It supports partial implementation of TCP
+    state machine.
+
+    6) ``gnmi-cli get`` counters command doesn't work for the TAP ports that
+    are added as control ports. For these control ports, stats can be observed
+    through the standard ovs-ofctl dump-ports command.
+
+    7) ``gnmi-cli get`` command shows target datapath index as 0 for all control
+    TAP ports.
+
+    8) Number of PIPELINE IN ports should be power 2. No port configuration
+    allowed once PIPELINE is enabled. Port configuration like MODIFY and DELETE
+    operations are not supported.
+
+    9) SWITCH parameter specified in ``ovs-p4ctl`` commands are not really
+    utilized in current releases. It accepts any kind of value
+
+    10) counter_id=0 in ``ovs-p4ctl get-counters`` for indirect counters
+    is not supported in current release. Flow counters index=unset or index=0
+    does not give cumulative byte count.
+
+    11) For more limitations specific to linux_networking, please refer to
+    specific README documents available at ``p4proto/p4src/linux_networking``
+
+    12) Runtime validation of ``value`` for each key in ``ovs-p4ctl`` or
+    ``gnmi-cli`` is not supported.
 
 
 Logs and Analysis
