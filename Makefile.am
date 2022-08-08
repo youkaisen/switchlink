@@ -97,6 +97,7 @@ EXTRA_DIST = \
 	.ci/osx-prepare.sh \
 	.cirrus.yml \
 	.github/workflows/build-and-test.yml \
+	.github/CODEOWNERS \
 	.travis.yml \
 	appveyor.yml \
 	boot.sh \
@@ -185,6 +186,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/ctrl_port_counter_with_vhost.json \
 	ptf_tests/common/config/l3_wcm_del_add_test.json \
 	ptf_tests/common/config/lnt_4vm_on_same_host.json \
+	ptf_tests/common/config/config_control_port_with_link.json \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
@@ -249,6 +251,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/dpdk_action_profile_cli.py \
 	ptf_tests/tests/l3_wcm_del_add.py \
 	ptf_tests/tests/lnt_4vm_on_same_host.py \
+	ptf_tests/tests/config_control_port_with_link.py \
 	ptf_tests/common/lib/tcpdump.py \
 	ptf_tests/common/utils/tcpdump_utils.py \
 	ptf_tests/tests/mtu_config_test_with_tap.py \

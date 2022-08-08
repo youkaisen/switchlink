@@ -1,9 +1,9 @@
 from common.lib.tcpdump import TcpDumpCap
 from common.lib.local_connection import Local
-import os
+import os,shutil
 
 
-def tcpdump_start_pcap(interface, src_host, pkt_count=1 ):
+def tcpdump_start_pcap(interface, src_host ="", pkt_count=1 ):
     """
     TCPDUMP function to start packet capture in background and dump packet capture to /tmp dir
     e.g  << tcpdump -i TAP1 host 192.168.1.10 -nn -c 1 >> /tmp/TAP1/TAP1.pcap &
@@ -63,6 +63,22 @@ def tcdump_match_str(superstring, substring):
         if str not in superstringlist:
             result = False
     return result
+
+def tcpdump_remove_pcap_file(interface):
+    """
+    A function to remove pcap file directory e.g  remove /tmp/TAP1/
+
+    :params interface: to start packet capture 
+    """
+    
+    pcapdir = "/tmp/" + interface
+    if os.path.exists(pcapdir):
+        try:
+            shutil.rmtree(pcapdir)
+            return pcapdir
+        except OSError as e:
+            print(f"FAIL: Failed to remove {pcapdir}due to {e.strerror}")
+            return False
 
 def tcpdump_tear_down():
   
