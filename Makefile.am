@@ -118,6 +118,7 @@ EXTRA_DIST = \
 	p4ovs_env_setup.sh \
 	uninstall_dep_packages.sh \
 	build-p4ovs.sh \
+	set_hugepages.sh \
 	component.sh \
 	fix_sde_libs.sh \
 	OVS_WITH_P4_ARCH.rst \
@@ -194,6 +195,13 @@ EXTRA_DIST = \
 	ptf_tests/common/config/lnt_2vm_vxlan_2nsvm_5min_ping.json \
 	ptf_tests/common/config/lnt_1hotplugvm_vxlan_1nsvm.json \
 	ptf_tests/common/config/config_control_port_with_link.json \
+	ptf_tests/common/config/ct_multiple_connection_tap_link_ports.json \
+        ptf_tests/common/config/ct_multiple_connection_vhost_ports_with_netperf.json \
+        ptf_tests/common/config/ct_rule_del_add_test.json \
+        ptf_tests/common/config/ct_single_connection_tap_link_ports.json \
+        ptf_tests/common/config/ct_single_connection_vhost_ports_with_netperf.json \
+        ptf_tests/common/config/nt_ct_unsupported_arguments_values.json \
+	ptf_tests/common/config/ct_timer_test.json \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
@@ -215,6 +223,9 @@ EXTRA_DIST = \
 	ptf_tests/common/p4c_artifacts/linux_networking/tunnel.p4 \
 	ptf_tests/common/p4c_artifacts/l3_exact_match_add_del/l3_exact_match_add_del.conf \
 	ptf_tests/common/p4c_artifacts/l3_exact_match_add_del/l3_exact_match_add_del.p4 \
+	ptf_tests/common/p4c_artifacts/pna_tcp_connection_tracking/pipe/.gitkeep \
+        ptf_tests/common/p4c_artifacts/pna_tcp_connection_tracking/pna_tcp_connection_tracking.conf \
+        ptf_tests/common/p4c_artifacts/pna_tcp_connection_tracking/pna_tcp_connection_tracking.p4 \
 	ptf_tests/common/lib/__init__.py \
 	ptf_tests/common/lib/local_connection.py \
 	ptf_tests/common/lib/ovs_p4ctl.py \
@@ -265,6 +276,13 @@ EXTRA_DIST = \
 	ptf_tests/tests/lnt_2vm_vxlan_2nsvm_5min_ping.py \
 	ptf_tests/tests/lnt_1hotplugvm_vxlan_1nsvm.py \
 	ptf_tests/tests/config_control_port_with_link.py \
+	ptf_tests/tests/ct_multiple_connection_tap_link_ports.py \
+        ptf_tests/tests/ct_multiple_connection_vhost_ports_with_netperf.py \
+        ptf_tests/tests/ct_rule_del_add_test.py \
+        ptf_tests/tests/ct_single_connection_tap_link_ports.py \
+        ptf_tests/tests/ct_single_connection_vhost_ports_with_netperf.py \
+        ptf_tests/tests/nt_ct_unsupported_arguments_values.py \
+	ptf_tests/tests/ct_timer_test.py \
 	ptf_tests/common/lib/tcpdump.py \
 	ptf_tests/common/utils/tcpdump_utils.py \
 	ptf_tests/tests/mtu_config_test_with_tap.py \
