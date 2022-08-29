@@ -2,6 +2,8 @@
 /*
  * Copyright (c) 2022 Intel Corporation.
  *
+ * SPDX-License-Identifier: Apache-2.0
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
@@ -28,4 +30,5 @@ Switchapi layer. p4proto/kctrl directory contains the code to manage kernel inte
 - [Switchlink](/p4proto/kctrl/switchlink/README.md)
 - [SwitchSAI](/p4proto/kctrl/switchsai/README.md)
 - [Switchapi](/p4proto/kctrl/switchapi/README.md)
-- [Linux Networking usecase](/p4proto/p4src/linux_networking/README.md)
+- [Linux Networking usecase](/p4proto/p4src/linux_networking/README_LINUX_NETWORKING.md)
+- [Linux Networking with ECMP usecase](/p4proto/p4src/linux_networking/README_LINUX_NETWORKING_WITH_ECMP.md)
