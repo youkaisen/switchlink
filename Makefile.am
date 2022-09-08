@@ -194,6 +194,9 @@ EXTRA_DIST = \
 	ptf_tests/common/config/lnt_2vm_vxlan_2nsvm_5min_ping.json \
 	ptf_tests/common/config/lnt_1hotplugvm_vxlan_1nsvm.json \
 	ptf_tests/common/config/config_control_port_with_link.json \
+	ptf_tests/common/config/dpdk_l3em_indirect_counter_psa.json \
+	ptf_tests/common/config/dpdk_l3em_indirect_counter_pna.json \
+	ptf_tests/common/config/dpdk_l3em_indirect_counter_help.json \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
@@ -215,6 +218,10 @@ EXTRA_DIST = \
 	ptf_tests/common/p4c_artifacts/linux_networking/tunnel.p4 \
 	ptf_tests/common/p4c_artifacts/l3_exact_match_add_del/l3_exact_match_add_del.conf \
 	ptf_tests/common/p4c_artifacts/l3_exact_match_add_del/l3_exact_match_add_del.p4 \
+	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_psa/l3em_indirect_counter_psa.p4\
+	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_psa/l3em_indirect_counter_psa.conf \
+	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_pna/l3em_indirect_counter_pna.p4 \
+	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_pna/l3em_indirect_counter_pna.conf \
 	ptf_tests/common/lib/__init__.py \
 	ptf_tests/common/lib/local_connection.py \
 	ptf_tests/common/lib/ovs_p4ctl.py \
@@ -273,6 +280,9 @@ EXTRA_DIST = \
 	ptf_tests/tests/l3_action_selector_with_vhost_ports.py \
 	ptf_tests/tests/l3_action_profile_with_link_ports.py \
 	ptf_tests/tests/l3_action_selector_with_link_ports.py \
+	ptf_tests/tests/dpdk_l3em_indirect_counter.py \
+	ptf_tests/tests/dpdk_l3em_indirect_counter_reset.py \
+	ptf_tests/tests/dpdk_l3em_indirect_counter_help.py\
 	ptf_tests/p4runtime_test/run_p4_tests.sh \
 	ptf_tests/p4runtime_test/run_ptf_tests.py \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.p4 \
