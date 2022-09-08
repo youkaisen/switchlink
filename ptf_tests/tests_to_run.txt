@@ -43,3 +43,4 @@ lnt_4vm_2host_add_dele_rule:config_json='lnt_4vm_2host_add_dele_rule.json';vm_lo
 lnt_2vm_vxlan_2nsvm_5min_ping:config_json='lnt_2vm_vxlan_2nsvm_5min_ping.json';vm_location_list='VM1,VM2';pci_bdf='BDF1,BDF2';remote_port='PORT1';client_cred='CLIENT'
 lnt_1hotplugvm_vxlan_1nsvm:config_json='lnt_1hotplugvm_vxlan_1nsvm.json';vm_location_list='VM1';pci_bdf='BDF1';remote_port='PORT1';client_cred='CLIENT'
 lnt_2hotplugvm_vxlan_2nsvm:config_json='lnt_2hotplugvm_vxlan_2nsvm.json';vm_location_list='VM1,VM2';pci_bdf='BDF1,BDF2';remote_port='PORT1';client_cred='CLIENT'
+l3_dpdk_port_flapping_with_link_ports:config_json='l3_dpdk_port_flapping_with_link_ports.json';vm_location_list='VM1';pci_bdf='BDF1'
