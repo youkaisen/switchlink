@@ -1,5 +1,4 @@
 # Copyright (c) 2022 Intel Corporation.
-#
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +14,7 @@
 # limitations under the License.
 
 """
-2VM on local host with P4OVS and 2 NS VM on remote host with Stand OVS
-
+ECMP HotPlug test with 2VM on local host with P4OVS and 2 NS VM on remote host with Stand OVS
 """
 
 # in-built module imports
@@ -28,29 +26,39 @@ from itertools import dropwhile
 import unittest
 
 # ptf related imports
+import ptf
+import ptf.dataplane as dataplane
 from ptf.base_tests import BaseTest
 from ptf.testutils import *
+from ptf import config
+
+# scapy related imports
+from scapy.packet import *
+from scapy.fields import *
+from scapy.all import *
 
 # framework related imports
 import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
 import common.utils.ovs_utils as ovs_utils
 import common.utils.gnmi_cli_utils as gnmi_cli_utils
-from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict,get_gnmi_params_hotplug,get_interface_ipv4_dict_hotplug
+from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict, get_gnmi_params_hotplug,get_interface_ipv4_dict_hotplug
 from common.lib.telnet_connection import connectionManager
+import common.utils.tcpdump_utils as tcpdump_utils
 
-class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
+class LNT_ECMP_2VM_Hotplug(BaseTest):
+
     def setUp(self):
         BaseTest.setUp(self)
         self.result = unittest.TestResult()
         test_params = test_params_get()
         config_json = test_params['config_json']
-        
+
         try:
             self.vm_cred = test_params['vm_cred']
         except KeyError:
             self.vm_cred = ""
-       
+
         self.config_data = get_config_dict(config_json,pci_bdf=test_params['pci_bdf'],
                     vm_location_list=test_params['vm_location_list'],
                           vm_cred=self.vm_cred, client_cred=test_params['client_cred'],
@@ -59,128 +67,124 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
         self.gnmicli_hotplug_params = get_gnmi_params_hotplug(self.config_data)
         self.tap_port_list =  gnmi_cli_utils.get_tap_port_list(self.config_data)
         self.link_port_list = gnmi_cli_utils.get_link_port_list(self.config_data)
-        print(self.gnmicli_hotplug_params)
         self.interface_ip_list = get_interface_ipv4_dict(self.config_data)
         self.conn_obj_list = []
-        
+
     def runTest(self):
-        # ------------------------------------------------- #
-        # Configure P4OVS, VM, VLAN adn VXLAN on Local Host #
-        # ------------------------------------------------- #
-        print ("Begin to configure P4OVS and VM on local host")
+        # Generate P4c artifacts
+        if not test_utils.gen_dep_files_p4c_dpdk_pna_ovs_pipeline_builder(self.config_data):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail("Failed to generate P4C artifacts or pb.bin")
+
+        # Create VMs
         result, vm_name = test_utils.vm_create_with_hotplug(self.config_data)
-        print(result)
-        print(vm_name)
         if not result:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"Failed to create {vm_name}")
+            self.fail(f"VM creation failed for {vm_name}")
 
-        print("Sleeping for 30 seconds for the vms to come up")
-        time.sleep(30)
-        
-        vm=self.config_data['vm'][0]
-        conn1 = connectionManager(vm['hotplug']['qemu-socket-ip'],vm['hotplug']['serial-telnet-port'],vm['vm_username'], password=vm['vm_password'])
-        self.conn_obj_list.append(conn1)
+        # Create telnet instance for VMs created
+        self.conn_obj_list = []
+        vm_id = 0
+        for vm in self.config_data['vm']:
+           globals()["conn"+str(vm_id+1)] = connectionManager("127.0.0.1", f"655{vm_id}", vm['vm_username'], vm['vm_password'])
+           self.conn_obj_list.append(globals()["conn"+str(vm_id+1)])
+           vm_id += 1
 
-        vm1=self.config_data['vm'][1]
-        conn2 = connectionManager(vm1['hotplug']['qemu-socket-ip'],vm1['hotplug']['serial-telnet-port'],vm1['vm_username'], password=vm1['vm_password'])
-        self.conn_obj_list.append(conn2)
-
+        # Get the list of interfaces on VMs
         vm1_command_list = ["ip a | egrep \"[0-9]*: \" | cut -d ':' -f 2"]
         result = test_utils.sendCmd_and_recvResult(conn1, vm1_command_list)[0]
         result = result.split("\n")
         vm1result1 = list(dropwhile(lambda x: 'lo\r' not in x, result))
-      
         vm2_command_list = ["ip a | egrep \"[0-9]*: \" | cut -d ':' -f 2"]
         result = test_utils.sendCmd_and_recvResult(conn2, vm2_command_list)[0]
         result = result.split("\n")
         vm2result1 = list(dropwhile(lambda x: 'lo\r' not in x, result))
 
+        # Create ports using gnmi cli
         if not gnmi_cli_utils.gnmi_cli_set_and_verify(self.gnmicli_params):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to configure gnmi cli ports")
 
+        # Hotplug port to VM
         if not gnmi_cli_utils.gnmi_cli_set_and_verify(self.gnmicli_hotplug_params):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to configure hotplug through gnmi")
 
+        # Verify ports are added to VM
         result = test_utils.sendCmd_and_recvResult(conn1, vm1_command_list)[0]
         result = result.split("\n")
         vm1result2 = list(dropwhile(lambda x: 'lo\r' not in x, result))
-
         result = test_utils.sendCmd_and_recvResult(conn2, vm2_command_list)[0]
         result = result.split("\n")
         vm2result2 = list(dropwhile(lambda x: 'lo\r' not in x, result))
 
         vm1interfaces = list(set(vm1result2) - set(vm1result1))
         vm1interfaces = [x.strip() for x in vm1interfaces]
-        print("interfaces: ",vm1interfaces)
-       
         vm2interfaces = list(set(vm2result2) - set(vm2result1))
         vm2interfaces = [x.strip() for x in vm2interfaces]
-        print("interfaces: ",vm2interfaces)
 
-        vm1interfaces.extend(vm2interfaces)
-        self.interface_ip_list_hotplug = get_interface_ipv4_dict_hotplug(self.config_data,vm1interfaces)
-        print("self.interface_ip_list_hotplug: ",self.interface_ip_list_hotplug)
-       
-        time.sleep(10)
-        # bring up and config VM
-        for i in range(len(self.interface_ip_list_hotplug)):
-            print (f" bring up and configure VM{i} interface")
-            if not test_utils.vm_interface_up(self.conn_obj_list[i], [self.interface_ip_list_hotplug[i]]):
-                self.result.addFailure(self, sys.exc_info())
-                self.fail("Failed to bring up {self.interface_ip_list_hotplug[i]}")
-        
-            if not test_utils.vm_interface_configuration(self.conn_obj_list[i], [self.interface_ip_list_hotplug[i]]):
-                self.result.addFailure(self, sys.exc_info())
-                self.fail("Failed to configure {self.interface_ip_list_hotplug[i]}")
+        if not vm1interfaces:
+            print("FAIL: Hotplug add failed for vm1")
+            self.result.addFailure(self, sys.exc_info())
+            self.fail("Fail to add hotplug through gnmi")
+        print("PASS: Added hotplug interface for vm1 ",vm1interfaces)
+        if not vm2interfaces:
+            print("FAIL: Hotplug add failed for vm2")
+            self.result.addFailure(self, sys.exc_info())
+            self.fail("Fail to add hotplug through gnmi")
+        print("PASS: Added hotplug interface for vm2 ",vm2interfaces)
 
-        #bring up TAP0
+        # Configuring VMs
+        vm_cmd_list = []
+        vm_id = 0
+        for vm, port,intf in zip(self.config_data['vm'], self.config_data['port'], [vm1interfaces[0], vm2interfaces[0]]):
+            globals()["vm"+str(vm_id+1)+"_command_list"] = [f"ip addr add {port['ip']} dev {intf}", f"ip link set dev {intf} up", f"ip link set dev {intf} address {port['mac_local']}"]
+            vm_cmd_list.append(globals()["vm"+str(vm_id+1)+"_command_list"])
+            vm_id += 1
+        for i in range(len(self.conn_obj_list)):
+            print ("Configuring VM....")
+            test_utils.configure_vm(self.conn_obj_list[i], vm_cmd_list[i])
+
+        # Bring up TAP ports 
         if not gnmi_cli_utils.ip_set_dev_up(self.tap_port_list[0]):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to bring up {self.tap_port_list[0]}")
-        
-        #Bring up control TAP1
-        if not gnmi_cli_utils.ip_set_dev_up(self.link_port_list[0]['control-port']):
-            self.result.addFailure(self, sys.exc_info())
-            self.fail("Failed to bring up {self.link_port_list[0]['control-port']")
-   
-        if not gnmi_cli_utils.ip_add_addr(self.link_port_list[0]['control-port'],
-                                                       self.config_data['vxlan']['tep_ip'][0] ):
-            self.result.addFailure(self, sys.exc_info())
-            self.fail("Failed to configure TEP IP for {self.link_port_list[0]['control-port']}")
-        
-        # generate p4c artifact
-        if not test_utils.gen_dep_files_p4c_dpdk_pna_ovs_pipeline_builder(self.config_data):
-            self.result.addFailure(self, sys.exc_info())
-            self.fail("Failed to generate P4C artifacts or pb.bin")
-       
-        # set pipe line
+
+        # configure IP on TEP and TAP ports
+        if not gnmi_cli_utils.iplink_add_dev(self.config_data['vxlan']['tep_intf'], "dummy"):
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"Failed to add dev {self.config_data['vxlan']['tep_intf']} type dummy")
+        gnmi_cli_utils.ip_set_ipv4([{self.config_data['vxlan']['tep_intf']: self.config_data['vxlan']['tep_ip'][0]}])
+        ecmp_local_ports = {}
+        for i in range(len(self.config_data['ecmp']['local_ports'])):
+            ecmp_local_ports[self.config_data['ecmp']['local_ports'][i]] =  self.config_data['ecmp']['local_ports_ip'][i]
+        gnmi_cli_utils.ip_set_ipv4([ecmp_local_ports])
+
+        # Set pipe line
         if not ovs_p4ctl.ovs_p4ctl_set_pipe(self.config_data['switch'], 
                                           self.config_data['pb_bin'], self.config_data['p4_info']):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to set pipe")
-   
-        #add a bridge to ovs
+
+        # Create bridge
         if not ovs_utils.add_bridge_to_ovs(self.config_data['bridge']):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to add bridge {self.config_data['bridge']} to ovs")
-        #bring up bridge
+        # Bring up bridge
         if not gnmi_cli_utils.ip_set_dev_up(self.config_data['bridge']):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to bring up {self.config_data['bridge']}")
-    
-        print ("Config VXLAN Port on local host With Remote Tunnel IP")
+
+        print (f"Configure VXLAN ")
         if not ovs_utils.add_vxlan_port_to_ovs(self.config_data['bridge'],
                 self.config_data['vxlan']['vxlan_name'][0],
                     self.config_data['vxlan']['tep_ip'][0].split('/')[0], 
                         self.config_data['vxlan']['tep_ip'][1].split('/')[0],
                             self.config_data['vxlan']['dst_port'][0]):
-            
+
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to add vxlan {self.config_data['vxlan']['vxlan_name'][0]} to bridge {self.config_data['bridge']}")
-      
+
         for i in range(len(self.conn_obj_list)):
             id = self.config_data['port'][i]['vlan']
             vlanname = "vlan"+id
@@ -198,8 +202,9 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
             if not gnmi_cli_utils.ip_set_dev_up(vlanname):
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"Failed to bring up {vlanname}")
-        
-        # add linux networking match action rules
+
+        # Program rules
+        print (f"Program rules")
         for table in self.config_data['table']:
             print(f"Scenario : {table['description']}")
             print(f"Adding {table['description']} rules")
@@ -208,10 +213,8 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"Failed to add table entry {match_action}")
 
-        #-------------------------------------------------------------#
-        # Configure standard OVS, Name Space and VXLAN on Remote Host #
-        #-------------------------------------------------------------#
-        print (f"Begin to configure standard OVS on remote host {self.config_data['client_hostname']}")
+        # Remote host configuration Start 
+        print (f"\nConfigure standard OVS on remote host {self.config_data['client_hostname']}")
         if not ovs_utils.add_bridge_to_ovs(self.config_data['bridge'], remote=True,
                 hostname=self.config_data['client_hostname'],
                         username=self.config_data['client_username'],
@@ -220,7 +223,7 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to add bridge {self.config_data['bridge']} to \
                      ovs {self.config_data['bridge']} on {self.config_data['client_hostname']}" )
- 
+
         # bring up the bridge
         if not gnmi_cli_utils.ip_set_dev_up(self.config_data['bridge'],remote=True,
                       hostname=self.config_data['client_hostname'],
@@ -229,17 +232,8 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
 
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to bring up {self.config_data['bridge']}")
-        
-        # assign IP to the bridge
-        if not gnmi_cli_utils.ip_add_addr(self.config_data['bridge'],self.config_data['vxlan']['tep_ip'][1], 
-                    remote=True, hostname=self.config_data['client_hostname'],
-                        username=self.config_data['client_username'],
-                                passwd=self.config_data['client_password']):
 
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"Failed to bring up {self.config_data['bridge']} on {self.config_data['client_hostname']}")
-        
-        # create ip netns
+        # create ip netns VMs
         for namespace in self.config_data['net_namespace']: 
             print (f"creating namespace {namespace['name']} on {self.config_data['client_hostname']}")
             if not test_utils.create_ipnetns_vm(namespace, remote=True,
@@ -249,15 +243,15 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
 
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"Failed to add VM namesapce {namespace['name']} on on {self.config_data['client_hostname']}")
-            
+
             if not ovs_utils.add_port_to_ovs(self.config_data['bridge'], namespace['peer_name'],
                     remote=True, hostname=self.config_data['client_hostname'],
                             username=self.config_data['client_username'],
                                                    password =self.config_data['client_password']):
-            
+
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"Failed to add port {namespace['peer_name']} to bridge {self.config_data['bridge']}")
-            
+
         print (f"Configure vxlan port on remote host on {self.config_data['client_hostname']}")
         if not ovs_utils.add_vxlan_port_to_ovs(self.config_data['bridge'],
                 self.config_data['vxlan']['vxlan_name'][0],
@@ -272,57 +266,134 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
             self.fail(f"Failed to add vxlan {self.config_data['vxlan']['vxlan_name'][0]} to \
                          bridge {self.config_data['bridge']} on on {self.config_data['client_hostname']}")
 
-        print (f"bring up {self.config_data['remote_port'][0]} and add it to bridge {self.config_data['bridge']}")
-        if not gnmi_cli_utils.ip_set_dev_up(self.config_data['remote_port'][0],remote=True, 
+        print (f"Add device TEP1")
+        if not gnmi_cli_utils.iplink_add_dev("TEP1", "dummy",remote=True,
+           hostname=self.config_data['client_hostname'],username=self.config_data['client_username'],
+           password=self.config_data['client_password']):
+             self.result.addFailure(self, sys.exc_info())
+             self.fail(f"Failed to add TEP1")
+
+        print (f"Bring up remote ports")
+        remote_port_list = ["TEP1"] + self.config_data['remote_port']
+        remote_port_ip_list = [self.config_data['vxlan']['tep_ip'][1]] + self.config_data['ecmp']['remote_ports_ip']
+        for remote_port,remote_port_ip in zip(remote_port_list,remote_port_ip_list):
+            if not gnmi_cli_utils.ip_set_dev_up(remote_port,remote=True, 
                         hostname=self.config_data['client_hostname'],
                             username=self.config_data['client_username'],
                                     password=self.config_data['client_password']):
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"Failed to bring up {self.config_data['remote_port'][0]} on {self.config_data['client_hostname']}")
+               self.result.addFailure(self, sys.exc_info())
+               self.fail(f"Failed to bring up {remote_port} on {self.config_data['client_hostname']}")
+            if not gnmi_cli_utils.ip_add_addr(remote_port,remote_port_ip,remote=True,
+              hostname=self.config_data['client_hostname'],username=self.config_data['client_username'],
+              passwd=self.config_data['client_password']):
+               self.result.addFailure(self, sys.exc_info())
+               self.fail("Failed to configure IP {remote_port_ip} for {remote_port}")
+        # Remote host configuration End
 
-        if not ovs_utils.add_port_to_ovs(self.config_data['bridge'], self.config_data['remote_port'][0],
-                    remote=True, hostname=self.config_data['client_hostname'],
-                        username=self.config_data['client_username'],
-                                password=self.config_data['client_password']):
+        #Ping test on underlay and overlay on local host
+        dst = self.config_data['vxlan']['tep_ip'][0].split('/')[0]
+        nexthop_list,device_list,weight_list = [],[],[]
+        for i in self.config_data['ecmp']['local_ports_ip']:
+            nexthop_list.append(i.split('/')[0])
+            weight_list.append(1)
+        for i in self.config_data['remote_port']:
+            device_list.append(i.split('/')[0])
+        if not gnmi_cli_utils.iproute_add(dst, nexthop_list, device_list, weight_list, remote=True,
+            hostname=self.config_data['client_hostname'], username=self.config_data['client_username'],
+            password=self.config_data['client_password']):
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"Failed to add route")
+        print("\nSleep before sending ping traffic")
+        time.sleep(15)
+        print (f"Ping test for underlay network")
+        ip_list = []
+        for i in self.config_data['ecmp']['remote_ports_ip']:
+            ip_list.append(i.split('/')[0])
+        for ip in ip_list:
+            ping_cmd = f"ping {ip} -c 10"
+            print(ping_cmd)
+            if not test_utils.local_ping(ping_cmd):
+               self.result.addFailure(self, sys.exc_info())
+               self.fail(f"FAIL: Ping test failed for underlay network")
+        # configure static routes for underlay 
+        dst = self.config_data['vxlan']['tep_ip'][1].split('/')[0]
+        nexthop_list,device_list,weight_list = [],[],[]
+        for i in self.config_data['ecmp']['remote_ports_ip']:
+            nexthop_list.append(i.split('/')[0])
+            weight_list.append(1)
+        for i in self.config_data['ecmp']['local_ports']:
+            device_list.append(i.split('/')[0])
+        if not gnmi_cli_utils.iproute_add(dst, nexthop_list, device_list, weight_list):
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"Failed to add route")
+        # ping remote tep
+        ping_cmd = f"ping {self.config_data['vxlan']['tep_ip'][1].split('/')[0]} -c 10"
+        print(ping_cmd)
+        if not test_utils.local_ping(ping_cmd):
+           self.result.addFailure(self, sys.exc_info())
+           self.fail(f"FAIL: Ping test failed for underlay network")
 
-            self.result.addFailure(self, sys.exc_info())
-            self.fail(f"Failed to add physical port {self.config_data['remote_port'][0]} to \
-                              bridge {self.config_data['bridge']} on {self.config_data['client_hostname']}")
-
-        # --------------------------------- #   
-        #   Mesh ping betwenn VM and NS_VM  #
-        # ----------------------------------#
-        time.sleep(10)
-        print (f"Ping test executed from VM on remote host")
-        for namespace in self.config_data['net_namespace']: 
-            for ip in namespace['remote_ping']:
-                if not test_utils.ip_ntns_exec_ping_test(namespace['name'], ip, remote=True,
-                    hostname=self.config_data['client_hostname'],
-                                username=self.config_data['client_username'],
-                                        password=self.config_data['client_password']):
-                    self.result.addFailure(self, sys.exc_info())
-                    self.fail(f"FAIL: Ping test failed for {namespace['name']}")
-    
-        print ("Ping test executed from VM on local host")
+        #overlay ping
+        print (f"Ping test executed from VM on local host")
         for i in range(len(self.conn_obj_list)):
             print(f"Ping test from VM{i} to other VMs")
             for ip in self.config_data['vm'][i]['remote_ip']:
                 if not test_utils.vm_to_vm_ping_test(self.conn_obj_list[i], ip):
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"FAIL: Ping test failed for VM{i}")
-        
-        print ("close VM telnet session")
+
+        #Verify if the traffic is load balanced
+        num = self.config_data['traffic']['number_pkts'][0]
+        send_port_id= self.config_data['traffic']['send_port'][0]
+        #Record port counter before sending traffic
+        send_count_list_before = []
+        for send_port_id in self.config_data['traffic']['send_port']:
+            send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+            if not send_cont:
+               self.result.addFailure(self, sys.exc_info())
+               print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+            send_count_list_before.append(send_cont)
+        #Send ping traffic across ecmp links from VM
+        print("Send ping traffic to verify load balancing")
+        if not test_utils.vm_to_vm_ping_test(self.conn_obj_list[0], self.config_data['traffic']['in_pkt_header']['ip_dst_1'], count=num):
+           self.result.addFailure(self, sys.exc_info())
+           self.fail(f"FAIL: Ping test failed for VM{0}")
+        #Record port counter after sending traffic
+        send_count_list_after = []
+        for send_port_id in self.config_data['traffic']['send_port']:
+            send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+            if not send_cont:
+               self.result.addFailure(self, sys.exc_info())
+               print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+            send_count_list_after.append(send_cont)
+        #check if icmp pkts are forwarded on both ecmp links
+        counter_type = "out-unicast-pkts"
+        stat_total = 0
+        for send_count_before,send_count_after in zip(send_count_list_before,send_count_list_after):
+            stat = test_utils.compare_counter(send_count_after,send_count_before)
+            if not stat[counter_type] > 0:
+                print(f"FAIL: Packets are not forwarded on one of the ecmp links")
+                self.result.addFailure(self, sys.exc_info())
+            stat_total = stat_total + stat[counter_type]
+        if stat_total >= num:
+            print(f"PASS: Minimum {num} packets expected and {stat_total} received")
+        else:
+            print(f"FAIL: {num} packets expected but {stat_total} received")
+            self.result.addFailure(self, sys.exc_info())
+
+        print (f"close VM telnet session")
         for conn in self.conn_obj_list:
             conn.close()
 
     def tearDown(self):
-        print ("Begin to teardown ...")
-        print ("Delete p4ovs match action rules on local host")
+
+        print("\nUnconfiguration on local host")
+        print (f"Delete p4ovs match action rules on local host")
         for table in self.config_data['table']:
             print(f"Deleting {table['description']} rules")
             for del_action in table['del_action']:
                 ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
-    
+
         print (f"Delete vlan on local host")
         for i in range(len(self.conn_obj_list)):
             id = self.config_data['port'][i]['vlan']
@@ -331,8 +402,28 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"Failed to delete {vlanname}")
 
+        print (f"Delete TEP interface")
+        if not gnmi_cli_utils.iplink_del_port(self.config_data['vxlan']['tep_intf']):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail(f"Failed to delete {self.config_data['vxlan']['tep_intf']}")
+
+        print (f"Delete ip route")
+        if not gnmi_cli_utils.iproute_del(self.config_data['vxlan']['tep_ip'][1].split('/')[0]):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail(f"Failed to delete route to {self.config_data['vxlan']['tep_ip'][1].split('/')[0]}")
+
+        print("\nUnconfiguration on remote host")
         print (f"Delete ip netns on remote host")
         for namespace in self.config_data['net_namespace']:
+            # delete remote veth_host_vm port
+            if not gnmi_cli_utils.iplink_del_port(namespace['peer_name'],remote=True,
+                hostname=self.config_data['client_hostname'],
+                        username=self.config_data['client_username'],
+                                     passwd=self.config_data['client_password']):
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"Failed to delete {namespace['peer_name']}")
+                
+            #delete name space
             if not test_utils.del_ipnetns_vm(namespace,remote=True,
                 hostname=self.config_data['client_hostname'],
                             username=self.config_data['client_username'],
@@ -345,7 +436,7 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
         if not ovs_utils.del_bridge_from_ovs(self.config_data['bridge']):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to delete bridge {self.config_data['bridge']} from ovs")
-        
+
         #remote bridge
         if not ovs_utils.del_bridge_from_ovs(self.config_data['bridge'],
                remote=True,
@@ -354,7 +445,30 @@ class LNT_2HotplugVM_VXLAN_2NsVM(BaseTest):
                                     passwd=self.config_data['client_password']):
             self.result.addFailure(self, sys.exc_info())
             self.fail(f"Failed to delete bridge {self.config_data['bridge']} on {self.config_data['client_hostname']}")
-    
+        
+        # delete tep
+        if not gnmi_cli_utils.iplink_del_port("TEP1",remote=True,hostname=self.config_data['client_hostname'],
+           username=self.config_data['client_username'],passwd=self.config_data['client_password']):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail(f"Failed to delete TEP1")
+
+        # Delete route
+        if not gnmi_cli_utils.iproute_del(self.config_data['vxlan']['tep_ip'][0].split('/')[0],remote=True,
+          hostname=self.config_data['client_hostname'],username=self.config_data['client_username'],
+          password=self.config_data['client_password']):
+            self.result.addFailure(self, sys.exc_info())
+            self.fail(f"Failed to delete route to {self.config_data['vxlan']['tep_ip'][0].split('/')[0]}")
+
+        # Delete remote host Ip
+        remote_port_list = self.config_data['remote_port']
+        remote_port_ip_list = self.config_data['ecmp']['remote_ports_ip']
+        for remote_port,remote_port_ip in zip(remote_port_list,remote_port_ip_list):
+            if not gnmi_cli_utils.ip_del_addr(remote_port,remote_port_ip,remote=True,
+              hostname=self.config_data['client_hostname'],username=self.config_data['client_username'],
+              passwd=self.config_data['client_password']):
+               self.result.addFailure(self, sys.exc_info())
+               self.fail(f"Failed to delete ip {remote_port_ip} on {remote_port}")
+
         if self.result.wasSuccessful():
             print("Test has PASSED")
         else:
