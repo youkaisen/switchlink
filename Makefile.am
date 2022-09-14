@@ -202,6 +202,12 @@ EXTRA_DIST = \
         ptf_tests/common/config/ct_single_connection_vhost_ports_with_netperf.json \
         ptf_tests/common/config/nt_ct_unsupported_arguments_values.json \
 	ptf_tests/common/config/ct_timer_test.json \
+  ptf_tests/common/config/l2l3_unsupport_tbl_port_match_action.json \
+  ptf_tests/common/config/l2l3_unsupport_tbl_port_proto_action.json \
+	ptf_tests/common/config/LNT_Hot_Plug_Add_Remove.json \
+	ptf_tests/common/config/LNT_ECMP_2VM_2Host_ping.json \
+	ptf_tests/common/config/LNT_ECMP_2VM_2Host_del_add.json \
+	ptf_tests/common/config/LNT_ECMP_2VM_2Host_netperf.json \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.p4 \
 	ptf_tests/common/p4c_artifacts/l3_action_profile/l3_action_profile.conf \
 	ptf_tests/common/p4c_artifacts/l3_action_selector/l3_action_selector.p4 \
@@ -283,6 +289,16 @@ EXTRA_DIST = \
         ptf_tests/tests/ct_single_connection_vhost_ports_with_netperf.py \
         ptf_tests/tests/nt_ct_unsupported_arguments_values.py \
 	ptf_tests/tests/ct_timer_test.py \
+  ptf_tests/tests/l2l3_unsupport_tbl_port_match_action.py \
+  ptf_tests/tests/l2l3_unsupport_tbl_port_proto_action.py \
+	ptf_tests/tests/LNT_Hot_Plug_Add_Remove_multi_port.py \
+	ptf_tests/tests/LNT_Hot_Plug_Add_Remove_multiple_times.py \
+  ptf_tests/tests/LNT_ECMP_2VM_2Host_ping.py \
+	ptf_tests/tests/LNT_ECMP_2VM_2Host_del_add.py \
+	ptf_tests/tests/LNT_ECMP_2VM_2Host_hotplug.py \
+	ptf_tests/tests/LNT_ECMP_2VM_2Host_netperf.py \
+	ptf_tests/tests/LNT_ECMP_2HotPlugVM_2Host_netperf.py \ 
+  ptf_tests/tests/LNT_ECMP_2VM_2Host_link_flap_netperf.py \
 	ptf_tests/common/lib/tcpdump.py \
 	ptf_tests/common/utils/tcpdump_utils.py \
 	ptf_tests/tests/mtu_config_test_with_tap.py \
@@ -297,9 +313,6 @@ EXTRA_DIST = \
 	ptf_tests/p4runtime_test/simple_l3/simple_l3.py \
 	ptf_tests/p4runtime_test/simple_l3/README \
 	ptf_tests/p4runtime_test/simple_l3/port_info.json \
-	ptf_tests/common/config/LNT_Hot_Plug_Add_Remove.json \
-	ptf_tests/tests/LNT_Hot_Plug_Add_Remove_multi_port.py \
-	ptf_tests/tests/LNT_Hot_Plug_Add_Remove_multiple_times.py \
 	unit_test/CMakeLists.txt\
 	unit_test/gtest_main.cpp\
 	unit_test/test_switchlink_sai.cpp\

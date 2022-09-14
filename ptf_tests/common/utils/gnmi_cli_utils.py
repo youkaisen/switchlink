@@ -1,3 +1,18 @@
+# Copyright (c) 2022 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from common.lib.port_config import PortConfig
 from common.lib.local_connection import Local
 
@@ -272,4 +287,54 @@ def get_link_port_list(config_data):
     if link_port:
         return link_port
     else:
+        return False
+
+def ip_del_addr(interface, ip, remote=False,hostname="",username="",passwd=""):
+    port_config = PortConfig(remote=remote,hostname=hostname,
+                                         username=username, passwd=passwd)
+    result = port_config.Ip.ipaddr_ipv4_del(interface, ip)
+    port_config.Ip.tear_down()
+    if result:
+        return True
+
+def iproute_add(dst,nexthop_list,device_list,weight_list,remote=False,hostname="",username="",password=""):
+    """
+    utility to add ip routes
+    """
+    port_config = PortConfig(remote=remote,hostname=hostname,
+                                         username=username, passwd=password)
+    result = port_config.Ip.iproute_add(dst, nexthop_list, device_list, weight_list)
+    port_config.GNMICLI.tear_down()
+    if result:
+        return True
+    else:
+        print(f"FAIL: fail to add route")
+        return False
+
+def iproute_del(dst,remote=False,hostname="",username="",password=""):
+    """
+    utility to delete ip route
+    """
+    port_config = PortConfig(remote=remote,hostname=hostname,
+                                         username=username, passwd=password)
+    result = port_config.Ip.iproute_del(dst)
+    port_config.GNMICLI.tear_down()
+    if result:
+        return True
+    else:
+        print(f"FAIL: fail to delete route")
+        return False
+
+def iplink_add_dev(name,type,remote=False,hostname="",username="",password=""):
+    """
+    utility to add device of specified name and type
+    """
+    port_config = PortConfig(remote=remote,hostname=hostname,
+                                         username=username, passwd=password)
+    result = port_config.Ip.iplink_add_dev(name, type)
+    port_config.GNMICLI.tear_down()
+    if result:
+        return True
+    else:
+        print(f"FAIL: fail to add device {name} type {type}")
         return False
