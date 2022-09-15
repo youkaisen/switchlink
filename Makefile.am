@@ -202,6 +202,7 @@ EXTRA_DIST = \
         ptf_tests/common/config/ct_single_connection_vhost_ports_with_netperf.json \
         ptf_tests/common/config/nt_ct_unsupported_arguments_values.json \
 	ptf_tests/common/config/ct_timer_test.json \
+	ptf_tests/common/config/l3_dpdk_port_flapping_with_link_ports.json \
   ptf_tests/common/config/l2l3_unsupport_tbl_port_match_action.json \
   ptf_tests/common/config/l2l3_unsupport_tbl_port_proto_action.json \
 	ptf_tests/common/config/LNT_Hot_Plug_Add_Remove.json \
@@ -289,6 +290,7 @@ EXTRA_DIST = \
         ptf_tests/tests/ct_single_connection_vhost_ports_with_netperf.py \
         ptf_tests/tests/nt_ct_unsupported_arguments_values.py \
 	ptf_tests/tests/ct_timer_test.py \
+	ptf_tests/tests/l3_dpdk_port_flapping_with_link_ports.py \
   ptf_tests/tests/l2l3_unsupport_tbl_port_match_action.py \
   ptf_tests/tests/l2l3_unsupport_tbl_port_proto_action.py \
 	ptf_tests/tests/LNT_Hot_Plug_Add_Remove_multi_port.py \
