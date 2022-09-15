@@ -1,5 +1,4 @@
 # Copyright (c) 2022 Intel Corporation.
-#
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
-DPDK L2 Exact Match (match fields, actions) with TAP Port
+DPDK L2 L3 Configure Unsupport table, ports, match fields and actions
 """
 
 # in-built module imports
@@ -31,19 +31,14 @@ from ptf.base_tests import BaseTest
 from ptf.testutils import *
 from ptf import config
 
-# scapy related imports
-from scapy.packet import *
-from scapy.fields import *
-from scapy.all import *
-
 # framework related imports
 import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
 from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict
-from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params, ip_set_ipv4
+from common.utils.gnmi_cli_utils import gnmi_cli_set_and_verify, gnmi_set_params, ip_set_ipv4, gnmi_get_params_counter
 
 
-class L2_Exact_Match(BaseTest):
+class L2L3_Unpsupport_Tbl_Port_Match_Action(BaseTest):
 
     def setUp(self):
         BaseTest.setUp(self)
@@ -82,62 +77,51 @@ class L2_Exact_Match(BaseTest):
         if not ovs_p4ctl.ovs_p4ctl_set_pipe(self.config_data['switch'], self.config_data['pb_bin'], self.config_data['p4_info']):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to set pipe")
-
-
-        for table in self.config_data['table']:
-
-            print(f"Scenario : l2 exact match : {table['description']}")
-            print(f"Adding {table['description']} rules")
-            for match_action in table['match_action']:
-                if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
-                    self.result.addFailure(self, sys.exc_info())
-                    self.fail(f"Failed to add table entry {match_action}")
-
-            # forming 1st packet and sending to validate if scenario-1:rule-1 hits or not
-            print("sending packet to check if rule 1  hits")
-            if table['description'] == "table_for_dst_ip":
-                pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_dst_1'])
-            else:
-                pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_src_1'])
-
-            # Verify whether packet is received as per rule 1 
-            send_packet(self, port_ids[self.config_data['traffic']['send_port'][0]], pkt)
-            try:
-                verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][0]][1])
-                print(f"PASS: Verification of packets passed, packet received as per rule 1")
-            except Exception as err:
-                self.result.addFailure(self, sys.exc_info())
-                print(f"FAIL: Verification of packets sent failed with exception {err}")
         
-            # forming 2th packet and sending to validate if scenario-1:rule-2 hits or not
-            print("sending packet to check if rule2 hits")
-            if table['description'] == "table_for_dst_ip":
-                pkt = simple_tcp_packet(eth_dst=self.config_data['traffic']['in_pkt_header']['eth_dst_2'])
-            else:
-                pkt = simple_tcp_packet(eth_src=self.config_data['traffic']['in_pkt_header']['eth_src_2'])
-            # Verify whether packet is dropped as per rule 2
-            send_packet(self, port_ids[self.config_data['traffic']['send_port'][1]], pkt)
+      
+        for table in self.config_data['table']:
+            print(f"Scenario : {table['description']}")
+            print(f"Adding {table['description']} rules")
+            if table['name'] == "pipe.ipv4_host":
+                #add invalid match action
+                for match_action in table['match_action']:
+                    if ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
+                        self.result.addFailure(self, sys.exc_info())
+                        self.fail(f"Failed: invalid entry {match_action} should not be added")
+                    print (f"PASS: expected failure to add Invalid match action {match_action}")
+            elif table['name'] == "ingress.ipv4_host_dst":
+                #add valid match action
+                for match_action in table['match_action']:
+                    if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'],table['name'], match_action):
+                        self.result.addFailure(self, sys.exc_info())
+                        self.fail(f"Failed to add table entry {match_action}")
+
+        print (f"Sending Traffic")
+        # Verify support table, ports and match actions
+        for i in range(len(self.config_data['table'][1]['match_action'])):
+            print (f"Verifing match action {table['match_action'][i]}") 
+            pkt = simple_tcp_packet(ip_src = self.config_data['traffic']['ip_src'][0],
+                                        ip_dst=self.config_data['traffic']['ip_dst'][i])
+            send_packet(self, port_ids[self.config_data['traffic']['send_port'][i]],
+                                        pkt, count= self.config_data['traffic']['pkt_num'])
             try:
-                verify_no_packet_any(self, pkt, device_number=0, ports=[port_ids[self.config_data['traffic']['receive_port'][1]][1]])
-                print(f"PASS: Verification of packets passed, packet dropped as per rule 2")
+                verify_packet(self, pkt, port_ids[self.config_data['traffic']['receive_port'][i]][1])
+                print(f"PASS: Verification of packets passed, packet received as per rule {i+1}")
             except Exception as err:
                 self.result.addFailure(self, sys.exc_info())
                 print(f"FAIL: Verification of packets sent failed with exception {err}")
-
+                
         self.dataplane.kill()
 
-
     def tearDown(self):
+    
         for table in self.config_data['table']:
-            print(f"Deleting {table['description']} rules")
-            for del_action in table['del_action']:
-                ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
-
+            if table['name'] == "ingress.ipv4_host_dst":
+                print(f"Deleting {table['description']} rules")
+                for del_action in table['del_action']:
+                    ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
+         
         if self.result.wasSuccessful():
             print("Test has PASSED")
         else:
             print("Test has FAILED")
-        
-
- 
-

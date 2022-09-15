@@ -1,3 +1,18 @@
+# Copyright (c) 2022 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys
 import io
 import re
@@ -289,13 +304,8 @@ def ovs_p4ctl_get_group(bridge, tbl_name, group_id, group_details=None):
     
 def ovs_p4ctl_get_counter_data(bridge, cnt_tbl_name, flow):
     """
-    Args:
-        bridge (_type_): _description_
-        cnt_tbl_name (_type_): _description_
-        flow (_type_): _description_
-
-    Returns:
-        _type_: _description_
+    A function to build counter dictionary based on table and flow received
+    :return a counter dictionary
     """
     counter ={}
     try:
@@ -321,11 +331,8 @@ def ovs_p4ctl_get_counter_data(bridge, cnt_tbl_name, flow):
         
 def ovs_p4ctl_get_counter_table_and_id():
     """
-    :Function to check if netperf is installed and pkill running porcess
-    :and prepare to restart it.
-    :returns boolean True or False
-    ovs-p4ctl get-counter br0 ipv4_host_pkt_counter
-                    "counter_id=1,index=UNSET"
+    :Function to retieve all counter table name and their if from P4 information
+    :return a list of tuple of table name and its id.
     """
     table_name_and_id = []
     try:

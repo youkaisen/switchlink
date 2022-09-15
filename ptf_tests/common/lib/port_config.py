@@ -1,3 +1,18 @@
+# Copyright (c) 2022 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #!/usr/bin/python
 
 from common.lib.local_connection import Local
@@ -147,11 +162,63 @@ class PortConfig(object):
 
             print(f"PASS: {cmd}")
             return True
-           
+
+        def ipaddr_ipv4_del(self, interface, ip):
+            """
+            Assigns IP address 'ip' to 'interface'
+            :param interface: network interface name --> str e.g. "TAP0"
+            Assigns IP address 'ip' to 'interface'
+            :param interface: network interface name --> str e.g. "TAP0"
+            :param ip: ipv4 address --> str e.g. "1.1.1.1/24"
+            :return: True/False --> boolean
+            """
+            cmd = self.form_cmd(f" addr del {ip} dev {interface}")
+            output, return_code, _ = self.connection.execute_command(cmd)
+            if return_code:
+                print(f"FAIL: {cmd}")
+                raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
+
+            print(f"PASS: {cmd}")
+            return True
+
+
+        def ip_link_set_mac(self, interface, mac):
+            """
+            Assigns Mac address 'mac' to 'interface'
+            :param interface: network interface name --> str e.g. "TAP0"
+            :param mac: mac address --> str e.g. "00:e8:ca:11:bb:01"
+            :return: True/False --> boolean
+            """
+            cmd = self.form_cmd(f" link set dev {interface} address {mac}")
+            output, return_code, _ = self.connection.execute_command(cmd)
+            if return_code:
+                print(f"FAIL: {cmd}")
+                raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
+
+            print(f"PASS: {cmd}")
+            return True
+
+        def ip_neigh_add(self, interface, ip, mac):
+            """
+            Assigns Mac address 'mac' to 'interface'
+            :param interface: network interface name --> str e.g. "phy_interface"
+            :param mac: mac address --> str e.g. "00:e8:ca:11:bb:01"
+            :return: True/False --> boolean
+            """
+            cmd = self.form_cmd(f" neigh add dev {interface} {ip} lladdr {mac}")
+            output, return_code, _ = self.connection.execute_command(cmd)
+            if return_code:
+                print(f"FAIL: {cmd}")
+                raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
+
+            print(f"PASS: {cmd}")
+            return True
+
+
 
         def iplink_add_vlan_port(self, id, name, netdev_port):
-            """ Method to add vlan port to given netdev port
-
+            """ 
+            Method to add vlan port to given netdev port
             :param id: vlan id
             :type id: integer e.g. 1
             :param name: name of vlan port to add
@@ -273,7 +340,7 @@ class PortConfig(object):
                                           f'an error {err}')
             print(f"PASS: {cmd}")
             return True
-
+        
         def tear_down(self):
             """ Close any open connections after use of class
 
@@ -281,3 +348,62 @@ class PortConfig(object):
             :rtype: None
             """
             self.connection.tear_down()
+            
+        def ipaddr_ipv4_del(self, interface, ip):
+            """
+            Assigns IP address 'ip' to 'interface'
+            :param interface: network interface name --> str e.g. "TAP0"
+            Assigns IP address 'ip' to 'interface'
+            :param interface: network interface name --> str e.g. "TAP0"
+            :param ip: ipv4 address --> str e.g. "1.1.1.1/24"
+            :return: True/False --> boolean
+            """
+            cmd = self.form_cmd(f" addr del {ip} dev {interface}")
+            output, return_code, _ = self.connection.execute_command(cmd)
+            if return_code:
+                print(f"FAIL: {cmd}")
+                raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
+
+            print(f"PASS: {cmd}")
+            return True
+
+        def iplink_add_dev(self, name, type):
+            """ Add device of specified name and type
+            e.g. "ip link add dev TEP0 type dummy"
+            """
+            cmd = self.form_cmd(f" link add dev {name} type {type}")
+            output, return_code, _ = self.connection.execute_command(cmd)
+            if return_code:
+                print(f"FAIL: {cmd}")
+                raise ExecuteCMDException(f'Failed to execute command "{cmd}"')
+
+            print(f"PASS: {cmd}")
+            return True
+
+        def iproute_add(self, dst, nexthop_list, device_list, weight_list):
+            """ Add multiple routes for a destination
+                e.g. ip route add 40.1.1.2 nexthop via 50.1.1.2 dev TAP1 weight 1 nexthop via 60.1.1.2 dev TAP2 weight 1
+            """
+            cmd = " "
+            for (nexthop,device,weight) in zip(nexthop_list, device_list, weight_list):
+               cmd = cmd + f"nexthop via {nexthop} dev {device} weight {weight} "
+            cmd = self.form_cmd(f" route add {dst} {cmd}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
+
+        def iproute_del(self, dst):
+            """ Delete ip route
+                e.g. ip route del 40.1.1.2
+            """
+            cmd = self.form_cmd(f" route del {dst}")
+            output, return_code, err = self.connection.execute_command(cmd)
+            if return_code:
+                raise ExecuteCMDException(f'FAIL:command "{cmd}" failed with '
+                                          f'an error {err}')
+            print(f"PASS: {cmd}")
+            return True
+        
