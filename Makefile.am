@@ -194,6 +194,7 @@ EXTRA_DIST = \
 	ptf_tests/common/config/lnt_2vm_vxlan_2nsvm_5min_ping.json \
 	ptf_tests/common/config/lnt_1hotplugvm_vxlan_1nsvm.json \
 	ptf_tests/common/config/config_control_port_with_link.json \
+	ptf_tests/common/config/l3_dpdk_port_flapping_with_link_ports.json \
   ptf_tests/common/config/l2l3_unsupport_tbl_port_match_action.json \
   ptf_tests/common/config/l2l3_unsupport_tbl_port_proto_action.json \
 	ptf_tests/common/config/LNT_Hot_Plug_Add_Remove.json \
@@ -271,6 +272,7 @@ EXTRA_DIST = \
 	ptf_tests/tests/lnt_2vm_vxlan_2nsvm_5min_ping.py \
 	ptf_tests/tests/lnt_1hotplugvm_vxlan_1nsvm.py \
 	ptf_tests/tests/config_control_port_with_link.py \
+	ptf_tests/tests/l3_dpdk_port_flapping_with_link_ports.py \
   ptf_tests/tests/l2l3_unsupport_tbl_port_match_action.py \
   ptf_tests/tests/l2l3_unsupport_tbl_port_proto_action.py \
 	ptf_tests/tests/LNT_Hot_Plug_Add_Remove_multi_port.py \
