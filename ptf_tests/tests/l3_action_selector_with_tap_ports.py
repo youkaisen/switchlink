@@ -443,10 +443,7 @@ class L3_Action_Selector(BaseTest):
 
                 iteration+=1
       
-            
-
         self.dataplane.kill()
-
 
     def tearDown(self):
         
@@ -454,7 +451,7 @@ class L3_Action_Selector(BaseTest):
         
         print(f"Deleting rules")
         for del_action in table['del_action']:
-            ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
+            ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action.split(",")[0])
        
         table = self.config_data['table'][0]
         print("Deleting groups")
