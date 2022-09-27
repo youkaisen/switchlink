@@ -1,3 +1,18 @@
+# Copyright (c) 2022 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
 Generic utility scripts for P4OVS PTF scripts.
 """
@@ -208,14 +223,14 @@ def vm_to_vm_ping_test(conn, dst_ip, count="4"):
         match = re.search('(\d*)% packet loss', result)
         if match:
             pkt_loss = int(match.group(1))
-
+  
     if f"{count} received, 0% packet loss" in result:
         print(f"PASS: Ping successful to destination {dst_ip}")
         return True
     else:
         print(f"FAIL: Ping Failed to destination {dst_ip} with {pkt_loss}% loss")
         return False
-    
+
 def vm_ping_less_than_100_loss(conn, dst_ip, count="4"):
     """
     Sometimes when expecting some ping packet loss, we can use this function
@@ -666,7 +681,22 @@ def ip_ntns_exec_ping_test(nsname, dst_ip, count="4", remote=False, hostname="",
     else:
         print(f"FAIL: Ping Failed to destination {dst_ip} with {pkt_loss}% loss")
         return False
-    
+
+def get_ovs_p4ctl_help(option):
+    """
+    :Function to get output of command "ovs-p4ctl --help"
+    :returns output or False
+    """
+    connection = Local()
+    cmd =f"ovs-p4ctl {option}"
+    output, _, _ = connection.execute_command(cmd)
+    connection.tear_down()
+    if output:
+        print (f"PASS: The command \"{cmd}\" return below message \n {output}")
+        return output 
+    else:
+        return False
+
 def ipnetns_eth_offload(nsname, interface, remote=False, hostname="",username="",password=""):
     """
     :Function to offload interface

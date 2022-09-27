@@ -1,9 +1,26 @@
+# Copyright (c) 2022 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys
 import io
 import re
+import time
+from io import StringIO
 import common.lib.ovs_p4ctl as ovs_p4ctl
 from contextlib import redirect_stdout
-
+from common.lib.local_connection import Local
 
 def ovs_p4ctl_set_pipe(bridge, device_config, p4info):
     """
@@ -284,4 +301,59 @@ def ovs_p4ctl_get_group(bridge, tbl_name, group_id, group_details=None):
     except Exception as error:
         print(f"FAIL: ovs-p4ctl get group Failed with error: {error}")
         return False
+    
+def ovs_p4ctl_get_counter_data(bridge, cnt_tbl_name, flow):
+    """
+    A function to build counter dictionary based on table and flow received
+    :return a counter dictionary
+    """
+    counter ={}
+    try:
+        #The called function doesn't return value but print out the value.
+        #Thus using IO steam to capture the print out and parse it to 
+        #build counter data
+        save_stdout = sys.stdout
+        output = StringIO()
+        sys.stdout = output
+        ovs_p4ctl.p4ctl_get_counter_entry(bridge, cnt_tbl_name, flow)
+        sys.stdout = save_stdout
+        result = output.getvalue().split(",", 2)
+        for item in result[0:2]:
+            counter[item.split("=")[0].strip()] = item.split("=")[1].strip()
+       
+        for item in result[2].split("=",1)[1].replace("(","").replace(")","").split(","):
+            counter[item.split("=")[0].strip()] = int(item.split("=")[1].strip())
+            
+        return counter
+    except Exception as error:
+        print(f"FAIL: ovs-p4ctl add group Failed with error: {error}")
+        return False
+        
+def ovs_p4ctl_get_counter_table_and_id():
+    """
+    :Function to retieve all counter table name and their if from P4 information
+    :return a list of tuple of table name and its id.
+    """
+    table_name_and_id = []
+    try:
+        client=ovs_p4ctl.P4RuntimeClient(device_id=1)
+        p4info =client.get_p4info()
+        for i in range(len(p4info.counters)):
+            table_name = p4info.counters[i].preamble.name
+            counter_id = p4info.counters[i].preamble.id 
+            table_name_and_id.append((table_name, counter_id))
+        client.tear_down()
+    except Exception as error:
+        print(f"FAIL: unable to get p4info to: {error}")
+        return False
+    return table_name_and_id
 
+def ovs_p4ctl_reset_counter_entry( bridge, cnt_tbl_name, flow):
+    """
+    A utility function to reset counter
+    reset-counter-entry SWITCH COUNTER_TABLE RESET_COUNTER_FLOW
+    Example: 
+       ovs-p4ctl reset-counter br0 \
+           ipv4_host_tbl_flow_counter_packets counter_id=303591076,index=1
+    """
+    ovs_p4ctl.p4ctl_reset_counter_entry(bridge, cnt_tbl_name, flow)
