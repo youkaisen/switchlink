@@ -235,8 +235,8 @@ EXTRA_DIST = \
 	ptf_tests/common/p4c_artifacts/l3_exact_match_add_del/l3_exact_match_add_del.p4 \
 	ptf_tests/common/p4c_artifacts/pna_tcp_connection_tracking/pipe/.gitkeep \
         ptf_tests/common/p4c_artifacts/pna_tcp_connection_tracking/pna_tcp_connection_tracking.conf \
-        ptf_tests/common/p4c_artifacts/pna_tcp_connection_tracking/pna_tcp_connection_tracking.p
-	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_psa/l3em_indirect_counter_psa.p4\
+        ptf_tests/common/p4c_artifacts/pna_tcp_connection_tracking/pna_tcp_connection_tracking.p4 \
+	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_psa/l3em_indirect_counter_psa.p4 \
 	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_psa/l3em_indirect_counter_psa.conf \
 	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_pna/l3em_indirect_counter_pna.p4 \
 	ptf_tests/common/p4c_artifacts/l3em_indirect_counter_pna/l3em_indirect_counter_pna.conf \
