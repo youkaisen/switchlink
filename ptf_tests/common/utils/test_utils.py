@@ -747,7 +747,7 @@ def get_ovs_p4ctl_help(option):
         return output 
     else:
         return False
-    
+
 def ipnetns_eth_offload(nsname, interface, remote=False, hostname="",username="",password=""):
     """
     :Function to offload interface
