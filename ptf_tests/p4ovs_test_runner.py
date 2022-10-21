@@ -155,7 +155,7 @@ try:
                 scriptname = scriptname + "_2"
 
             test_to_run[scriptname] = ':'.join(items[1:]).strip()
-        sequence.append(scriptname)
+            sequence.append(scriptname)
     test_to_run['sequence'] = sequence
 
     results = {}
@@ -164,7 +164,6 @@ try:
         pat=r'_[0-9]$'
         if re.search(pat,test):
             test = re.split(pat,test)[0]
-        
         time.sleep(2)
         process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         cmd = f"""source pre_test.sh {args.p4sde_install_path} {args.p4ovs_install_path} {args.p4dep_install_path}
