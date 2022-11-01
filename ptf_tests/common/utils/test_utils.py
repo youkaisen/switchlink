@@ -149,6 +149,57 @@ def gen_dep_files_p4c_dpdk_pna_ovs_pipeline_builder(config_data):
 
     return True
 
+def gen_dep_files_p4c_dpdk_pna_ovs_pipeline_builder_ct_timer(config_data):
+    """
+    util function to generate p4 artifacts for dpdk pna architecture
+    :params: config_data --> dict --> dictionary with all config data loaded from json
+    :needs to update spec file for time usage
+    :returns: Boolean True/False
+    """
+    local = Local()
+    p4file = config_data['p4file']
+    conf_file = p4file + ".conf"
+    output_dir = os.sep.join(["common", "p4c_artifacts", p4file])
+    pb_bin_file = config_data['p4file']+'.pb.bin'
+    config_data['pb_bin'] = output_dir + "/" + pb_bin_file
+    config_data['p4_info'] = output_dir + "/p4Info.txt"
+    spec_file = p4file + ".spec"
+    p4file = p4file + ".p4"
+    cmd = f'''p4c-dpdk -I p4include -I p4include/dpdk --p4v=16 --p4runtime-files \
+            {output_dir}/p4Info.txt -o {output_dir}/pipe/{spec_file} --arch pna --bf-rt-schema {output_dir}/bf-rt.json --context \
+            {output_dir}/pipe/context.json {output_dir}/{p4file}'''
+    print (cmd)
+    out, returncode, err = local.execute_command(cmd)
+    if returncode:
+        print(f"Failed to run p4c: {out} {err}")
+        return False
+
+    print(f"PASS: {cmd}")
+
+    with open(f'{output_dir}/pipe/{spec_file}', 'r', encoding='utf-8') as file:
+         data = file.readlines()
+
+    data[155] = "\t\t60\n"
+    data[157] = "\t\t180\n"
+
+    with open(f'{output_dir}/pipe/{spec_file}', 'w', encoding='utf-8') as file:
+         file.writelines(data)
+
+    cmd = f'''cd {output_dir}; ovs_pipeline_builder --p4c_conf_file={conf_file} \
+            --bf_pipeline_config_binary_file={pb_bin_file}'''
+
+    out, returncode, err = local.execute_command(cmd)
+    if returncode:
+        print(f"Failed to run ovs_pipeline_builder: {out} {err}")
+        return False
+
+    cmd = f'''ovs_pipeline_builder --p4c_conf_file={conf_file} \
+            --bf_pipeline_config_binary_file={pb_bin_file}'''
+
+    print(f"PASS: {cmd}")
+
+    return True
+
 def qemu_version(ver="6.1.0"):
     """
     To Add/Del same Hotplug mutiple times need to check qemu version >= 6.1.0.
@@ -716,7 +767,7 @@ def get_ovs_p4ctl_help(option):
         return output 
     else:
         return False
-    
+
 def ipnetns_eth_offload(nsname, interface, remote=False, hostname="",username="",password=""):
     """
     :Function to offload interface
@@ -1106,10 +1157,10 @@ def verify_scapy_traffic_from_vm(vm_id,conn,config_data,traffic_type="unicast"):
         pcap_file= config_data['traffic']['pcap_file_name'][2]
 
     send_ctrl_c(conn)
-    print(f"Verify Traffic Received on Receiver VM {vm_name}")
+    print(f"Verify Traffic Received on receiver_vm {vm_name}")
 
     #STEP1 : Looking for the PCAP file on the receiver VM
-    print(f"Checking for Pcap file {pcap_file} on Receiver VM {vm_name}")
+    print(f"Checking for Pcap file {pcap_file} on receiver_vm {vm_name}")
   
     cmd_list = ['python3', "from scapy.all import *", 
                 'ls %s' % pcap_file]
@@ -1117,9 +1168,9 @@ def verify_scapy_traffic_from_vm(vm_id,conn,config_data,traffic_type="unicast"):
     for cmd in cmd_list:
         conn.sendCmd(cmd)
     if conn.readResult():
-        print(f"Pcap file {pcap_file} exists on Receiver VM {vm_name}")
+        print(f"Pcap file {pcap_file} exists on receiver_vm {vm_name}")
     else:
-        print("Pcap file {pcap_file} does not exist on Receiver VM {vm_name}")
+        print("Pcap file {pcap_file} does not exist on receiver_vm {vm_name}")
 
     #STEP2: Use scapy.sniff to decode packets on the pcap file
     print(f"Decoding packets from pcap file {pcap_file}")
@@ -1145,9 +1196,9 @@ def verify_scapy_traffic_from_vm(vm_id,conn,config_data,traffic_type="unicast"):
 
     if pkt_count ==  count:
         result = True
-        print(f"PASS: Successfully received {pkt_count} Packets on Receiver VM {vm_name}")
+        print(f"PASS: Successfully received {pkt_count} Packets on receiver_vm {vm_name}")
     else:
-        print(f"FAIL: Expected: {count} packets vs Received {pkt_count} packets on Receiver VM {vm_name}")
+        print(f"FAIL: Expected: {count} packets vs Received {pkt_count} packets on receiver_vm {vm_name}")
 
     #printing summary of the packets
     print_scapy_pcap_summary(conn)
@@ -1168,10 +1219,6 @@ def print_scapy_pcap_summary(conn):
     
     output = conn.readResult()
     print(f"Printing Packet Capture Summary\n: {output}")
-
-
-
-
 
 
 

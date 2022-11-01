@@ -178,13 +178,17 @@ class L3_Action_Profile_Vhost(BaseTest):
         conn1.close()
         conn2.close()
 
-
     def tearDown(self):
 
         table = self.config_data['table'][0]
         print("Deleting members")
         for del_member in table['del_member']:
             ovs_p4ctl.ovs_p4ctl_del_member(table['switch'],table['name'],del_member)
+
+        table = self.config_data['table'][1]
+        print(f"Deleting rules")
+        for del_action in table['del_action']:
+            ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action.split(",")[0])
 
         if self.result.wasSuccessful():
             print("Test has PASSED")

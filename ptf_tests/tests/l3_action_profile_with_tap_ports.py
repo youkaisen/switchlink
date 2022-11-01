@@ -271,19 +271,18 @@ class L3_Verify_Traffic_with_Action_Profile(BaseTest):
 
         self.dataplane.kill()
 
-
     def tearDown(self):
+    
         table = self.config_data['table'][1]
-
         print(f"Deleting rules")
         for del_action in table['del_action']:
-            ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
+            ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action.split(",")[0])
 
         table = self.config_data['table'][0]
         print("Deleting members")
         for del_member in table['del_member']:
             ovs_p4ctl.ovs_p4ctl_del_member(table['switch'],table['name'],del_member)
-
+            
         if self.result.wasSuccessful():
             print("Test has PASSED")
         else:

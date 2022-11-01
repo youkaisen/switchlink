@@ -155,7 +155,7 @@ class L3_Action_Selector_Link(BaseTest):
         
         print(f"Deleting rules")
         for del_action in table['del_action']:
-            ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action)
+            ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action.split(",")[0])
        
         table = self.config_data['table'][0]
         print("Deleting groups")
@@ -170,5 +170,3 @@ class L3_Action_Selector_Link(BaseTest):
             print("Test has PASSED")
         else:
             print("Test has FAILED")
-
- 
