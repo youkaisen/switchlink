@@ -69,11 +69,6 @@ class LNT_2vm_vxlan_2nsvm_5min_ping(BaseTest):
         # Configure P4OVS, VM, VLAN adn VXLAN on Local Host #
         # ------------------------------------------------- #
         print (f"Begin to configure P4OVS and VM on local host")
-        """
-        if not test_utils.gen_dep_files_p4c_dpdk_pna_ovs_pipeline_builder(self.config_data):
-            self.result.addFailure(self, sys.exc_info())
-            self.fail("Failed to generate P4C artifacts or pb.bin")
-        """
         if not gnmi_cli_utils.gnmi_cli_set_and_verify(self.gnmicli_params):
             self.result.addFailure(self, sys.exc_info())
             self.fail("Failed to configure gnmi cli ports")

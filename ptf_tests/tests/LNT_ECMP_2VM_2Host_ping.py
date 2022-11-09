@@ -32,17 +32,12 @@ from ptf.base_tests import BaseTest
 from ptf.testutils import *
 from ptf import config
 
-# scapy related imports
-from scapy.packet import *
-from scapy.fields import *
-from scapy.all import *
-
 # framework related imports
 import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
 import common.utils.ovs_utils as ovs_utils
 import common.utils.gnmi_cli_utils as gnmi_cli_utils
-from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict
+from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict, get_gnmi_phy_with_ctrl_port
 from common.lib.telnet_connection import connectionManager
 import common.utils.tcpdump_utils as tcpdump_utils
 
@@ -64,7 +59,9 @@ class LNT_ECMP_2VM_VXLAN(BaseTest):
                           vm_cred=self.vm_cred, client_cred=test_params['client_cred'],
                                               remote_port = test_params['remote_port']) 
         self.gnmicli_params = get_gnmi_params_simple(self.config_data)
-        self.tap_port_list =  gnmi_cli_utils.get_tap_port_list(self.config_data)
+        # in the case of a physical port configured with a control port
+        self.gnmicli_phy_ctrl_params = get_gnmi_phy_with_ctrl_port(self.config_data)
+        self.tap_port_list = gnmi_cli_utils.get_tap_port_list(self.config_data)
         self.link_port_list = gnmi_cli_utils.get_link_port_list(self.config_data)
         self.interface_ip_list = get_interface_ipv4_dict(self.config_data)
         self.conn_obj_list = []
@@ -289,53 +286,66 @@ class LNT_ECMP_2VM_VXLAN(BaseTest):
            self.fail(f"FAIL: Ping test failed for underlay network")
 
         #overlay ping
-        print (f"Ping test executed from VM on local host")
-        for i in range(len(self.conn_obj_list)):
-            print(f"Ping test from VM{i} to other VMs")
-            for ip in self.config_data['vm'][i]['remote_ip']:
-                if not test_utils.vm_to_vm_ping_test(self.conn_obj_list[i], ip):
-                    self.result.addFailure(self, sys.exc_info())
-                    self.fail(f"FAIL: Ping test failed for VM{i}")
-
-        #Verify if the traffic is load balanced
         num = self.config_data['traffic']['number_pkts'][0]
-        send_port_id= self.config_data['traffic']['send_port'][0]
-        #Record port counter before sending traffic
-        send_count_list_before = []
-        for send_port_id in self.config_data['traffic']['send_port']:
-            send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_params[send_port_id])
-            if not send_cont:
-               self.result.addFailure(self, sys.exc_info())
-               print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
-            send_count_list_before.append(send_cont)
-        #Send ping traffic across ecmp links from VM
-        print("Send ping traffic to verify load balancing")
-        if not test_utils.vm_to_vm_ping_test(self.conn_obj_list[0], self.config_data['traffic']['in_pkt_header']['ip_dst_1'], count=num):
-           self.result.addFailure(self, sys.exc_info())
-           self.fail(f"FAIL: Ping test failed for VM{0}")
-        #Record port counter after sending traffic
-        send_count_list_after = []
-        for send_port_id in self.config_data['traffic']['send_port']:
-            send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_params[send_port_id])
-            if not send_cont:
-               self.result.addFailure(self, sys.exc_info())
-               print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
-            send_count_list_after.append(send_cont)
-        #check if icmp pkts are forwarded on both ecmp links
-        counter_type = "out-unicast-pkts"
-        stat_total = 0
-        for send_count_before,send_count_after in zip(send_count_list_before,send_count_list_after):
-            stat = test_utils.compare_counter(send_count_after,send_count_before)
-            if not stat[counter_type] > 0:
-                print(f"FAIL: Packets are not forwarded on one of the ecmp links")
-                self.result.addFailure(self, sys.exc_info())
-            stat_total = stat_total + stat[counter_type]
-        if stat_total >= num:
-            print(f"PASS: Minimum {num} packets expected and {stat_total} received")
-        else:
-            print(f"FAIL: {num} packets expected but {stat_total} received")
-            self.result.addFailure(self, sys.exc_info())
-        
+        for i in range(len(self.conn_obj_list)):
+            for m in range(len(self.config_data['vm'][i]['remote_ip'])):
+                ip = self.config_data['vm'][i]['remote_ip'][m]
+                
+                #The 1st IP is local VM ip. No ECMP patch  involved
+                if m==0: print (f"Verify local ping {ip} on VM{i} without ECMP path") 
+                
+                if m!= 0: # which is local VM ping. No ECMP path involved
+                    print(f"Verify remote ping {ip} on other VMs from VM{i}")
+                    print ("Record host physical port counter before sending traffic")
+                    send_count_list_before = []
+                    for send_port_id in self.config_data['traffic']['send_port']:
+                        send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_phy_ctrl_params[send_port_id])
+                        if not send_cont:
+                            print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+                            self.result.addFailure(self, sys.exc_info())
+                            self.fail(f"FAIL: unable to get send counter")
+                        print (f"PASS: The port {self.gnmicli_phy_ctrl_params[send_port_id].split(',')[1].split(':')[1]} "+\
+                                                                                    "counter is built successfully")
+                        send_count_list_before.append(send_cont)
+                n,max = 1,2 #max 2 tries
+                while n<=max: 
+                    if not test_utils.vm_to_vm_ping_test(self.conn_obj_list[i], ip, count= num):
+                        print (f"The {n} ping failed. will try one more time")
+                        n += 1
+                    else:
+                        break
+                if n>max:
+                    self.result.addFailure(self, sys.exc_info())
+                    self.fail(f"FAIL: after {n} try,Ping test failed for VM{i}")
+                        
+                if m!=0:# which is local VM ping. No ECMP path involved
+                    print ("Record host physical port counter after sending traffic")        
+                    send_count_list_after = []
+                    for send_port_id in self.config_data['traffic']['send_port']:
+                        send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_phy_ctrl_params[send_port_id])
+                        if not send_cont:
+                            print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
+                            self.result.addFailure(self, sys.exc_info())
+                            self.fail(f"FAIL: unable to get send counter")
+                        print (f"PASS: The port {self.gnmicli_phy_ctrl_params[send_port_id].split(',')[1].split(':')[1]} "+\
+                                                                                        "counter is built successfully")
+                        send_count_list_after.append(send_cont)
+                        
+                    #check if icmp pkts are forwarded on both ecmp links
+                    counter_type = "out-unicast-pkts"
+                    stat_total = 0
+                    for send_count_before,send_count_after in zip(send_count_list_before,send_count_list_after):
+                        stat = test_utils.compare_counter(send_count_after,send_count_before)
+                        if not stat[counter_type] >= 0:
+                            print(f"FAIL: Packets are not forwarded on one of the ecmp links")
+                            self.result.addFailure(self, sys.exc_info())
+                        stat_total = stat_total + stat[counter_type]
+                        
+                    if stat_total >= num:
+                        print(f"PASS: Minimum {num} packets transmitted and {stat_total} recorded on the path")
+                    else:
+                        print(f"FAIL: {num} packets expected but only {stat_total} recorded")
+                        self.result.addFailure(self, sys.exc_info())
         print (f"close VM telnet session")
         for conn in self.conn_obj_list:
             conn.close()
