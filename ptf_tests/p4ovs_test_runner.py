@@ -149,28 +149,43 @@ try:
             if i.startswith("#"):
                 continue
             items = i.strip().split(":")
-            test_to_run[items[0].strip()] = ':'.join(items[1:]).strip()
-            sequence.append(items[0])
+            scriptname = items[0].strip()
+
+            # if there are tests with same script name but different parameters (json file etc.)
+            occurence = len([1 for x in test_to_run.keys() if re.match(scriptname,x)])
+            if occurence>0:
+                scriptname = scriptname + f"_{occurence+1}"
+
+            test_to_run[scriptname] = ':'.join(items[1:]).strip()
+            sequence.append(scriptname)
     test_to_run['sequence'] = sequence
+    print(test_to_run)
 
     results = {}
-    for test in test_to_run['sequence']:
+    for scriptname in test_to_run['sequence']:
+        # get rid of '_[0-9]' if any
+        pat=r'_[0-9]$'
+        if re.search(pat,scriptname):
+            test = re.split(pat,scriptname)[0]
+        else:
+            test = scriptname
         time.sleep(2)
         process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         cmd = f"""source pre_test.sh {args.p4sde_install_path} {args.p4ovs_install_path} {args.p4dep_install_path}
         sleep 2
-        ptf --test-dir tests/ {test} --pypath $PWD --test-params="{test_to_run[test]}" --platform=dummy
+        ptf --test-dir tests/ {test} --pypath $PWD --test-params="{test_to_run[scriptname]}" --platform=dummy
         """
         print(f"\nRunning {test}\n")
+        print(cmd)
         out, err = process.communicate(cmd.encode('utf-8'))
         try:
             out = out.decode('utf-8')
             print(out)
         except UnicodeDecodeError:
-            results[test]="Test has FAILED"
+            results[scriptname]="Test has FAILED"
             continue
         # discarding pre_test.sh logs
-        results[test] = '\n'.join([x for x in list(dropwhile(lambda x: "Using packet manipulation module" not in x,
+        results[scriptname] = '\n'.join([x for x in list(dropwhile(lambda x: "Using packet manipulation module" not in x,
                                                             out.split('\n'))) if x])
     summary = []
     if args.log_file:
