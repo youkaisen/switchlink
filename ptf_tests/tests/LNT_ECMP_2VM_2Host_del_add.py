@@ -26,25 +26,18 @@ from itertools import dropwhile
 import unittest
 
 # ptf related imports
-import ptf
 import ptf.dataplane as dataplane
 from ptf.base_tests import BaseTest
 from ptf.testutils import *
-from ptf import config
 
-# scapy related imports
-from scapy.packet import *
-from scapy.fields import *
-from scapy.all import *
 
 # framework related imports
 import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
 import common.utils.ovs_utils as ovs_utils
 import common.utils.gnmi_cli_utils as gnmi_cli_utils
-from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict
+from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple,get_interface_ipv4_dict
 from common.lib.telnet_connection import connectionManager
-import common.utils.tcpdump_utils as tcpdump_utils
 
 class LNT_ECMP_DEL_ADD_RULE(BaseTest):
 
@@ -246,7 +239,7 @@ class LNT_ECMP_DEL_ADD_RULE(BaseTest):
                self.result.addFailure(self, sys.exc_info())
                self.fail("Failed to configure IP {remote_port_ip} for {remote_port}")
         # Remote host configuration End
-
+       
         #Ping test on underlay and overlay on local host
         dst = self.config_data['vxlan']['tep_ip'][0].split('/')[0]
         nexthop_list,device_list,weight_list = [],[],[]
@@ -298,15 +291,16 @@ class LNT_ECMP_DEL_ADD_RULE(BaseTest):
                 if not test_utils.vm_to_vm_ping_test(self.conn_obj_list[i], ip):
                     self.result.addFailure(self, sys.exc_info())
                     self.fail(f"FAIL: Ping test failed for VM{i}")
-
+    
         # Start rule delete and re-add test
         print("\nStart rule delete and re-add test")
         i = 0
         for table in self.config_data['table']:
-            print (f"Delete rule {table['del_action'][0]}")
-            if not ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], table['del_action'][0]):
-                self.result.addFailure(self, sys.exc_info())
-                self.fail(f"Failed to delete table entry {table['del_action'][0]}")
+            for del_action in table['del_action']:
+                print (f"Delete rule {del_action}")
+                if not ovs_p4ctl.ovs_p4ctl_del_entry(table['switch'], table['name'], del_action):
+                    self.result.addFailure(self, sys.exc_info())
+                    self.fail(f"Failed to delete table entry {del_action}")
 
             details = f"Execute ping from {self.config_data['port'][i]['ip'].split('/')[0]} on " + \
                       f"{self.config_data['vm'][i]['vm_name']} to " + \
@@ -319,10 +313,11 @@ class LNT_ECMP_DEL_ADD_RULE(BaseTest):
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"FAIL: Ping expected to fail but succeed after deleting rule")
 
-            print(f"Add back rule {table['match_action'][0]}")
-            if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'], table['name'], table['match_action'][0]):
-                self.result.addFailure(self, sys.exc_info())
-                self.fail(f"Failed to add table entry {table['match_action'][0]}")
+            for match_action in table['match_action']:
+                print (f"add back rule {match_action}")
+                if not ovs_p4ctl.ovs_p4ctl_add_entry(table['switch'], table['name'], match_action):
+                    self.result.addFailure(self, sys.exc_info())
+                    self.fail(f"Failed to add table entry {match_action}")
 
             print (details)
             time.sleep(30)

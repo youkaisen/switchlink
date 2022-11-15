@@ -37,7 +37,7 @@ import common.utils.ovsp4ctl_utils as ovs_p4ctl
 import common.utils.test_utils as test_utils
 import common.utils.ovs_utils as ovs_utils
 import common.utils.gnmi_cli_utils as gnmi_cli_utils
-from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict
+from common.utils.config_file_utils import get_config_dict, get_gnmi_params_simple, get_interface_ipv4_dict, get_gnmi_phy_with_ctrl_port
 from common.lib.telnet_connection import connectionManager
 import common.utils.tcpdump_utils as tcpdump_utils
 
@@ -59,6 +59,8 @@ class LNT_ECMP_2VM_2Host_netperf(BaseTest):
                           vm_cred=self.vm_cred, client_cred=test_params['client_cred'],
                                               remote_port = test_params['remote_port']) 
         self.gnmicli_params = get_gnmi_params_simple(self.config_data)
+        # in the case of a physical port configured with a control port
+        self.gnmicli_phy_ctrl_params = get_gnmi_phy_with_ctrl_port(self.config_data)
         self.tap_port_list =  gnmi_cli_utils.get_tap_port_list(self.config_data)
         self.link_port_list = gnmi_cli_utils.get_link_port_list(self.config_data)
         self.interface_ip_list = get_interface_ipv4_dict(self.config_data)
@@ -299,10 +301,9 @@ class LNT_ECMP_2VM_2Host_netperf(BaseTest):
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"FAIL: failed to set ethtool offload for {namespace['veth_if']} on {namespace['name']}")
             
-            if not test_utils.ipnetns_change_mtu(namespace['name'], namespace['veth_if'],mtu=1450, 
+            if not test_utils.ipnetns_change_mtu(namespace['name'], namespace['veth_if'],mtu=self.config_data['netperf']['mtu'], 
                     remote=True,hostname=self.config_data['client_hostname'], 
                          username=self.config_data['client_username'], password=self.config_data['client_password']):
-                
                 self.result.addFailure(self, sys.exc_info())
                 self.fail(f"FAIL: failed change mtu for {namespace['veth_if']} on {namespace['name']}")
         
@@ -313,61 +314,88 @@ class LNT_ECMP_2VM_2Host_netperf(BaseTest):
                 self.fail(f"FAIL: failed to start netserver on {namespace['name']}")
        
         print("\nSleep before sending netperf traffic")
-        time.sleep(20)      
+        time.sleep(10)
         #send netperf from local VM  
         for i in range(len(self.conn_obj_list)):
             for testname in self.config_data['netperf']['testname']:
-                print(f"execute netperf {testname} on VM{i}")
                 for ip in self.config_data['vm'][i]['remote_ip']:
                     print(f"execute netperf -H {ip} -l {self.config_data['netperf']['testlen']} -t {testname} " +
-                          f"{self.config_data['netperf']['cmd_option']} on VM{i}")
-                    if not test_utils.vm_netperf_client(self.conn_obj_list[i], ip, 
-                            self.config_data['netperf']['testlen'], testname,option = self.config_data['netperf']['cmd_option']):
+                        f"{self.config_data['netperf']['cmd_option']} on VM{i}")
+                    j =1; max=3
+                    while j <=max:
+                        if not test_utils.vm_netperf_client(self.conn_obj_list[i], ip,
+                            self.config_data['netperf']['testlen'], testname,
+                                    option = self.config_data['netperf']['cmd_option']):
+                            j +=1
+                            print (f"Try one more time to execute netperf due to previous failure")
+                        else:
+                            break
+                    if j>max:
                         self.result.addFailure(self, sys.exc_info())
-                        self.fail(f"FAIL: failed to get netperf data on VM{i}")
-        
+                        self.fail(f"FAIL: netperf test failed on VM{i} after {j} try")
+            
         # send netperf from remote name space VM
         for namespace in self.config_data['net_namespace']:                      
             for testname in self.config_data['netperf']['testname']:
                 print(f"execute netperf {testname} on net namespace {namespace['name']}")
                 for ip in namespace['remote_ip']:
-                    if not test_utils.ipnetns_netperf_client(namespace['name'], ip, self.config_data['netperf']['testlen'], 
-                        testname, remote=True, option = self.config_data['netperf']['cmd_option'], 
-                            hostname=self.config_data['client_hostname'], username=self.config_data['client_username'], 
-                                                                                  password=self.config_data['client_password'] ):
+                    j =1; max=3
+                    while j <=max:
+                        if not test_utils.ipnetns_netperf_client(namespace['name'], ip, self.config_data['netperf']['testlen'], 
+                                testname, remote=True, option = self.config_data['netperf']['cmd_option'], 
+                                    hostname=self.config_data['client_hostname'], username=self.config_data['client_username'], 
+                                                                                   password=self.config_data['client_password']):
+                            j +=1
+                            print (f"Try one more time to execute netperf due to previous failure")
+                        else:
+                            break
+                    if j>max:
                         self.result.addFailure(self, sys.exc_info())
-                        self.fail(f"FAIL: failed to get netperf data on name space {namespace['name']}")
+                        self.fail(f"FAIL: netperf test failed on VM{i} after {j} try")
         
+        print("Send netperf traffic to verify load balancing")            
         #Verify if the traffic is load balanced
-        send_port_id= self.config_data['traffic']['send_port'][0]
+        print (f"Record port {self.config_data['port'][0]['interface']} counter before sending traffic on VM0")
+        vm_int_count_before = test_utils.get_vm_interface_counter(self.conn_obj_list[0],self.config_data['port'][0]['interface'])
+        if not vm_int_count_before:
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"FAIL: unable to get counter of {self.config_data['port'][0]['interface']}")
+        
         #Record port counter before sending traffic
         send_count_list_before = []
         for send_port_id in self.config_data['traffic']['send_port']:
-            send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+            send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_phy_ctrl_params[send_port_id])
             if not send_cont:
                self.result.addFailure(self, sys.exc_info())
                print (f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
             send_count_list_before.append(send_cont)
             
         #Send netperf traffic across ecmp links from VM
-        print("Send netperf traffic to verify load balancing")
-        netperf_rslt = test_utils.vm_netperf_client(self.conn_obj_list[0], 
+        j =1; max=3
+        while j <=max:
+            if not test_utils.vm_netperf_client(self.conn_obj_list[0], 
                     self.config_data['vm'][0]['remote_ip'][1],
                         self.config_data['netperf']['testlen'], 
                             self.config_data['netperf']['testname'][0],
-                                 option = self.config_data['netperf']['cmd_option'])
-        
-        if not netperf_rslt:
+                                 option = self.config_data['netperf']['cmd_option']):
+                j +=1
+                print (f"Try one more time to execute netperf due to previous failure")
+            else:
+                break
+        if j>max:
             self.result.addFailure(self, sys.exc_info())
-            self.fail(f"FAIL: failed to get netperf data on VM0")
-            
-        #calculate netperf packet
-        num =  netperf_rslt['send_sckt_byte']/netperf_rslt['sned_msg_byte']
-        
+            self.fail(f"FAIL: netperf test failed on VM0 after {j} try")
+       
         #Record port counter after sending traffic
+        vm_int_count_after = test_utils.get_vm_interface_counter(self.conn_obj_list[0],self.config_data['port'][0]['interface'])
+        if not vm_int_count_after:
+                self.result.addFailure(self, sys.exc_info())
+                self.fail(f"FAIL: unable to get counter of {self.config_data['port'][0]['interface']}")
+        vm_packet =vm_int_count_after['TX']['packets'] - vm_int_count_before['TX']['packets']  
+            
         send_count_list_after = []
         for send_port_id in self.config_data['traffic']['send_port']:
-            send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_params[send_port_id])
+            send_cont = gnmi_cli_utils.gnmi_get_params_counter(self.gnmicli_phy_ctrl_params[send_port_id])
             if not send_cont:
                self.result.addFailure(self, sys.exc_info())
                print(f"FAIL: unable to get counter of {self.config_data['port'][send_port_id]['name']}")
@@ -378,22 +406,23 @@ class LNT_ECMP_2VM_2Host_netperf(BaseTest):
       
         for send_count_before,send_count_after in zip(send_count_list_before,send_count_list_after):
             stat = test_utils.compare_counter(send_count_after,send_count_before)
-            if not stat[counter_type] > 0:
+            if not stat[counter_type] >= 0:
                 print(f"FAIL: Packets are not forwarded on one of the ecmp links")
                 self.result.addFailure(self, sys.exc_info())
             stat_total = stat_total + stat[counter_type]
-        if stat_total >= num:
-            print(f"PASS: Minimum {num} packets expected and {stat_total} received")
-        else:
-            print(f"FAIL: {num} packets expected but {stat_total} received")
-            self.result.addFailure(self, sys.exc_info())
         
+        if stat_total + self.config_data['netperf']['delta'] >= vm_packet:
+            print(f"PASS: Minimum {vm_packet} packets expected and {stat_total} received")
+        else:
+            print(f"FAIL: {vm_packet} packets expected but {stat_total} received")
+            self.result.addFailure(self, sys.exc_info())
+       
         print (f"close VM telnet session")
         for conn in self.conn_obj_list:
             conn.close()
 
     def tearDown(self):
-
+      
         print("\nUnconfiguration on local host")
         print (f"Delete p4ovs match action rules on local host")
         for table in self.config_data['table']:
